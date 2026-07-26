@@ -229,6 +229,28 @@ final locationProvider =
 // Calculation method + Madhab (persisted settings)
 // ---------------------------------------------------------------------------
 
+extension CalculationMethodLabel on adhan.CalculationMethod {
+  /// Compact badge label for tight spaces. Falls back to the method's own
+  /// display name so newly added methods still render something meaningful.
+  String get shortLabel => switch (this) {
+        adhan.CalculationMethod.muslimWorldLeague => 'MWL',
+        adhan.CalculationMethod.northAmerica => 'ISNA',
+        adhan.CalculationMethod.ummAlQura => 'UAQ',
+        adhan.CalculationMethod.egyptian => 'Egypt',
+        adhan.CalculationMethod.karachi => 'Karachi',
+        adhan.CalculationMethod.turkiye => 'Diyanet',
+        adhan.CalculationMethod.dubai => 'Dubai',
+        adhan.CalculationMethod.qatar => 'Qatar',
+        adhan.CalculationMethod.kuwait => 'Kuwait',
+        adhan.CalculationMethod.singapore => 'Singapur',
+        adhan.CalculationMethod.france => 'UOIF',
+        adhan.CalculationMethod.jafari => 'Jafari',
+        adhan.CalculationMethod.tehran => 'Tehran',
+        adhan.CalculationMethod.moonsightingCommittee => 'Moonsighting',
+        _ => displayName,
+      };
+}
+
 class CalculationMethodNotifier extends Notifier<adhan.CalculationMethod> {
   @override
   adhan.CalculationMethod build() {

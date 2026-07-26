@@ -116,7 +116,10 @@ class _PrayersScreenState extends ConsumerState<PrayersScreen> {
       _ => LocationData.fallback.city,
     };
     final method = ref.watch(calculationMethodProvider);
-    final methodLabel = method.displayName;
+    // Short label, not displayName: the chip sits beside the city name and
+    // full names ("Union des Organisations Islamiques de France (UOIF)")
+    // overflow the row.
+    final methodLabel = method.shortLabel;
 
     final prayers = ref.watch(prayerTimesForDateProvider(_selectedDate));
     final notifications = ref.watch(prayerNotificationsProvider);

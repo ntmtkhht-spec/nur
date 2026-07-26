@@ -30,7 +30,13 @@ class GreetingHeader extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Assalamu alaikum,\n$userName',
+                  // No hardcoded line break: it stranded short names on a line
+                  // of their own. Let the text wrap only when it actually
+                  // needs to. The name is also optional, so avoid leaving a
+                  // dangling comma when it has not been set.
+                  userName.trim().isEmpty
+                      ? 'Assalamu alaikum'
+                      : 'Assalamu alaikum, ${userName.trim()}',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
@@ -86,7 +92,7 @@ class GreetingHeader extends ConsumerWidget {
                           Icon(Icons.calculate_outlined, size: 14, color: colors.textMuted),
                           const SizedBox(width: 4),
                           Text(
-                            'MWL', // Muslim World League as default
+                            ref.watch(calculationMethodProvider).shortLabel,
                             style: TextStyle(
                               fontSize: 13,
                               color: colors.textMuted,
