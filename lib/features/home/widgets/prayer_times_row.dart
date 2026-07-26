@@ -18,10 +18,15 @@ class PrayerTimesRow extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: Row(
+      // IntrinsicHeight + stretch keeps every tile the same height as the
+      // tallest one; otherwise a tile whose label needs more room ends up
+      // taller than its neighbours and the row looks ragged.
+      child: IntrinsicHeight(
+        child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (var i = 0; i < prayers.length; i++) ...[
-            if (i > 0) const SizedBox(width: AppSpacing.xs),
+            if (i > 0) const SizedBox(width: AppSpacing.xxs),
             Expanded(
               child: _PrayerTimeItem(
                 prayer: prayers[i],
@@ -58,6 +63,7 @@ class PrayerTimesRow extends ConsumerWidget {
             ),
           ],
         ],
+        ),
       ),
     );
   }
@@ -88,6 +94,12 @@ class _PrayerTimeItem extends StatelessWidget {
     };
   }
 
+  /// Six tiles share the screen width, leaving roughly 40dp of text space each
+  /// — far too little for "Sonnenaufgang". Its Arabic transliteration is used
+  /// here instead, which also matches the other five labels. The full German
+  /// name is still shown on the prayers screen, where there is room for it.
+  String get _label => prayer.name == 'Sonnenaufgang' ? 'Shuruq' : prayer.name;
+
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
@@ -108,7 +120,7 @@ class _PrayerTimeItem extends StatelessWidget {
           boxShadow: isActive ? AppShadows.glowGold : null,
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Stack(
               alignment: Alignment.topRight,
@@ -130,8 +142,10 @@ class _PrayerTimeItem extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.xs),
-            Text(
-              prayer.name,
+            // scaleDown shrinks the label rather than wrapping it, so a long
+            // name can never break mid-word across two lines.
+            _FittedLabel(
+              text: _label,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
@@ -139,8 +153,8 @@ class _PrayerTimeItem extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 2),
-            Text(
-              prayer.formattedTime,
+            _FittedLabel(
+              text: prayer.formattedTime,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -148,6 +162,31 @@ class _PrayerTimeItem extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Renders a single line of text that shrinks to fit its width instead of
+/// wrapping or overflowing.
+class _FittedLabel extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+
+  const _FittedLabel({required this.text, required this.style});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          text,
+          maxLines: 1,
+          softWrap: false,
+          style: style,
         ),
       ),
     );
