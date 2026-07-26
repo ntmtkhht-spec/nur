@@ -21,10 +21,36 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
     final qiblaBearing = ref.watch(qiblaBearingProvider);
     final distanceKm = ref.watch(distanceToKaabaProvider);
 
-    return SafeArea(
-      child: Column(
+    final colors = AppColors.of(context);
+
+    // Own Scaffold, so the screen works both as a bottom-nav tab and when
+    // pushed from the home grid. Without one, a pushed route has no Material
+    // ancestor: the background renders black and text falls back to Flutter's
+    // monospace-with-yellow-underline style.
+    return Scaffold(
+      backgroundColor: colors.background,
+      appBar: AppBar(
+        title: Text(
+          'Qibla',
+          style: TextStyle(
+            color: colors.textDark,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: colors.background,
+        iconTheme: IconThemeData(color: colors.primaryGreen),
+        elevation: 0,
+        actions: [
+          IconButton(
+            tooltip: 'Kompass kalibrieren',
+            icon: Icon(Icons.gps_fixed, size: 22, color: colors.primaryGreen),
+            onPressed: _showCalibrateHint,
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
         children: [
-          _Header(onCalibrate: _showCalibrateHint),
           Expanded(
             child: StreamBuilder<CompassEvent?>(
               stream: FlutterCompass.events,
@@ -42,9 +68,9 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
 
                 final heading = snapshot.data?.heading;
                 if (heading == null && !snapshot.hasData) {
-                  return const Center(
+                  return Center(
                     child: CircularProgressIndicator(
-                      color: AppColors.primaryGreen,
+                      color: colors.primaryGreen,
                     ),
                   );
                 }
@@ -63,6 +89,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -82,45 +109,6 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
         ),
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 3),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Header
-// ---------------------------------------------------------------------------
-
-class _Header extends StatelessWidget {
-  final VoidCallback onCalibrate;
-
-  const _Header({required this.onCalibrate});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-      child: Row(
-        children: [
-          const SizedBox(width: 48),
-          const Expanded(
-            child: Center(
-              child: Text(
-                'Qibla',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textDark,
-                ),
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.gps_fixed,
-                color: AppColors.primaryGreen, size: 22),
-            onPressed: onCalibrate,
-          ),
-        ],
       ),
     );
   }

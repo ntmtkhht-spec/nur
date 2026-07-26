@@ -190,14 +190,26 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
           ),
         ],
         const SizedBox(height: 20),
+        // Deliberately not "verlässt niemals dein Gerät": the mosque finder
+        // does send coordinates to OpenStreetMap, and it asks separately
+        // before doing so. Promising more than the app delivers would be a lie
+        // in exactly the place users check for one.
         const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.lock_outline, size: 14, color: AppColors.textMuted),
+            Padding(
+              padding: EdgeInsets.only(top: 2),
+              child: Icon(Icons.lock_outline,
+                  size: 14, color: AppColors.textMuted),
+            ),
             SizedBox(width: 6),
-            Text(
-              'Dein Standort verlässt niemals dein Gerät.',
-              style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+            Expanded(
+              child: Text(
+                'Gebetszeiten und Qibla werden auf deinem Gerät berechnet. '
+                'Nur die Moschee-Suche überträgt deinen Standort — und fragt '
+                'vorher.',
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted, height: 1.4),
+              ),
             ),
           ],
         ),

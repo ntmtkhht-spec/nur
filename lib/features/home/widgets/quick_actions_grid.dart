@@ -6,6 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../duas/duas_screen.dart';
+import '../../mosques/mosques_screen.dart';
+import '../../names/names_screen.dart';
+import '../../qibla/qibla_screen.dart';
 
 class QuickActionsGrid extends ConsumerWidget {
   const QuickActionsGrid({super.key});
@@ -47,6 +51,7 @@ class QuickActionsGrid extends ConsumerWidget {
                     child: _QuickActionTile(
                       icon: Icons.mosque_outlined,
                       label: "Moscheen",
+                      destination: (_) => const MosquesScreen(),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
@@ -54,6 +59,7 @@ class QuickActionsGrid extends ConsumerWidget {
                     child: _QuickActionTile(
                       icon: Icons.front_hand_outlined,
                       label: 'Duas',
+                      destination: (_) => const DuasScreen(),
                     ),
                   ),
                 ],
@@ -67,6 +73,7 @@ class QuickActionsGrid extends ConsumerWidget {
                     child: _QuickActionTile(
                       icon: Icons.explore_outlined,
                       label: 'Qibla',
+                      destination: (_) => const QiblaScreen(),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
@@ -74,6 +81,7 @@ class QuickActionsGrid extends ConsumerWidget {
                     child: _QuickActionTile(
                       icon: Icons.all_inclusive_outlined,
                       label: '99 Namen',
+                      destination: (_) => const NamesScreen(),
                     ),
                   ),
                 ],
@@ -270,7 +278,14 @@ class _QuickActionTile extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _QuickActionTile({required this.icon, required this.label});
+  /// Screen to push when tapped. Null keeps the "kommt bald" placeholder.
+  final WidgetBuilder? destination;
+
+  const _QuickActionTile({
+    required this.icon,
+    required this.label,
+    this.destination,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -288,12 +303,18 @@ class _QuickActionTile extends StatelessWidget {
         child: InkWell(
           borderRadius: AppRadius.circularLg,
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('$label kommt bald!'),
-                duration: const Duration(seconds: 1),
-                behavior: SnackBarBehavior.floating,
-              ),
+            if (destination == null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('$label kommt bald!'),
+                  duration: const Duration(seconds: 1),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              return;
+            }
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: destination!),
             );
           },
           child: Center(
