@@ -376,8 +376,14 @@ class _PrayerRow extends StatelessWidget {
     final timeColor = isActive ? AppColors.white : AppColors.textDark;
 
     return Container(
+      margin: isActive
+          ? const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
+          : EdgeInsets.zero,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      color: isActive ? AppColors.darkGreen : Colors.transparent,
+      decoration: BoxDecoration(
+        color: isActive ? AppColors.darkGreen : Colors.transparent,
+        borderRadius: isActive ? BorderRadius.circular(14) : null,
+      ),
       child: Row(
         children: [
           Expanded(
