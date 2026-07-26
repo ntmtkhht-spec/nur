@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:adhan_dart/adhan_dart.dart' as adhan;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -161,12 +161,43 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
     final data = LocationData(
       lat: position.latitude,
       lng: position.longitude,
-      city: 'Aktueller Standort',
+      city: await _resolveCityName(position.latitude, position.longitude),
     );
 
     await _persist(data);
     state = AsyncData(data);
     return data;
+  }
+
+  /// Reverse-geocodes coordinates into a human readable city label.
+  /// Falls back to formatted coordinates when no geocoder result is available
+  /// (offline, emulator without Google Play services, unnamed area).
+  Future<String> _resolveCityName(double lat, double lng) async {
+    try {
+      final placemarks = await Geocoding()
+          .placemarkFromCoordinates(lat, lng)
+          .timeout(const Duration(seconds: 8));
+
+      for (final p in placemarks) {
+        final city = p.locality?.trim().isNotEmpty == true
+            ? p.locality!.trim()
+            : p.subAdministrativeArea?.trim().isNotEmpty == true
+                ? p.subAdministrativeArea!.trim()
+                : p.administrativeArea?.trim().isNotEmpty == true
+                    ? p.administrativeArea!.trim()
+                    : null;
+        if (city == null) continue;
+
+        final country = p.country?.trim();
+        return country != null && country.isNotEmpty
+            ? '$city, $country'
+            : city;
+      }
+    } catch (_) {
+      // Geocoding unavailable — fall through to coordinate label.
+    }
+
+    return '${lat.toStringAsFixed(3)}, ${lng.toStringAsFixed(3)}';
   }
 
   /// Sets location explicitly, e.g. from manual city search.
