@@ -129,13 +129,23 @@ class _TodaysPrayersCard extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Heutige\nGebete',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: colors.textDark,
-                        height: 1.2,
+                    // One short line, for two reasons: the card is only about
+                    // a third of the screen wide, so a longer title collides
+                    // with the streak badge beside it; and the 200px row
+                    // height leaves no room for a second title line once the
+                    // ring, counter and caption are laid out. "Gebete" is
+                    // already carried by the caption underneath the counter.
+                    Flexible(
+                      child: Text(
+                        'Heute',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: colors.textDark,
+                          height: 1.2,
+                        ),
                       ),
                     ),
                     if (streak > 0)
