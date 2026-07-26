@@ -1,21 +1,14 @@
 class PrayerTime {
   final String name;
   final String arabicName;
-  final int hour;
-  final int minute;
+  final DateTime time;
 
   const PrayerTime({
     required this.name,
     required this.arabicName,
-    required this.hour,
-    required this.minute,
+    required this.time,
   });
 
   String get formattedTime =>
-      '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
-
-  DateTime todayAt() {
-    final now = DateTime.now();
-    return DateTime(now.year, now.month, now.day, hour, minute);
-  }
+      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
 }

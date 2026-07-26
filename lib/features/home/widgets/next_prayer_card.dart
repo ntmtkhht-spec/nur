@@ -37,7 +37,7 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
     final nextIndex = ref.watch(nextPrayerIndexProvider);
     final prayer = prayers[nextIndex];
 
-    final remaining = prayer.todayAt().difference(DateTime.now());
+    final remaining = prayer.time.difference(DateTime.now());
     final hours = remaining.inHours.abs();
     final minutes = (remaining.inMinutes % 60).abs();
 
