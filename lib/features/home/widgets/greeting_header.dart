@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 
 class GreetingHeader extends ConsumerWidget {
   const GreetingHeader({super.key});
@@ -11,10 +12,16 @@ class GreetingHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userName = ref.watch(userNameProvider);
     final hijriDate = ref.watch(hijriDateProvider);
+    final locationAsync = ref.watch(locationProvider);
+    final location = switch (locationAsync) {
+      AsyncData(:final value) => value,
+      _ => null,
+    };
     final now = DateTime.now();
+    final colors = AppColors.of(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -24,30 +31,74 @@ class GreetingHeader extends ConsumerWidget {
               children: [
                 Text(
                   'Assalamu alaikum,\n$userName',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.textDark,
+                    color: colors.textDark,
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   hijriDate,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.primaryGreen,
+                    color: colors.primaryGreen,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   _formatGermanDate(now),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.textMuted,
+                    color: colors.textMuted,
                   ),
                 ),
+                const SizedBox(height: AppSpacing.xs),
+                if (location != null)
+                  InkWell(
+                    borderRadius: AppRadius.circularSm,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Einstellungen für Standort öffnen...'),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 2.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.location_on, size: 14, color: colors.textMuted),
+                          const SizedBox(width: 4),
+                          Text(
+                            location.city,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: colors.textMuted,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.xs),
+                          Icon(Icons.calculate_outlined, size: 14, color: colors.textMuted),
+                          const SizedBox(width: 4),
+                          Text(
+                            'MWL', // Muslim World League as default
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: colors.textMuted,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(Icons.chevron_right, size: 16, color: colors.textMuted),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -56,15 +107,15 @@ class GreetingHeader extends ConsumerWidget {
             height: 50,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.cardBg,
+              color: colors.cardBg,
               border: Border.all(
-                color: AppColors.accentGold.withValues(alpha: 0.3),
+                color: colors.accentGold.withValues(alpha: 0.3),
                 width: 1.5,
               ),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.mosque_outlined,
-              color: AppColors.accentGold,
+              color: colors.accentGold,
               size: 26,
             ),
           ),

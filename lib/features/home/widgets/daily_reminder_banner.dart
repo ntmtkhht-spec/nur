@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 
 class DailyReminderBanner extends ConsumerWidget {
   const DailyReminderBanner({super.key});
@@ -10,19 +11,21 @@ class DailyReminderBanner extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final reminder = ref.watch(dailyReminderProvider);
+    final colors = AppColors.of(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.cardBg,
-          borderRadius: BorderRadius.circular(16),
+          color: colors.cardBg,
+          borderRadius: AppRadius.circularLg,
+          boxShadow: AppShadows.sm,
         ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: AppRadius.circularLg,
             onTap: () {},
             child: Row(
               children: [
@@ -30,40 +33,40 @@ class DailyReminderBanner extends ConsumerWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.accentGold.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
+                    color: colors.accentGold.withValues(alpha: 0.12),
+                    borderRadius: AppRadius.circularMd,
                   ),
                   child: const Center(
                     child: Text('🏮', style: TextStyle(fontSize: 24)),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         reminder.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.darkGreen,
+                          color: colors.darkGreen,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         reminder.subtitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textMuted,
+                          color: colors.textMuted,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.chevron_right_rounded,
-                  color: AppColors.textMuted,
+                  color: colors.textMuted,
                   size: 24,
                 ),
               ],

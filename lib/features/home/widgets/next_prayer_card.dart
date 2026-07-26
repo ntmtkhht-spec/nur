@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 
 class NextPrayerCard extends ConsumerStatefulWidget {
   const NextPrayerCard({super.key});
@@ -20,7 +21,7 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
   }
@@ -33,13 +34,14 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
 
   @override
   Widget build(BuildContext context) {
-    final prayers = ref.watch(prayerTimesProvider);
-    final nextIndex = ref.watch(nextPrayerIndexProvider);
-    final prayer = prayers[nextIndex];
+    final prayer = ref.watch(nextPrayerProvider);
+    final colors = AppColors.of(context);
+    final currentPrayer = ref.watch(currentPrayerProvider);
 
     final remaining = prayer.time.difference(DateTime.now());
     final hours = remaining.inHours.abs();
     final minutes = (remaining.inMinutes % 60).abs();
+    final seconds = (remaining.inSeconds % 60).abs();
 
     String countdownText;
     if (remaining.isNegative) {
@@ -47,17 +49,27 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
     } else if (hours > 0) {
       countdownText = 'in $hours Std $minutes Min';
     } else {
-      countdownText = 'in $minutes Min';
+      countdownText = 'in $minutes Min ${seconds.toString().padLeft(2, '0')} Sek';
+    }
+
+    double progress = 0.0;
+    if (currentPrayer != null) {
+      final totalDuration = prayer.time.difference(currentPrayer.time).inSeconds;
+      final elapsed = DateTime.now().difference(currentPrayer.time).inSeconds;
+      if (totalDuration > 0) {
+        progress = (elapsed / totalDuration).clamp(0.0, 1.0);
+      }
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
-          color: AppColors.darkGreen,
-          borderRadius: BorderRadius.circular(20),
+          color: colors.darkGreen,
+          borderRadius: AppRadius.circularXl,
+          boxShadow: AppShadows.md,
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
@@ -90,7 +102,7 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.lg),
                 Text(
                   prayer.name,
                   style: const TextStyle(
@@ -100,7 +112,7 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
                     height: 1.0,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xxs),
                 Text(
                   countdownText,
                   style: const TextStyle(
@@ -110,13 +122,23 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
                     height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   prayer.formattedTime,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.accentGold,
+                    color: colors.accentGold,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                ClipRRect(
+                  borderRadius: AppRadius.circularSm,
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    valueColor: AlwaysStoppedAnimation<Color>(colors.accentGold),
+                    minHeight: 6,
                   ),
                 ),
               ],

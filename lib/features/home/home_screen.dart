@@ -1,32 +1,81 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/providers/providers.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import 'widgets/daily_reminder_banner.dart';
 import 'widgets/greeting_header.dart';
 import 'widgets/next_prayer_card.dart';
 import 'widgets/prayer_times_row.dart';
 import 'widgets/quick_actions_grid.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const SafeArea(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locationAsync = ref.watch(locationProvider);
+    final hasLocationError = locationAsync.hasError;
+
+    return SafeArea(
       child: SingleChildScrollView(
-        physics: BouncingScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            SizedBox(height: 16),
-            GreetingHeader(),
-            SizedBox(height: 24),
-            NextPrayerCard(),
-            SizedBox(height: 20),
-            PrayerTimesRow(),
-            SizedBox(height: 20),
-            QuickActionsGrid(),
-            SizedBox(height: 20),
-            DailyReminderBanner(),
-            SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.md),
+            if (hasLocationError) ...[
+              const _LocationWarningBanner(),
+              const SizedBox(height: AppSpacing.md),
+            ],
+            const GreetingHeader(),
+            const SizedBox(height: AppSpacing.xl),
+            const NextPrayerCard(),
+            const SizedBox(height: AppSpacing.lg),
+            const PrayerTimesRow(),
+            const SizedBox(height: AppSpacing.lg),
+            const QuickActionsGrid(),
+            const SizedBox(height: AppSpacing.lg),
+            const DailyReminderBanner(),
+            const SizedBox(height: 120), // Bottom padding for bottom navigation bar
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LocationWarningBanner extends ConsumerWidget {
+  const _LocationWarningBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: Colors.red.withValues(alpha: 0.1),
+          border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
+          borderRadius: AppRadius.circularMd,
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.location_off_outlined, color: Colors.red, size: 24),
+            const SizedBox(width: AppSpacing.sm),
+            const Expanded(
+              child: Text(
+                'Standortzugriff fehlt. Gebetszeiten nutzen Standardwerte (Berlin).',
+                style: TextStyle(fontSize: 13, color: Colors.red),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                ref.read(locationProvider.notifier).detectViaGps();
+              },
+              child: const Text('Aktivieren', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            ),
           ],
         ),
       ),

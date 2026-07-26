@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 
 class QuickActionsGrid extends ConsumerWidget {
   const QuickActionsGrid({super.key});
@@ -12,31 +13,43 @@ class QuickActionsGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final prayers = ref.watch(prayerTimesProvider);
-    final completed = ref.watch(completedPrayersProvider);
+    final tracker = ref.watch(prayerTrackerProvider);
+    final logicalDate = ref.watch(logicalDateProvider);
+    
+    int completedCount = 0;
+    int totalPrayers = 0;
+    for (final p in prayers) {
+      if (p.isPrayer) {
+        totalPrayers++;
+        if (tracker['prayer_tracker_${logicalDate.year}_${logicalDate.month}_${logicalDate.day}_${p.name}'] == true) {
+          completedCount++;
+        }
+      }
+    }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: SizedBox(
         height: 200,
         child: Row(
           children: [
             Expanded(
               child: _TodaysPrayersCard(
-                completed: completed.length,
-                total: prayers.length,
+                completed: completedCount,
+                total: totalPrayers,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(
                 children: [
                   Expanded(
                     child: _QuickActionTile(
-                      icon: Icons.auto_stories_outlined,
-                      label: "Qur'an",
+                      icon: Icons.mosque_outlined,
+                      label: "Moscheen",
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppSpacing.sm),
                   Expanded(
                     child: _QuickActionTile(
                       icon: Icons.front_hand_outlined,
@@ -46,7 +59,7 @@ class QuickActionsGrid extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(
                 children: [
@@ -56,11 +69,11 @@ class QuickActionsGrid extends ConsumerWidget {
                       label: 'Qibla',
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppSpacing.sm),
                   Expanded(
                     child: _QuickActionTile(
-                      icon: Icons.motion_photos_on_outlined,
-                      label: 'Tasbih',
+                      icon: Icons.all_inclusive_outlined,
+                      label: '99 Namen',
                     ),
                   ),
                 ],
@@ -73,32 +86,83 @@ class QuickActionsGrid extends ConsumerWidget {
   }
 }
 
-class _TodaysPrayersCard extends StatelessWidget {
+class _TodaysPrayersCard extends ConsumerWidget {
   final int completed;
   final int total;
 
   const _TodaysPrayersCard({required this.completed, required this.total});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final streak = ref.watch(prayerTrackerProvider.notifier).currentStreak;
+    final colors = AppColors.of(context);
+
     return Container(
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(16),
+        color: colors.cardBg,
+        borderRadius: AppRadius.circularLg,
+        boxShadow: AppShadows.sm,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Heutige\nGebete',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
-              height: 1.2,
-            ),
-          ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: AppRadius.circularLg,
+        child: InkWell(
+          borderRadius: AppRadius.circularLg,
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => const Padding(
+                padding: EdgeInsets.all(24.0),
+                child: SafeArea(
+                  child: Text('7-Tage-Historie (Demnächst)'),
+                ),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Heutige\nGebete',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: colors.textDark,
+                        height: 1.2,
+                      ),
+                    ),
+                    if (streak > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.xxs),
+                        decoration: BoxDecoration(
+                          color: colors.accentGold.withValues(alpha: 0.1),
+                          borderRadius: AppRadius.circularSm,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.local_fire_department, size: 14, color: colors.accentGold),
+                            const SizedBox(width: 2),
+                            Text(
+                              '$streak',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: colors.accentGold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
           const Spacer(),
           Center(
             child: SizedBox(
@@ -115,7 +179,7 @@ class _TodaysPrayersCard extends StatelessWidget {
           Center(
             child: RichText(
               text: TextSpan(
-                style: const TextStyle(color: AppColors.textDark),
+                style: TextStyle(color: colors.textDark),
                 children: [
                   TextSpan(
                     text: '$completed',
@@ -135,18 +199,21 @@ class _TodaysPrayersCard extends StatelessWidget {
               ),
             ),
           ),
-          const Center(
+          Center(
             child: Text(
               'Gebete\nerledigt',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 11,
-                color: AppColors.textMuted,
+                color: colors.textMuted,
                 height: 1.3,
               ),
             ),
           ),
-        ],
+          ],
+        ),
+      ),
+      ),
       ),
     );
   }
@@ -197,16 +264,19 @@ class _QuickActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(16),
+        color: colors.cardBg,
+        borderRadius: AppRadius.circularLg,
+        boxShadow: AppShadows.sm,
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.circularLg,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.circularLg,
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -220,14 +290,14 @@ class _QuickActionTile extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 32, color: AppColors.darkGreen),
-                const SizedBox(height: 6),
+                Icon(icon, size: 32, color: colors.darkGreen),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   label,
-                  style: const TextStyle(
-                    fontSize: 13,
+                  style: TextStyle(
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.darkGreen,
+                    color: colors.darkGreen,
                   ),
                 ),
               ],

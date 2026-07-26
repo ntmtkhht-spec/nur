@@ -218,7 +218,7 @@ final madhabProvider =
 adhan.CalculationParameters resolveCalculationParameters(
   adhan.CalculationMethod method,
 ) {
-  return switch (method) {
+  final params = switch (method) {
     adhan.CalculationMethod.algerian =>
       adhan.CalculationMethodParameters.algerian(),
     adhan.CalculationMethod.dubai => adhan.CalculationMethodParameters.dubai(),
@@ -257,6 +257,10 @@ adhan.CalculationParameters resolveCalculationParameters(
     adhan.CalculationMethod.ummAlQura =>
       adhan.CalculationMethodParameters.ummAlQura(),
   };
+  
+  // Set default high latitude rule for Europe/Germany
+  params.highLatitudeRule = adhan.HighLatitudeRule.middleOfTheNight;
+  return params;
 }
 
 // ---------------------------------------------------------------------------
@@ -300,6 +304,25 @@ List<PrayerTime> computePrayerTimes({
   ];
 }
 
+final logicalDateProvider = Provider<DateTime>((ref) {
+  final locationAsync = ref.watch(locationProvider);
+  final location = switch (locationAsync) {
+    AsyncData(:final value) => value,
+    _ => LocationData.fallback,
+  };
+  final method = ref.watch(calculationMethodProvider);
+  final madhab = ref.watch(madhabProvider);
+  
+  var now = DateTime.now();
+  final prayers = computePrayerTimes(location: location, method: method, madhab: madhab, date: now);
+  final fajr = prayers.firstWhere((p) => p.name == 'Fajr').time;
+  
+  if (now.isBefore(fajr)) {
+    return now.subtract(const Duration(days: 1));
+  }
+  return now;
+});
+
 final prayerTimesProvider = Provider<List<PrayerTime>>((ref) {
   final locationAsync = ref.watch(locationProvider);
   final location = switch (locationAsync) {
@@ -308,8 +331,9 @@ final prayerTimesProvider = Provider<List<PrayerTime>>((ref) {
   };
   final method = ref.watch(calculationMethodProvider);
   final madhab = ref.watch(madhabProvider);
+  final date = ref.watch(logicalDateProvider);
 
-  return computePrayerTimes(location: location, method: method, madhab: madhab);
+  return computePrayerTimes(location: location, method: method, madhab: madhab, date: date, includeSunrise: true);
 });
 
 /// Returns prayer times for [date] (day-precision) including sunrise.
@@ -333,13 +357,51 @@ final prayerTimesForDateProvider =
   );
 });
 
-final nextPrayerIndexProvider = Provider<int>((ref) {
+final currentPrayerProvider = Provider<PrayerTime?>((ref) {
   final prayers = ref.watch(prayerTimesProvider);
   final now = DateTime.now();
-  for (var i = 0; i < prayers.length; i++) {
-    if (prayers[i].time.isAfter(now)) return i;
+  
+  // Find the last prayer that has started
+  PrayerTime? current;
+  for (final p in prayers) {
+    if (!p.isPrayer) continue;
+    if (now.isAfter(p.time) || now.isAtSameMomentAs(p.time)) {
+      current = p;
+    }
   }
-  return 0;
+  return current;
+});
+
+final nextPrayerProvider = Provider<PrayerTime>((ref) {
+  final prayers = ref.watch(prayerTimesProvider);
+  final now = DateTime.now();
+  
+  for (final p in prayers) {
+    if (!p.isPrayer) continue;
+    if (p.time.isAfter(now)) {
+      return p;
+    }
+  }
+  
+  // If no more prayers today, it's Fajr of tomorrow (relative to logicalDate)
+  final locationAsync = ref.watch(locationProvider);
+  final location = switch (locationAsync) {
+    AsyncData(:final value) => value,
+    _ => LocationData.fallback,
+  };
+  final method = ref.watch(calculationMethodProvider);
+  final madhab = ref.watch(madhabProvider);
+  final logicalDate = ref.watch(logicalDateProvider);
+  
+  final tomorrow = logicalDate.add(const Duration(days: 1));
+  final tomorrowPrayers = computePrayerTimes(
+    location: location,
+    method: method,
+    madhab: madhab,
+    date: DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 12),
+  );
+  
+  return tomorrowPrayers.firstWhere((p) => p.name == 'Fajr');
 });
 
 // ---------------------------------------------------------------------------
@@ -445,40 +507,112 @@ final prayerNotificationsProvider =
 );
 
 // ---------------------------------------------------------------------------
+// Qibla
+// ---------------------------------------------------------------------------
+
+/// Bearing from user's location to the Kaaba, in degrees clockwise from north.
+final qiblaBearingProvider = Provider<double>((ref) {
+  final locationAsync = ref.watch(locationProvider);
+  final location = switch (locationAsync) {
+    AsyncData(:final value) => value,
+    _ => LocationData.fallback,
+  };
+  final bearing =
+      adhan.Qibla.qibla(adhan.Coordinates(location.lat, location.lng));
+  return (bearing + 360) % 360;
+});
+
+/// Great-circle distance from user to the Kaaba, in km. Haversine.
+final distanceToKaabaProvider = Provider<double>((ref) {
+  final locationAsync = ref.watch(locationProvider);
+  final location = switch (locationAsync) {
+    AsyncData(:final value) => value,
+    _ => LocationData.fallback,
+  };
+  const kaabaLat = 21.4225241;
+  const kaabaLng = 39.8261818;
+  const earthRadiusKm = 6371.0;
+
+  double toRad(double d) => d * math.pi / 180.0;
+
+  final dLat = toRad(kaabaLat - location.lat);
+  final dLng = toRad(kaabaLng - location.lng);
+  final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+      math.cos(toRad(location.lat)) *
+          math.cos(toRad(kaabaLat)) *
+          math.sin(dLng / 2) *
+          math.sin(dLng / 2);
+  final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+  return earthRadiusKm * c;
+});
+
+// ---------------------------------------------------------------------------
 // Prayer Tracker (persistent)
 // ---------------------------------------------------------------------------
 
-class CompletedPrayersNotifier extends Notifier<Set<String>> {
-  String get _todayKey =>
-      'prayers_${DateTime.now().toIso8601String().substring(0, 10)}';
-
+class PrayerTrackerNotifier extends Notifier<Map<String, bool>> {
   @override
-  Set<String> build() {
+  Map<String, bool> build() {
     final prefs = ref.read(sharedPreferencesProvider);
-    final stored = prefs.getString(_todayKey);
-    if (stored != null) {
-      return (jsonDecode(stored) as List).cast<String>().toSet();
+    final keys = prefs.getKeys().where((k) => k.startsWith('prayer_tracker_'));
+    final Map<String, bool> data = {};
+    for (final key in keys) {
+      data[key] = prefs.getBool(key) ?? false;
     }
-    return {};
+    return data;
   }
 
-  void toggle(String prayerName) {
-    final updated = {...state};
-    if (updated.contains(prayerName)) {
-      updated.remove(prayerName);
-    } else {
-      updated.add(prayerName);
-    }
-    state = updated;
+  String _key(DateTime date, String prayerName) {
+    return 'prayer_tracker_${date.year}_${date.month}_${date.day}_$prayerName';
+  }
 
-    final prefs = ref.read(sharedPreferencesProvider);
-    prefs.setString(_todayKey, jsonEncode(updated.toList()));
+  bool isCompleted(DateTime date, String prayerName) {
+    return state[_key(date, prayerName)] ?? false;
+  }
+
+  void toggle(DateTime date, String prayerName) {
+    final key = _key(date, prayerName);
+    final current = state[key] ?? false;
+    ref.read(sharedPreferencesProvider).setBool(key, !current);
+    state = {...state, key: !current};
+  }
+
+  int get currentStreak {
+    int streak = 0;
+    DateTime date = DateTime.now();
+    final requiredPrayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
+    // We can't cleanly access providers inside a simple method if we don't have ref
+    // Wait, PrayerTrackerNotifier has `ref`!
+    final logicalDate = ref.read(logicalDateProvider);
+    date = logicalDate;
+
+    while (true) {
+      bool allCompleted = true;
+      for (final p in requiredPrayers) {
+        if (!isCompleted(date, p)) {
+          allCompleted = false;
+          break;
+        }
+      }
+      if (allCompleted) {
+        streak++;
+        date = date.subtract(const Duration(days: 1));
+      } else {
+        if (streak == 0 && date.day == logicalDate.day) {
+          date = date.subtract(const Duration(days: 1));
+          continue;
+        }
+        break;
+      }
+    }
+    return streak;
   }
 }
 
-final completedPrayersProvider =
-    NotifierProvider<CompletedPrayersNotifier, Set<String>>(
-  CompletedPrayersNotifier.new,
+final prayerTrackerProvider =
+    NotifierProvider<PrayerTrackerNotifier, Map<String, bool>>(
+  PrayerTrackerNotifier.new,
 );
 
 // ---------------------------------------------------------------------------
@@ -616,42 +750,4 @@ final dailyReminderProvider =
   return _reminders[dayOfYear % _reminders.length];
 });
 
-// ---------------------------------------------------------------------------
-// Qibla
-// ---------------------------------------------------------------------------
 
-/// Bearing from user's location to the Kaaba, in degrees clockwise from north.
-final qiblaBearingProvider = Provider<double>((ref) {
-  final locationAsync = ref.watch(locationProvider);
-  final location = switch (locationAsync) {
-    AsyncData(:final value) => value,
-    _ => LocationData.fallback,
-  };
-  final bearing =
-      adhan.Qibla.qibla(adhan.Coordinates(location.lat, location.lng));
-  return (bearing + 360) % 360;
-});
-
-/// Great-circle distance from user to the Kaaba, in km. Haversine.
-final distanceToKaabaProvider = Provider<double>((ref) {
-  final locationAsync = ref.watch(locationProvider);
-  final location = switch (locationAsync) {
-    AsyncData(:final value) => value,
-    _ => LocationData.fallback,
-  };
-  const kaabaLat = 21.4225241;
-  const kaabaLng = 39.8261818;
-  const earthRadiusKm = 6371.0;
-
-  double toRad(double d) => d * math.pi / 180.0;
-
-  final dLat = toRad(kaabaLat - location.lat);
-  final dLng = toRad(kaabaLng - location.lng);
-  final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-      math.cos(toRad(location.lat)) *
-          math.cos(toRad(kaabaLat)) *
-          math.sin(dLng / 2) *
-          math.sin(dLng / 2);
-  final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-  return earthRadiusKm * c;
-});

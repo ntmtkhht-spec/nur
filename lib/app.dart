@@ -9,6 +9,8 @@ import 'features/home/home_screen.dart';
 import 'features/onboarding/onboarding_flow.dart';
 import 'features/prayers/prayers_screen.dart';
 import 'features/qibla/qibla_screen.dart';
+import 'features/surah/screens/surah_list_screen.dart';
+import 'features/tasbih/tasbih_screen.dart';
 import 'shared/widgets/app_bottom_nav.dart';
 
 class NurApp extends StatelessWidget {
@@ -16,18 +18,12 @@ class NurApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
-      ),
-    );
-
     return MaterialApp(
       title: 'Nur',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       home: const _RootGate(),
     );
   }
@@ -53,13 +49,15 @@ class _MainShell extends StatefulWidget {
 class _MainShellState extends State<_MainShell> {
   int _currentIndex = 0;
 
-  static const _placeholderLabels = ["Qur'an", 'Mehr'];
+  static const _placeholderLabels = ["Qur'an", 'Qibla'];
 
   Widget _bodyForIndex(int index) {
     return switch (index) {
       0 => const HomeScreen(),
       1 => const PrayersScreen(),
-      3 => const QiblaScreen(),
+      2 => const SurahListScreen(), // Qur'an is golden center button
+      3 => const TasbihScreen(),
+      4 => const QiblaScreen(),
       _ => Center(
           child: Text(
             index == 2 ? _placeholderLabels[0] : _placeholderLabels[1],
@@ -74,8 +72,10 @@ class _MainShellState extends State<_MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: colors.background,
       body: _bodyForIndex(_currentIndex),
       bottomNavigationBar: AppBottomNav(
         currentIndex: _currentIndex,
