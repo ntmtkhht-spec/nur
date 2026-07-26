@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/providers/providers.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'features/home/home_screen.dart';
+import 'features/onboarding/onboarding_flow.dart';
 import 'shared/widgets/app_bottom_nav.dart';
 
 class NurApp extends StatelessWidget {
@@ -23,8 +26,18 @@ class NurApp extends StatelessWidget {
       title: 'Nur',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const _MainShell(),
+      home: const _RootGate(),
     );
+  }
+}
+
+class _RootGate extends ConsumerWidget {
+  const _RootGate();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasCompletedOnboarding = ref.watch(hasCompletedOnboardingProvider);
+    return hasCompletedOnboarding ? const _MainShell() : const OnboardingFlow();
   }
 }
 

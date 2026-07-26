@@ -17,6 +17,28 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 });
 
 // ---------------------------------------------------------------------------
+// Onboarding completion gate
+// ---------------------------------------------------------------------------
+
+class HasCompletedOnboardingNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final prefs = ref.read(sharedPreferencesProvider);
+    return prefs.getBool('onboarding_complete') ?? false;
+  }
+
+  void complete() {
+    ref.read(sharedPreferencesProvider).setBool('onboarding_complete', true);
+    state = true;
+  }
+}
+
+final hasCompletedOnboardingProvider =
+    NotifierProvider<HasCompletedOnboardingNotifier, bool>(
+  HasCompletedOnboardingNotifier.new,
+);
+
+// ---------------------------------------------------------------------------
 // User
 // ---------------------------------------------------------------------------
 
@@ -24,7 +46,7 @@ class UserNameNotifier extends Notifier<String> {
   @override
   String build() {
     final prefs = ref.read(sharedPreferencesProvider);
-    return prefs.getString('user_name') ?? 'Mohammed';
+    return prefs.getString('user_name') ?? '';
   }
 
   void update(String name) {
@@ -35,6 +57,26 @@ class UserNameNotifier extends Notifier<String> {
 
 final userNameProvider =
     NotifierProvider<UserNameNotifier, String>(UserNameNotifier.new);
+
+// ---------------------------------------------------------------------------
+// App language (preference persisted; only German is fully localized today)
+// ---------------------------------------------------------------------------
+
+class AppLanguageNotifier extends Notifier<String> {
+  @override
+  String build() {
+    final prefs = ref.read(sharedPreferencesProvider);
+    return prefs.getString('app_language') ?? 'Deutsch';
+  }
+
+  void update(String language) {
+    ref.read(sharedPreferencesProvider).setString('app_language', language);
+    state = language;
+  }
+}
+
+final appLanguageProvider =
+    NotifierProvider<AppLanguageNotifier, String>(AppLanguageNotifier.new);
 
 // ---------------------------------------------------------------------------
 // Location
@@ -68,57 +110,58 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
     final cachedCity = prefs.getString('cached_city') ?? 'Standort';
 
     if (cachedLat != null && cachedLng != null) {
-      _refreshGpsInBackground();
       return LocationData(lat: cachedLat, lng: cachedLng, city: cachedCity);
     }
 
-    return _fetchFromGps();
+    return LocationData.fallback;
   }
 
-  Future<LocationData> _fetchFromGps() async {
-    try {
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return LocationData.fallback;
+  /// Detects location via GPS. Returns the resolved data, or throws on failure.
+  Future<LocationData> detectViaGps() async {
+    state = const AsyncLoading();
 
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied ||
-            permission == LocationPermission.deniedForever) {
-          return LocationData.fallback;
-        }
-      }
-      if (permission == LocationPermission.deniedForever) {
-        return LocationData.fallback;
-      }
-
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings:
-            const LocationSettings(accuracy: LocationAccuracy.low),
-      );
-
-      final data = LocationData(
-        lat: position.latitude,
-        lng: position.longitude,
-      );
-
-      final prefs = ref.read(sharedPreferencesProvider);
-      await prefs.setDouble('cached_lat', data.lat);
-      await prefs.setDouble('cached_lng', data.lng);
-
-      return data;
-    } catch (_) {
-      return LocationData.fallback;
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      state = AsyncData(LocationData.fallback);
+      throw Exception('Standortdienste sind deaktiviert.');
     }
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      state = AsyncData(LocationData.fallback);
+      throw Exception('Standortzugriff wurde verweigert.');
+    }
+
+    final position = await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.low),
+    );
+
+    final data = LocationData(
+      lat: position.latitude,
+      lng: position.longitude,
+      city: 'Aktueller Standort',
+    );
+
+    await _persist(data);
+    state = AsyncData(data);
+    return data;
   }
 
-  Future<void> _refreshGpsInBackground() async {
-    try {
-      final data = await _fetchFromGps();
-      state = AsyncData(data);
-    } catch (_) {
-      // keep cached
-    }
+  /// Sets location explicitly, e.g. from manual city search.
+  Future<void> setManual(LocationData data) async {
+    await _persist(data);
+    state = AsyncData(data);
+  }
+
+  Future<void> _persist(LocationData data) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setDouble('cached_lat', data.lat);
+    await prefs.setDouble('cached_lng', data.lng);
+    await prefs.setString('cached_city', data.city);
   }
 }
 
@@ -126,8 +169,123 @@ final locationProvider =
     AsyncNotifierProvider<LocationNotifier, LocationData>(LocationNotifier.new);
 
 // ---------------------------------------------------------------------------
+// Calculation method + Madhab (persisted settings)
+// ---------------------------------------------------------------------------
+
+class CalculationMethodNotifier extends Notifier<adhan.CalculationMethod> {
+  @override
+  adhan.CalculationMethod build() {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final stored = prefs.getString('calculation_method');
+    if (stored == null) return adhan.CalculationMethod.muslimWorldLeague;
+    return adhan.CalculationMethod.values.firstWhere(
+      (m) => m.name == stored,
+      orElse: () => adhan.CalculationMethod.muslimWorldLeague,
+    );
+  }
+
+  void update(adhan.CalculationMethod method) {
+    ref.read(sharedPreferencesProvider).setString('calculation_method', method.name);
+    state = method;
+  }
+}
+
+final calculationMethodProvider =
+    NotifierProvider<CalculationMethodNotifier, adhan.CalculationMethod>(
+  CalculationMethodNotifier.new,
+);
+
+class MadhabNotifier extends Notifier<adhan.Madhab> {
+  @override
+  adhan.Madhab build() {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final stored = prefs.getString('madhab');
+    return stored == 'hanafi' ? adhan.Madhab.hanafi : adhan.Madhab.shafi;
+  }
+
+  void update(adhan.Madhab madhab) {
+    ref
+        .read(sharedPreferencesProvider)
+        .setString('madhab', madhab == adhan.Madhab.hanafi ? 'hanafi' : 'shafi');
+    state = madhab;
+  }
+}
+
+final madhabProvider =
+    NotifierProvider<MadhabNotifier, adhan.Madhab>(MadhabNotifier.new);
+
+adhan.CalculationParameters resolveCalculationParameters(
+  adhan.CalculationMethod method,
+) {
+  return switch (method) {
+    adhan.CalculationMethod.algerian =>
+      adhan.CalculationMethodParameters.algerian(),
+    adhan.CalculationMethod.dubai => adhan.CalculationMethodParameters.dubai(),
+    adhan.CalculationMethod.egyptian =>
+      adhan.CalculationMethodParameters.egyptian(),
+    adhan.CalculationMethod.france => adhan.CalculationMethodParameters.france(),
+    adhan.CalculationMethod.gulfRegion =>
+      adhan.CalculationMethodParameters.gulfRegion(),
+    adhan.CalculationMethod.indonesian =>
+      adhan.CalculationMethodParameters.indonesian(),
+    adhan.CalculationMethod.jafari => adhan.CalculationMethodParameters.jafari(),
+    adhan.CalculationMethod.jordan => adhan.CalculationMethodParameters.jordan(),
+    adhan.CalculationMethod.karachi =>
+      adhan.CalculationMethodParameters.karachi(),
+    adhan.CalculationMethod.kuwait => adhan.CalculationMethodParameters.kuwait(),
+    adhan.CalculationMethod.moonsightingCommittee =>
+      adhan.CalculationMethodParameters.moonsightingCommittee(),
+    adhan.CalculationMethod.morocco =>
+      adhan.CalculationMethodParameters.morocco(),
+    adhan.CalculationMethod.muslimWorldLeague =>
+      adhan.CalculationMethodParameters.muslimWorldLeague(),
+    adhan.CalculationMethod.northAmerica =>
+      adhan.CalculationMethodParameters.northAmerica(),
+    adhan.CalculationMethod.other => adhan.CalculationMethodParameters.other(),
+    adhan.CalculationMethod.portugal =>
+      adhan.CalculationMethodParameters.portugal(),
+    adhan.CalculationMethod.qatar => adhan.CalculationMethodParameters.qatar(),
+    adhan.CalculationMethod.russia => adhan.CalculationMethodParameters.russia(),
+    adhan.CalculationMethod.singapore =>
+      adhan.CalculationMethodParameters.singapore(),
+    adhan.CalculationMethod.tehran => adhan.CalculationMethodParameters.tehran(),
+    adhan.CalculationMethod.tunisia =>
+      adhan.CalculationMethodParameters.tunisia(),
+    adhan.CalculationMethod.turkiye =>
+      adhan.CalculationMethodParameters.turkiye(),
+    adhan.CalculationMethod.ummAlQura =>
+      adhan.CalculationMethodParameters.ummAlQura(),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Prayer Times (real calculation)
 // ---------------------------------------------------------------------------
+
+List<PrayerTime> computePrayerTimes({
+  required LocationData location,
+  required adhan.CalculationMethod method,
+  required adhan.Madhab madhab,
+  DateTime? date,
+}) {
+  final coords = adhan.Coordinates(location.lat, location.lng);
+  final params = resolveCalculationParameters(method);
+  params.madhab = madhab;
+
+  final pt = adhan.PrayerTimes(
+    date: date ?? DateTime.now(),
+    coordinates: coords,
+    calculationParameters: params,
+  );
+
+  return [
+    PrayerTime(name: 'Fajr', arabicName: 'الفجر', time: pt.fajr),
+    PrayerTime(name: 'Dhuhr', arabicName: 'الظهر', time: pt.dhuhr),
+    PrayerTime(name: 'Asr', arabicName: 'العصر', time: pt.asr),
+    PrayerTime(name: 'Maghrib', arabicName: 'المغرب', time: pt.maghrib),
+    PrayerTime(name: 'Isha', arabicName: 'العشاء', time: pt.isha),
+  ];
+}
 
 final prayerTimesProvider = Provider<List<PrayerTime>>((ref) {
   final locationAsync = ref.watch(locationProvider);
@@ -135,45 +293,10 @@ final prayerTimesProvider = Provider<List<PrayerTime>>((ref) {
     AsyncData(:final value) => value,
     _ => LocationData.fallback,
   };
+  final method = ref.watch(calculationMethodProvider);
+  final madhab = ref.watch(madhabProvider);
 
-  final coords = adhan.Coordinates(location.lat, location.lng);
-  final params = adhan.CalculationMethodParameters.muslimWorldLeague();
-  params.madhab = adhan.Madhab.hanafi;
-
-  final now = DateTime.now();
-  final pt = adhan.PrayerTimes(
-    date: now,
-    coordinates: coords,
-    calculationParameters: params,
-  );
-
-  return [
-    PrayerTime(
-      name: 'Fajr',
-      arabicName: 'الفجر',
-      time: pt.fajr,
-    ),
-    PrayerTime(
-      name: 'Dhuhr',
-      arabicName: 'الظهر',
-      time: pt.dhuhr,
-    ),
-    PrayerTime(
-      name: 'Asr',
-      arabicName: 'العصر',
-      time: pt.asr,
-    ),
-    PrayerTime(
-      name: 'Maghrib',
-      arabicName: 'المغرب',
-      time: pt.maghrib,
-    ),
-    PrayerTime(
-      name: 'Isha',
-      arabicName: 'العشاء',
-      time: pt.isha,
-    ),
-  ];
+  return computePrayerTimes(location: location, method: method, madhab: madhab);
 });
 
 final nextPrayerIndexProvider = Provider<int>((ref) {
@@ -189,28 +312,73 @@ final nextPrayerIndexProvider = Provider<int>((ref) {
 // Hijri Date
 // ---------------------------------------------------------------------------
 
+const _hijriMonthNamesDE = {
+  1: 'Muharram',
+  2: 'Safar',
+  3: 'Rabi al-Awwal',
+  4: 'Rabi ath-Thani',
+  5: 'Dschumada l-Ula',
+  6: 'Dschumada th-Thaniya',
+  7: 'Radschab',
+  8: 'Schaban',
+  9: 'Ramadan',
+  10: 'Schawwal',
+  11: 'Dhu l-Qada',
+  12: 'Dhu l-Hiddscha',
+};
+
 final hijriDateProvider = Provider<String>((ref) {
   HijriCalendar.setLocal('ar');
   final hijri = HijriCalendar.now();
-
-  const monthNamesDE = {
-    1: 'Muharram',
-    2: 'Safar',
-    3: 'Rabi al-Awwal',
-    4: 'Rabi ath-Thani',
-    5: 'Dschumada l-Ula',
-    6: 'Dschumada th-Thaniya',
-    7: 'Radschab',
-    8: 'Schaban',
-    9: 'Ramadan',
-    10: 'Schawwal',
-    11: 'Dhu l-Qada',
-    12: 'Dhu l-Hiddscha',
-  };
-
-  final monthName = monthNamesDE[hijri.hMonth] ?? hijri.longMonthName;
+  final monthName = _hijriMonthNamesDE[hijri.hMonth] ?? hijri.longMonthName;
   return '${hijri.hDay} $monthName ${hijri.hYear}';
 });
+
+// ---------------------------------------------------------------------------
+// Adhan notification settings
+// ---------------------------------------------------------------------------
+
+enum MuezzinVoice { misharyAlafasy, makkahAdhan, silent }
+
+class MuezzinVoiceNotifier extends Notifier<MuezzinVoice> {
+  @override
+  MuezzinVoice build() {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final stored = prefs.getString('muezzin_voice');
+    return MuezzinVoice.values.firstWhere(
+      (v) => v.name == stored,
+      orElse: () => MuezzinVoice.misharyAlafasy,
+    );
+  }
+
+  void update(MuezzinVoice voice) {
+    ref.read(sharedPreferencesProvider).setString('muezzin_voice', voice.name);
+    state = voice;
+  }
+}
+
+final muezzinVoiceProvider =
+    NotifierProvider<MuezzinVoiceNotifier, MuezzinVoice>(
+  MuezzinVoiceNotifier.new,
+);
+
+class NotificationsEnabledNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    final prefs = ref.read(sharedPreferencesProvider);
+    return prefs.getBool('notifications_enabled') ?? false;
+  }
+
+  void set(bool enabled) {
+    ref.read(sharedPreferencesProvider).setBool('notifications_enabled', enabled);
+    state = enabled;
+  }
+}
+
+final notificationsEnabledProvider =
+    NotifierProvider<NotificationsEnabledNotifier, bool>(
+  NotificationsEnabledNotifier.new,
+);
 
 // ---------------------------------------------------------------------------
 // Prayer Tracker (persistent)
