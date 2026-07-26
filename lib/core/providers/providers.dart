@@ -281,18 +281,22 @@ List<PrayerTime> computePrayerTimes({
   );
 
   return [
-    PrayerTime(name: 'Fajr', arabicName: 'الفجر', time: pt.fajr),
+    PrayerTime(name: 'Fajr', arabicName: 'الفجر', time: pt.fajr.toLocal()),
     if (includeSunrise)
       PrayerTime(
         name: 'Sonnenaufgang',
         arabicName: 'الشروق',
-        time: pt.sunrise,
+        time: pt.sunrise.toLocal(),
         isPrayer: false,
       ),
-    PrayerTime(name: 'Dhuhr', arabicName: 'الظهر', time: pt.dhuhr),
-    PrayerTime(name: 'Asr', arabicName: 'العصر', time: pt.asr),
-    PrayerTime(name: 'Maghrib', arabicName: 'المغرب', time: pt.maghrib),
-    PrayerTime(name: 'Isha', arabicName: 'العشاء', time: pt.isha),
+    PrayerTime(name: 'Dhuhr', arabicName: 'الظهر', time: pt.dhuhr.toLocal()),
+    PrayerTime(name: 'Asr', arabicName: 'العصر', time: pt.asr.toLocal()),
+    PrayerTime(
+      name: 'Maghrib',
+      arabicName: 'المغرب',
+      time: pt.maghrib.toLocal(),
+    ),
+    PrayerTime(name: 'Isha', arabicName: 'العشاء', time: pt.isha.toLocal()),
   ];
 }
 
