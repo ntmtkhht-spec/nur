@@ -137,6 +137,10 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
       throw Exception('Standortzugriff wurde verweigert.');
     }
 
+    /// A cached fix older than this is not trustworthy enough to drive prayer
+    /// times — the user may have travelled a long way since it was recorded.
+    const maxCachedFixAge = Duration(minutes: 2);
+
     Position? position;
     try {
       position = await Geolocator.getCurrentPosition(
@@ -146,15 +150,19 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
         ),
       );
     } catch (_) {
-      // Fallback to last known position if live fetch times out
-      // (common on emulators without a configured location).
-      position = await Geolocator.getLastKnownPosition();
+      // Live fetch failed or timed out. A recent cached fix is acceptable,
+      // but a stale one would silently produce wrong prayer times.
+      final cached = await Geolocator.getLastKnownPosition();
+      if (cached != null) {
+        final age = DateTime.now().difference(cached.timestamp);
+        if (age <= maxCachedFixAge) position = cached;
+      }
     }
 
     if (position == null) {
       state = AsyncData(LocationData.fallback);
       throw Exception(
-        'Standort konnte nicht ermittelt werden. Bitte manuell suchen.',
+        'Kein aktueller Standort verfügbar. Bitte Stadt manuell suchen.',
       );
     }
 
