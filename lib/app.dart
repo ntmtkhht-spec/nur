@@ -8,6 +8,7 @@ import 'core/theme/app_theme.dart';
 import 'features/home/home_screen.dart';
 import 'features/onboarding/onboarding_flow.dart';
 import 'features/prayers/prayers_screen.dart';
+import 'features/qibla/qibla_screen.dart';
 import 'shared/widgets/app_bottom_nav.dart';
 
 class NurApp extends StatelessWidget {
@@ -52,15 +53,16 @@ class _MainShell extends StatefulWidget {
 class _MainShellState extends State<_MainShell> {
   int _currentIndex = 0;
 
-  static const _placeholderLabels = ["Qur'an", 'Qibla', 'Mehr'];
+  static const _placeholderLabels = ["Qur'an", 'Mehr'];
 
   Widget _bodyForIndex(int index) {
     return switch (index) {
       0 => const HomeScreen(),
       1 => const PrayersScreen(),
+      3 => const QiblaScreen(),
       _ => Center(
           child: Text(
-            _placeholderLabels[index - 2],
+            index == 2 ? _placeholderLabels[0] : _placeholderLabels[1],
             style: const TextStyle(
               fontSize: 18,
               color: AppColors.textMuted,

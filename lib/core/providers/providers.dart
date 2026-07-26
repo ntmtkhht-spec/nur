@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:adhan_dart/adhan_dart.dart' as adhan;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -609,4 +610,44 @@ final dailyReminderProvider =
       .difference(DateTime(DateTime.now().year, 1, 1))
       .inDays;
   return _reminders[dayOfYear % _reminders.length];
+});
+
+// ---------------------------------------------------------------------------
+// Qibla
+// ---------------------------------------------------------------------------
+
+/// Bearing from user's location to the Kaaba, in degrees clockwise from north.
+final qiblaBearingProvider = Provider<double>((ref) {
+  final locationAsync = ref.watch(locationProvider);
+  final location = switch (locationAsync) {
+    AsyncData(:final value) => value,
+    _ => LocationData.fallback,
+  };
+  final bearing =
+      adhan.Qibla.qibla(adhan.Coordinates(location.lat, location.lng));
+  return (bearing + 360) % 360;
+});
+
+/// Great-circle distance from user to the Kaaba, in km. Haversine.
+final distanceToKaabaProvider = Provider<double>((ref) {
+  final locationAsync = ref.watch(locationProvider);
+  final location = switch (locationAsync) {
+    AsyncData(:final value) => value,
+    _ => LocationData.fallback,
+  };
+  const kaabaLat = 21.4225241;
+  const kaabaLng = 39.8261818;
+  const earthRadiusKm = 6371.0;
+
+  double toRad(double d) => d * math.pi / 180.0;
+
+  final dLat = toRad(kaabaLat - location.lat);
+  final dLng = toRad(kaabaLng - location.lng);
+  final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+      math.cos(toRad(location.lat)) *
+          math.cos(toRad(kaabaLat)) *
+          math.sin(dLng / 2) *
+          math.sin(dLng / 2);
+  final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+  return earthRadiusKm * c;
 });
