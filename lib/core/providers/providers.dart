@@ -267,6 +267,7 @@ List<PrayerTime> computePrayerTimes({
   required adhan.CalculationMethod method,
   required adhan.Madhab madhab,
   DateTime? date,
+  bool includeSunrise = false,
 }) {
   final coords = adhan.Coordinates(location.lat, location.lng);
   final params = resolveCalculationParameters(method);
@@ -280,6 +281,13 @@ List<PrayerTime> computePrayerTimes({
 
   return [
     PrayerTime(name: 'Fajr', arabicName: 'الفجر', time: pt.fajr),
+    if (includeSunrise)
+      PrayerTime(
+        name: 'Sonnenaufgang',
+        arabicName: 'الشروق',
+        time: pt.sunrise,
+        isPrayer: false,
+      ),
     PrayerTime(name: 'Dhuhr', arabicName: 'الظهر', time: pt.dhuhr),
     PrayerTime(name: 'Asr', arabicName: 'العصر', time: pt.asr),
     PrayerTime(name: 'Maghrib', arabicName: 'المغرب', time: pt.maghrib),
@@ -297,6 +305,27 @@ final prayerTimesProvider = Provider<List<PrayerTime>>((ref) {
   final madhab = ref.watch(madhabProvider);
 
   return computePrayerTimes(location: location, method: method, madhab: madhab);
+});
+
+/// Returns prayer times for [date] (day-precision) including sunrise.
+/// Used by the prayers screen where the user browses per day.
+final prayerTimesForDateProvider =
+    Provider.family<List<PrayerTime>, DateTime>((ref, date) {
+  final locationAsync = ref.watch(locationProvider);
+  final location = switch (locationAsync) {
+    AsyncData(:final value) => value,
+    _ => LocationData.fallback,
+  };
+  final method = ref.watch(calculationMethodProvider);
+  final madhab = ref.watch(madhabProvider);
+
+  return computePrayerTimes(
+    location: location,
+    method: method,
+    madhab: madhab,
+    date: DateTime(date.year, date.month, date.day, 12),
+    includeSunrise: true,
+  );
 });
 
 final nextPrayerIndexProvider = Provider<int>((ref) {
@@ -378,6 +407,36 @@ class NotificationsEnabledNotifier extends Notifier<bool> {
 final notificationsEnabledProvider =
     NotifierProvider<NotificationsEnabledNotifier, bool>(
   NotificationsEnabledNotifier.new,
+);
+
+/// Which individual prayers should trigger an Adhan notification.
+/// Default: all five prayers enabled.
+class PrayerNotificationsNotifier extends Notifier<Set<String>> {
+  static const _key = 'prayer_notifications';
+  static const _defaults = {'Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'};
+
+  @override
+  Set<String> build() {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final stored = prefs.getStringList(_key);
+    return stored?.toSet() ?? _defaults;
+  }
+
+  void toggle(String prayerName) {
+    final updated = {...state};
+    if (updated.contains(prayerName)) {
+      updated.remove(prayerName);
+    } else {
+      updated.add(prayerName);
+    }
+    state = updated;
+    ref.read(sharedPreferencesProvider).setStringList(_key, updated.toList());
+  }
+}
+
+final prayerNotificationsProvider =
+    NotifierProvider<PrayerNotificationsNotifier, Set<String>>(
+  PrayerNotificationsNotifier.new,
 );
 
 // ---------------------------------------------------------------------------
