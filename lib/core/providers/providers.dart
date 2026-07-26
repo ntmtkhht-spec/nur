@@ -137,9 +137,26 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
       throw Exception('Standortzugriff wurde verweigert.');
     }
 
-    final position = await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.low),
-    );
+    Position? position;
+    try {
+      position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.low,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+    } catch (_) {
+      // Fallback to last known position if live fetch times out
+      // (common on emulators without a configured location).
+      position = await Geolocator.getLastKnownPosition();
+    }
+
+    if (position == null) {
+      state = AsyncData(LocationData.fallback);
+      throw Exception(
+        'Standort konnte nicht ermittelt werden. Bitte manuell suchen.',
+      );
+    }
 
     final data = LocationData(
       lat: position.latitude,
