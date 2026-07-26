@@ -313,9 +313,6 @@ adhan.CalculationParameters resolveCalculationParameters(
     adhan.CalculationMethod.ummAlQura =>
       adhan.CalculationMethodParameters.ummAlQura(),
   };
-  
-  // Set default high latitude rule for Europe/Germany
-  params.highLatitudeRule = adhan.HighLatitudeRule.middleOfTheNight;
   return params;
 }
 
@@ -333,6 +330,23 @@ List<PrayerTime> computePrayerTimes({
   final coords = adhan.Coordinates(location.lat, location.lng);
   final params = resolveCalculationParameters(method);
   params.madhab = madhab;
+
+  // At high latitudes the sun never descends far enough below the horizon for
+  // the method's Fajr/Isha angles to be reached (Berlin in July, for example),
+  // so those two times must fall back to a night-fraction rule.
+  //
+  // twilightAngle (fajrAngle/60 and ishaAngle/60 of the night) is used rather
+  // than HighLatitudeRule.recommended(), which returns seventhOfTheNight above
+  // 48° latitude. Compared against published timetables for 26 July:
+  //   Berlin   twilightAngle Fajr 02:50 / Isha 23:27  (tables ~02:50 / ~23:30)
+  //            seventhOfTheNight  04:07 /       22:18  — both far off
+  //            middleOfTheNight   01:15 /       00:12  — both far off
+  //   Istanbul twilightAngle Fajr 03:59  (tables ~03:55)
+  //            seventhOfTheNight  04:33      — off
+  // All three rules are only clamps: where the true angle is reachable
+  // (Berlin in January, Makkah year-round) they produce identical output, so
+  // this never distorts normal latitudes.
+  params.highLatitudeRule = adhan.HighLatitudeRule.twilightAngle;
 
   final pt = adhan.PrayerTimes(
     date: date ?? DateTime.now(),
