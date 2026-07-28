@@ -64,7 +64,6 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(AppSpacing.xl),
         decoration: BoxDecoration(
           color: colors.darkGreen,
           borderRadius: AppRadius.circularXl,
@@ -77,7 +76,12 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
               child: Image.asset(
                 'assets/images/ChatGPT Image 28. Juli 2026, 19_52_26.png',
                 fit: BoxFit.cover,
-                alignment: Alignment.centerRight,
+                // bottomRight, not centerRight: the mosque skyline sits in
+                // the bottom third of the source image. Centering vertically
+                // cropped into the buildings and made the horizon float
+                // awkwardly mid-card instead of grounding it at the card's
+                // bottom edge.
+                alignment: Alignment.bottomRight,
               ),
             ),
             // The artwork is a mosque skyline sitting on the card's dark
@@ -100,7 +104,13 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
                 ),
               ),
             ),
-            Column(
+            // Padding lives here, on the text layer only. It used to sit on
+            // the outer Container, which pushed the Positioned.fill image
+            // and gradient inward too — leaving a plain dark-green margin on
+            // every side instead of the artwork reaching the card's edges.
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
@@ -165,6 +175,7 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
                   ),
                 ),
               ],
+              ),
             ),
           ],
         ),
