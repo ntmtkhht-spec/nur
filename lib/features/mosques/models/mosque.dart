@@ -52,4 +52,34 @@ class Mosque {
   String get formattedDistance => distanceMeters < 1000
       ? '${distanceMeters.round()} m'
       : '${(distanceMeters / 1000).toStringAsFixed(1)} km';
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'lat': lat,
+        'lng': lng,
+        'distanceMeters': distanceMeters,
+        'street': street,
+        'houseNumber': houseNumber,
+        'postcode': postcode,
+        'city': city,
+        'website': website,
+        'phone': phone,
+        'denomination': denomination,
+      };
+
+  factory Mosque.fromJson(Map<String, dynamic> json) => Mosque(
+        id: json['id'] as int,
+        name: json['name'] as String,
+        lat: (json['lat'] as num).toDouble(),
+        lng: (json['lng'] as num).toDouble(),
+        distanceMeters: (json['distanceMeters'] as num).toDouble(),
+        street: json['street'] as String?,
+        houseNumber: json['houseNumber'] as String?,
+        postcode: json['postcode'] as String?,
+        city: json['city'] as String?,
+        website: json['website'] as String?,
+        phone: json['phone'] as String?,
+        denomination: json['denomination'] as String?,
+      );
 }

@@ -33,7 +33,10 @@ class MosquesScreen extends ConsumerWidget {
             IconButton(
               tooltip: 'Aktualisieren',
               icon: Icon(Icons.refresh, color: colors.primaryGreen),
-              onPressed: () => ref.invalidate(nearbyMosquesProvider),
+              // .refresh(), not invalidate(): invalidating just reruns build(),
+              // which would hit the cache again and look like nothing happened.
+              onPressed: () =>
+                  ref.read(nearbyMosquesProvider.notifier).refresh(),
             ),
         ],
       ),
@@ -186,7 +189,8 @@ class _MosqueResults extends ConsumerWidget {
               ),
             AsyncError(:final error) => _ErrorState(
                 message: error.toString().replaceFirst('Exception: ', ''),
-                onRetry: () => ref.invalidate(nearbyMosquesProvider),
+                onRetry: () =>
+                    ref.read(nearbyMosquesProvider.notifier).refresh(),
               ),
             AsyncData(:final value) => value.isEmpty
                 ? _EmptyState(radiusMeters: radius)
