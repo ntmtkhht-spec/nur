@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -75,7 +74,31 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: CustomPaint(painter: _IslamicPatternPainter()),
+              child: Image.asset(
+                'assets/images/ChatGPT Image 28. Juli 2026, 19_52_26.png',
+                fit: BoxFit.cover,
+                alignment: Alignment.centerRight,
+              ),
+            ),
+            // The artwork is a mosque skyline sitting on the card's dark
+            // green base colour, so it reads as a subtle scene rather than a
+            // photo pasted on top. A left-to-right fade keeps the text side
+            // fully readable without hiding the artwork on the right.
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      colors.darkGreen,
+                      colors.darkGreen.withValues(alpha: 0.55),
+                      colors.darkGreen.withValues(alpha: 0.0),
+                    ],
+                    stops: const [0.0, 0.55, 1.0],
+                  ),
+                ),
+              ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,72 +171,4 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
       ),
     );
   }
-}
-
-class _IslamicPatternPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.05)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-
-    final cx = size.width * 0.80;
-    final cy = size.height * 0.28;
-
-    for (final s in [40.0, 65.0, 90.0, 115.0]) {
-      _drawRotatedSquare(canvas, cx, cy, s, 0, paint);
-      _drawRotatedSquare(canvas, cx, cy, s, pi / 4, paint);
-    }
-
-    _drawRotatedSquare(canvas, cx, cy, 75, pi / 8, paint);
-    _drawRotatedSquare(canvas, cx, cy, 100, pi / 8, paint);
-
-    for (final r in [20.0, 45.0, 70.0, 95.0]) {
-      canvas.drawCircle(Offset(cx, cy), r, paint);
-    }
-
-    final linePaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.04)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8;
-
-    for (var i = 0; i < 16; i++) {
-      final angle = i * pi / 8;
-      canvas.drawLine(
-        Offset(cx + cos(angle) * 12, cy + sin(angle) * 12),
-        Offset(cx + cos(angle) * 95, cy + sin(angle) * 95),
-        linePaint,
-      );
-    }
-
-    final dotPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.06)
-      ..style = PaintingStyle.fill;
-
-    for (var i = 0; i < 8; i++) {
-      final angle = i * pi / 4;
-      for (final r in [30.0, 55.0, 80.0]) {
-        canvas.drawCircle(
-          Offset(cx + cos(angle) * r, cy + sin(angle) * r),
-          2.0,
-          dotPaint,
-        );
-      }
-    }
-  }
-
-  void _drawRotatedSquare(
-    Canvas canvas, double cx, double cy, double size, double angle, Paint paint,
-  ) {
-    canvas.save();
-    canvas.translate(cx, cy);
-    canvas.rotate(angle);
-    final half = size / 2;
-    canvas.drawRect(Rect.fromLTWH(-half, -half, size, size), paint);
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
