@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /// Curated offline dua collection.
 ///
 /// Kept local rather than fetched: the available free dua APIs
@@ -23,17 +25,18 @@ class Dua {
 }
 
 enum DuaCategory {
-  daily('Alltag'),
-  morningEvening('Morgen & Abend'),
-  prayer('Gebet'),
-  food('Essen & Trinken'),
-  travel('Reise'),
-  protection('Schutz'),
-  forgiveness('Vergebung'),
-  distress('Sorge & Not');
+  daily('Alltag', Icons.checklist_rtl_outlined),
+  morningEvening('Morgen & Abend', Icons.brightness_6_outlined),
+  prayer('Gebet', Icons.mosque_outlined),
+  food('Essen & Trinken', Icons.restaurant_outlined),
+  travel('Reise', Icons.flight_outlined),
+  protection('Schutz', Icons.shield_outlined),
+  forgiveness('Vergebung', Icons.volunteer_activism_outlined),
+  distress('Sorge & Not', Icons.healing_outlined);
 
   final String label;
-  const DuaCategory(this.label);
+  final IconData icon;
+  const DuaCategory(this.label, this.icon);
 }
 
 const duas = <Dua>[
