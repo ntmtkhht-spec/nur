@@ -1,98 +1,98 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/i18n/app_strings.dart';
+import '../../../core/models/prayer.dart';
 import '../../../core/providers/navigation_provider.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 
-/// Full-width card showing how many of today's prayers are done.
+/// Full-width card showing today's five prayers as a row of check circles.
 ///
 /// Sits where the six prayer time tiles used to be. Tapping it switches the
 /// main shell over to the prayers tab.
 class TodaysPrayersCard extends ConsumerWidget {
   const TodaysPrayersCard({super.key});
 
+  static const _icons = <String, IconData>{
+    'Fajr': Icons.wb_twilight,
+    'Dhuhr': Icons.wb_sunny_outlined,
+    'Asr': Icons.mosque_outlined,
+    'Maghrib': Icons.wb_twilight_outlined,
+    'Isha': Icons.nightlight_round,
+  };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final prayers = ref.watch(prayerTimesProvider);
-    final tracker = ref.watch(prayerTrackerProvider);
+    final strings = ref.watch(appStringsProvider);
     final logicalDate = ref.watch(logicalDateProvider);
-    final streak = ref.watch(prayerTrackerProvider.notifier).currentStreak;
+    final tracker = ref.watch(prayerTrackerProvider);
     final colors = AppColors.of(context);
 
-    var completed = 0;
-    var total = 0;
-    for (final p in prayers) {
-      if (!p.isPrayer) continue;
-      total++;
-      final key =
-          'prayer_tracker_${logicalDate.year}_${logicalDate.month}_${logicalDate.day}_${p.name}';
-      if (tracker[key] == true) completed++;
-    }
+    // Only the five obligatory prayers belong on the progress row; sunrise is
+    // a time marker, not something to tick off.
+    final prayers =
+        ref.watch(prayerTimesProvider).where((p) => p.isPrayer).toList();
+
+    bool isDone(PrayerTime p) =>
+        tracker['prayer_tracker_${logicalDate.year}_${logicalDate.month}_${logicalDate.day}_${p.name}'] ==
+        true;
+
+    final completed = prayers.where(isDone).length;
+    final total = prayers.length;
+    final percent = total == 0 ? 0 : (completed / total * 100).round();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: Container(
-        decoration: BoxDecoration(
-          color: colors.cardBg,
-          borderRadius: AppRadius.circularLg,
-          boxShadow: AppShadows.sm,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: AppRadius.circularLg,
-          child: InkWell(
+      child: Directionality(
+        textDirection: strings.direction,
+        child: Container(
+          decoration: BoxDecoration(
+            color: colors.cardBg,
             borderRadius: AppRadius.circularLg,
-            onTap: () => ref
-                .read(mainTabIndexProvider.notifier)
-                .select(prayersTabIndex),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Row(
-                children: [
-                  _ProgressRing(completed: completed, total: total),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
+            boxShadow: AppShadows.sm,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: AppRadius.circularLg,
+            child: InkWell(
+              borderRadius: AppRadius.circularLg,
+              onTap: () => ref
+                  .read(mainTabIndexProvider.notifier)
+                  .select(prayersTabIndex),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _Header(
+                      strings: strings,
+                      completed: completed,
+                      total: total,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Row(
-                          children: [
-                            Text(
-                              'Heute',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: colors.textDark,
-                              ),
+                        for (final p in prayers)
+                          Flexible(
+                            child: _PrayerCheck(
+                              prayer: p,
+                              done: isDone(p),
+                              icon: _icons[p.name] ?? Icons.circle_outlined,
                             ),
-                            if (streak > 0) ...[
-                              const SizedBox(width: AppSpacing.xs),
-                              _StreakBadge(streak: streak),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.xxs),
-                        Text(
-                          'Gebete erledigt',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: colors.textMuted,
                           ),
-                        ),
                       ],
                     ),
-                  ),
-                  Icon(
-                    Icons.chevron_right,
-                    color: colors.textMuted,
-                    size: 24,
-                  ),
-                ],
+                    const SizedBox(height: AppSpacing.md),
+                    _OverallProgress(
+                      strings: strings,
+                      percent: percent,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -102,127 +102,178 @@ class TodaysPrayersCard extends ConsumerWidget {
   }
 }
 
-class _ProgressRing extends StatelessWidget {
+class _Header extends StatelessWidget {
+  final AppStrings strings;
   final int completed;
   final int total;
 
-  const _ProgressRing({required this.completed, required this.total});
+  const _Header({
+    required this.strings,
+    required this.completed,
+    required this.total,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    // No point repeating the Arabic heading when the app is already Arabic.
+    final showArabicSubtitle =
+        strings.todaysProgress != AppStrings.arabicTodaysProgress;
 
-    return SizedBox(
-      width: 72,
-      height: 72,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned.fill(
-            child: CustomPaint(
-              // A day without any prayer entries would divide by zero.
-              painter: _ProgressRingPainter(
-                progress: total == 0 ? 0 : completed / total,
-              ),
-            ),
-          ),
-          RichText(
-            text: TextSpan(
-              style: TextStyle(color: colors.textDark),
-              children: [
-                TextSpan(
-                  text: '$completed',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                  ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                strings.todaysProgress,
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: colors.textDark,
                 ),
-                TextSpan(
-                  text: ' / $total',
-                  style: const TextStyle(
+              ),
+              if (showArabicSubtitle) ...[
+                const SizedBox(height: 2),
+                Text(
+                  AppStrings.arabicTodaysProgress,
+                  style: TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                    color: colors.textMuted,
                   ),
                 ),
               ],
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: AppSpacing.xxs,
+          ),
+          decoration: BoxDecoration(
+            color: colors.darkGreen,
+            borderRadius: AppRadius.circularSm,
+          ),
+          child: Text(
+            '$completed/$total',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-class _StreakBadge extends StatelessWidget {
-  final int streak;
+class _PrayerCheck extends StatelessWidget {
+  final PrayerTime prayer;
+  final bool done;
+  final IconData icon;
 
-  const _StreakBadge({required this.streak});
+  const _PrayerCheck({
+    required this.prayer,
+    required this.done,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xs,
-        vertical: AppSpacing.xxs,
-      ),
-      decoration: BoxDecoration(
-        color: colors.accentGold.withValues(alpha: 0.1),
-        borderRadius: AppRadius.circularSm,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.local_fire_department, size: 14, color: colors.accentGold),
-          const SizedBox(width: 2),
-          Text(
-            '$streak',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: colors.accentGold,
-            ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: done ? colors.darkGreen : colors.background,
+            shape: BoxShape.circle,
+            border: done
+                ? null
+                : Border.all(color: colors.textMuted.withValues(alpha: 0.3)),
           ),
-        ],
-      ),
+          child: Icon(
+            done ? Icons.check : icon,
+            size: done ? 24 : 20,
+            color: done ? Colors.white : colors.textMuted,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          prayer.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: done ? colors.darkGreen : colors.textDark,
+          ),
+        ),
+        Text(
+          prayer.arabicName,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 11,
+            color: colors.textMuted,
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _ProgressRingPainter extends CustomPainter {
-  final double progress;
+class _OverallProgress extends StatelessWidget {
+  final AppStrings strings;
+  final int percent;
 
-  _ProgressRingPainter({required this.progress});
+  const _OverallProgress({required this.strings, required this.percent});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final center = size.center(Offset.zero);
-    final radius = (size.shortestSide - 8) / 2;
-    const strokeWidth = 7.0;
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
 
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..color = AppColors.accentGold.withValues(alpha: 0.15)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth,
-    );
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi / 2,
-      2 * pi * progress,
-      false,
-      Paint()
-        ..color = AppColors.accentGold
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round,
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              strings.overallProgress,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: colors.textDark,
+              ),
+            ),
+            Text(
+              '$percent${strings.percentComplete}',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: colors.darkGreen,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: percent / 100,
+            minHeight: 6,
+            backgroundColor: colors.accentGold.withValues(alpha: 0.15),
+            valueColor: AlwaysStoppedAnimation<Color>(colors.accentGold),
+          ),
+        ),
+      ],
     );
   }
-
-  @override
-  bool shouldRepaint(_ProgressRingPainter old) => old.progress != progress;
 }
