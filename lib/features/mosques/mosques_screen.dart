@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_tokens.dart';
-import 'models/mosque.dart';
 import 'providers/mosques_provider.dart';
+import '../../core/providers/providers.dart';
+import 'widgets/mosque_card.dart';
+import 'widgets/mosque_map.dart';
 
-class MosquesScreen extends ConsumerWidget {
+class MosquesScreen extends ConsumerStatefulWidget {
   const MosquesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MosquesScreen> createState() => _MosquesScreenState();
+}
+
+class _MosquesScreenState extends ConsumerState<MosquesScreen> {
+  bool _showMap = false;
+
+  @override
+  Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final hasConsent = ref.watch(mosqueSearchConsentProvider);
 
@@ -31,6 +39,15 @@ class MosquesScreen extends ConsumerWidget {
         actions: [
           if (hasConsent)
             IconButton(
+              tooltip: _showMap ? 'Liste' : 'Karte',
+              icon: Icon(
+                _showMap ? Icons.view_list_outlined : Icons.map_outlined,
+                color: colors.primaryGreen,
+              ),
+              onPressed: () => setState(() => _showMap = !_showMap),
+            ),
+          if (hasConsent)
+            IconButton(
               tooltip: 'Aktualisieren',
               icon: Icon(Icons.refresh, color: colors.primaryGreen),
               // .refresh(), not invalidate(): invalidating just reruns build(),
@@ -40,7 +57,7 @@ class MosquesScreen extends ConsumerWidget {
             ),
         ],
       ),
-      body: hasConsent ? const _MosqueResults() : const _ConsentGate(),
+      body: hasConsent ? _MosqueResults(showMap: _showMap) : const _ConsentGate(),
     );
   }
 }
@@ -131,13 +148,21 @@ class _ConsentGate extends ConsumerWidget {
 }
 
 class _MosqueResults extends ConsumerWidget {
-  const _MosqueResults();
+  final bool showMap;
+
+  const _MosqueResults({required this.showMap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
     final mosquesAsync = ref.watch(nearbyMosquesProvider);
     final radius = ref.watch(mosqueRadiusProvider);
+    // The map needs a centre even while the real position is still resolving;
+    // same fallback the search itself uses.
+    final location = switch (ref.watch(locationProvider)) {
+      AsyncData(:final value) => value,
+      _ => LocationData.fallback,
+    };
 
     return Column(
       children: [
@@ -194,6 +219,13 @@ class _MosqueResults extends ConsumerWidget {
               ),
             AsyncData(:final value) => value.isEmpty
                 ? _EmptyState(radiusMeters: radius)
+                : showMap
+                ? MosqueMap(
+                    mosques: value,
+                    userLat: location.lat,
+                    userLng: location.lng,
+                    radiusMeters: radius,
+                  )
                 : ListView.separated(
                     physics: const BouncingScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(
@@ -207,182 +239,12 @@ class _MosqueResults extends ConsumerWidget {
                         const SizedBox(height: AppSpacing.xs),
                     itemBuilder: (context, i) {
                       if (i == value.length) return const _Attribution();
-                      return _MosqueCard(mosque: value[i]);
+                      return MosqueCard(mosque: value[i]);
                     },
                   ),
           },
         ),
       ],
-    );
-  }
-}
-
-class _MosqueCard extends StatelessWidget {
-  final Mosque mosque;
-
-  const _MosqueCard({required this.mosque});
-
-  Future<void> _open(BuildContext context, Uri uri) async {
-    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!ok && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Konnte nicht geöffnet werden.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-    final address = mosque.address;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.cardBg,
-        borderRadius: AppRadius.circularLg,
-        boxShadow: AppShadows.sm,
-      ),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.mosque, size: 22, color: colors.primaryGreen),
-              const SizedBox(width: AppSpacing.xs),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      mosque.name,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: colors.textDark,
-                      ),
-                    ),
-                    if (address != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        address,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: colors.textMuted,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.xs,
-                  vertical: 3,
-                ),
-                decoration: BoxDecoration(
-                  color: colors.accentGold.withValues(alpha: 0.15),
-                  borderRadius: AppRadius.circularSm,
-                ),
-                child: Text(
-                  mosque.formattedDistance,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: colors.accentGold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Row(
-            children: [
-              _ActionButton(
-                icon: Icons.directions_outlined,
-                label: 'Route',
-                onTap: () => _open(
-                  context,
-                  Uri.parse(
-                    'geo:${mosque.lat},${mosque.lng}?q=${mosque.lat},${mosque.lng}'
-                    '(${Uri.encodeComponent(mosque.name)})',
-                  ),
-                ),
-              ),
-              if (mosque.website != null)
-                _ActionButton(
-                  icon: Icons.language,
-                  label: 'Website',
-                  onTap: () => _open(context, Uri.parse(mosque.website!)),
-                ),
-              if (mosque.phone != null)
-                _ActionButton(
-                  icon: Icons.call_outlined,
-                  label: 'Anrufen',
-                  onTap: () => _open(
-                    context,
-                    Uri.parse('tel:${mosque.phone}'),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(right: AppSpacing.xs),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: 6,
-          ),
-          decoration: BoxDecoration(
-            color: colors.background,
-            borderRadius: AppRadius.circularSm,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 15, color: colors.primaryGreen),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: colors.primaryGreen,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
