@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/providers/navigation_provider.dart';
 import 'core/providers/providers.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
@@ -37,15 +38,8 @@ class _RootGate extends ConsumerWidget {
   }
 }
 
-class _MainShell extends StatefulWidget {
+class _MainShell extends ConsumerWidget {
   const _MainShell();
-
-  @override
-  State<_MainShell> createState() => _MainShellState();
-}
-
-class _MainShellState extends State<_MainShell> {
-  int _currentIndex = 0;
 
   static const _placeholderLabels = ["Qur'an", 'Qibla'];
 
@@ -69,15 +63,16 @@ class _MainShellState extends State<_MainShell> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
-    
+    final currentIndex = ref.watch(mainTabIndexProvider);
+
     return Scaffold(
       backgroundColor: colors.background,
-      body: _bodyForIndex(_currentIndex),
+      body: _bodyForIndex(currentIndex),
       bottomNavigationBar: AppBottomNav(
-        currentIndex: _currentIndex,
-        onTap: (i) => setState(() => _currentIndex = i),
+        currentIndex: currentIndex,
+        onTap: (i) => ref.read(mainTabIndexProvider.notifier).select(i),
       ),
     );
   }

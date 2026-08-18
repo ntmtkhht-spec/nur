@@ -1,9 +1,5 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../duas/duas_screen.dart';
@@ -11,39 +7,17 @@ import '../../mosques/mosques_screen.dart';
 import '../../names/names_screen.dart';
 import '../../qibla/qibla_screen.dart';
 
-class QuickActionsGrid extends ConsumerWidget {
+class QuickActionsGrid extends StatelessWidget {
   const QuickActionsGrid({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final prayers = ref.watch(prayerTimesProvider);
-    final tracker = ref.watch(prayerTrackerProvider);
-    final logicalDate = ref.watch(logicalDateProvider);
-    
-    int completedCount = 0;
-    int totalPrayers = 0;
-    for (final p in prayers) {
-      if (p.isPrayer) {
-        totalPrayers++;
-        if (tracker['prayer_tracker_${logicalDate.year}_${logicalDate.month}_${logicalDate.day}_${p.name}'] == true) {
-          completedCount++;
-        }
-      }
-    }
-
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: SizedBox(
         height: 200,
         child: Row(
           children: [
-            Expanded(
-              child: _TodaysPrayersCard(
-                completed: completedCount,
-                total: totalPrayers,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(
                 children: [
@@ -92,186 +66,6 @@ class QuickActionsGrid extends ConsumerWidget {
       ),
     );
   }
-}
-
-class _TodaysPrayersCard extends ConsumerWidget {
-  final int completed;
-  final int total;
-
-  const _TodaysPrayersCard({required this.completed, required this.total});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final streak = ref.watch(prayerTrackerProvider.notifier).currentStreak;
-    final colors = AppColors.of(context);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.cardBg,
-        borderRadius: AppRadius.circularLg,
-        boxShadow: AppShadows.sm,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: AppRadius.circularLg,
-        child: InkWell(
-          borderRadius: AppRadius.circularLg,
-          onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (context) => const Padding(
-                padding: EdgeInsets.all(24.0),
-                child: SafeArea(
-                  child: Text('7-Tage-Historie (Demnächst)'),
-                ),
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // One short line, for two reasons: the card is only about
-                    // a third of the screen wide, so a longer title collides
-                    // with the streak badge beside it; and the 200px row
-                    // height leaves no room for a second title line once the
-                    // ring, counter and caption are laid out. "Gebete" is
-                    // already carried by the caption underneath the counter.
-                    Flexible(
-                      child: Text(
-                        'Heute',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: colors.textDark,
-                          height: 1.2,
-                        ),
-                      ),
-                    ),
-                    if (streak > 0)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.xxs),
-                        decoration: BoxDecoration(
-                          color: colors.accentGold.withValues(alpha: 0.1),
-                          borderRadius: AppRadius.circularSm,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.local_fire_department, size: 14, color: colors.accentGold),
-                            const SizedBox(width: 2),
-                            Text(
-                              '$streak',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: colors.accentGold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-          const Spacer(),
-          Center(
-            child: SizedBox(
-              width: 70,
-              height: 70,
-              child: CustomPaint(
-                painter: _ProgressRingPainter(
-                  progress: completed / total,
-                ),
-              ),
-            ),
-          ),
-          const Spacer(),
-          Center(
-            child: RichText(
-              text: TextSpan(
-                style: TextStyle(color: colors.textDark),
-                children: [
-                  TextSpan(
-                    text: '$completed',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  TextSpan(
-                    text: ' / $total',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Center(
-            child: Text(
-              'Gebete\nerledigt',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 11,
-                color: colors.textMuted,
-                height: 1.3,
-              ),
-            ),
-          ),
-          ],
-        ),
-      ),
-      ),
-      ),
-    );
-  }
-}
-
-class _ProgressRingPainter extends CustomPainter {
-  final double progress;
-
-  _ProgressRingPainter({required this.progress});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = size.center(Offset.zero);
-    final radius = (size.shortestSide - 10) / 2;
-    const strokeWidth = 7.0;
-
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..color = AppColors.accentGold.withValues(alpha: 0.15)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth,
-    );
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi / 2,
-      2 * pi * progress,
-      false,
-      Paint()
-        ..color = AppColors.accentGold
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_ProgressRingPainter old) => old.progress != progress;
 }
 
 class _QuickActionTile extends StatelessWidget {

@@ -8,8 +8,8 @@ import '../../../core/theme/app_tokens.dart';
 import 'widgets/daily_reminder_banner.dart';
 import 'widgets/greeting_header.dart';
 import 'widgets/next_prayer_card.dart';
-import 'widgets/prayer_times_row.dart';
 import 'widgets/quick_actions_grid.dart';
+import 'widgets/todays_prayers_card.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -33,7 +33,7 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.xl),
             const NextPrayerCard(),
             const SizedBox(height: AppSpacing.lg),
-            const PrayerTimesRow(),
+            const TodaysPrayersCard(),
             const SizedBox(height: AppSpacing.lg),
             const QuickActionsGrid(),
             const SizedBox(height: AppSpacing.lg),
