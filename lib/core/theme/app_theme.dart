@@ -26,27 +26,4 @@ abstract final class AppTheme {
           elevation: 0,
         ),
       );
-
-  static ThemeData get dark => ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: AppColors.dark.background,
-        colorSchemeSeed: AppColors.dark.darkGreen,
-        brightness: Brightness.dark,
-        extensions: [AppColors.dark],
-        appBarTheme: AppBarTheme(
-          backgroundColor: AppColors.dark.background,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          systemOverlayStyle: SystemUiOverlayStyle.light,
-        ),
-        bottomNavigationBarTheme: BottomNavigationBarThemeData(
-          backgroundColor: AppColors.dark.white,
-          selectedItemColor: AppColors.dark.accentGold,
-          unselectedItemColor: AppColors.dark.textMuted,
-          selectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-          unselectedLabelStyle: const TextStyle(fontSize: 11),
-          type: BottomNavigationBarType.fixed,
-          elevation: 0,
-        ),
-      );
 }

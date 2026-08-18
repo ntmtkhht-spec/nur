@@ -91,18 +91,6 @@ abstract final class AppColors {
     white: Color(0xFFFFFFFF),
   );
 
-  static AppColorsExtension get dark => const AppColorsExtension(
-    darkGreen: Color(0xFF142C23), // Darker green for dark mode
-    primaryGreen: Color(0xFF1B4332), // Using light's dark green as primary
-    accentGold: Color(0xFFD4B355), // Lighter gold for better contrast on dark
-    goldLight: Color(0xFF4A3D1E),
-    background: Color(0xFF000000), // AMOLED Black
-    cardBg: Color(0xFF111111), // Slightly off-black
-    textDark: Color(0xFFE5E5E5), // Inverse text
-    textMuted: Color(0xFFA0A0A0),
-    white: Color(0xFF111111), // Inverse "white" is card background
-  );
-  
   static AppColorsExtension of(BuildContext context) {
     return Theme.of(context).extension<AppColorsExtension>() ?? light;
   }

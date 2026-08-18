@@ -53,6 +53,8 @@
 	<string>Wir benötigen deinen Standort für die genaue Berechnung der Gebetszeiten.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
+	<key>UIUserInterfaceStyle</key>
+	<string>Light</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>
