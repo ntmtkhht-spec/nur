@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,13 +10,30 @@ import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 
+/// How a prayer is drawn in the progress row.
+enum _PrayerState {
+  /// Ticked off by the user.
+  done,
+
+  /// Its time has come and gone without being ticked off.
+  open,
+
+  /// Still ahead today.
+  upcoming,
+}
+
 /// Full-width card showing today's five prayers as a row of check circles.
 ///
-/// Sits where the six prayer time tiles used to be. Tapping it switches the
-/// main shell over to the prayers tab.
-class TodaysPrayersCard extends ConsumerWidget {
+/// Sits where the six prayer time tiles used to be. Tapping a circle ticks the
+/// prayer off, tapping anywhere else on the card opens the prayers tab.
+class TodaysPrayersCard extends ConsumerStatefulWidget {
   const TodaysPrayersCard({super.key});
 
+  @override
+  ConsumerState<TodaysPrayersCard> createState() => _TodaysPrayersCardState();
+}
+
+class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard> {
   static const _icons = <String, IconData>{
     'Fajr': Icons.wb_twilight,
     'Dhuhr': Icons.wb_sunny_outlined,
@@ -23,23 +42,60 @@ class TodaysPrayersCard extends ConsumerWidget {
     'Isha': Icons.nightlight_round,
   };
 
+  Timer? _ticker;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    // Prayer times pass while the home screen sits open, so a circle has to be
+    // able to move from "upcoming" to "open" without the user leaving the tab.
+    _ticker = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => setState(() {}),
+    );
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  void _showNotYetDue(BuildContext context, AppStrings strings) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(strings.prayerNotYetDue),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final strings = ref.watch(appStringsProvider);
     final logicalDate = ref.watch(logicalDateProvider);
     final tracker = ref.watch(prayerTrackerProvider);
     final colors = AppColors.of(context);
+    final now = DateTime.now();
 
     // Only the five obligatory prayers belong on the progress row; sunrise is
     // a time marker, not something to tick off.
     final prayers =
         ref.watch(prayerTimesProvider).where((p) => p.isPrayer).toList();
 
-    bool isDone(PrayerTime p) =>
-        tracker['prayer_tracker_${logicalDate.year}_${logicalDate.month}_${logicalDate.day}_${p.name}'] ==
-        true;
+    _PrayerState stateOf(PrayerTime p) {
+      final done = tracker[
+              'prayer_tracker_${logicalDate.year}_${logicalDate.month}_${logicalDate.day}_${p.name}'] ==
+          true;
+      if (done) return _PrayerState.done;
+      return p.time.isAfter(now) ? _PrayerState.upcoming : _PrayerState.open;
+    }
 
-    final completed = prayers.where(isDone).length;
+    final completed =
+        prayers.where((p) => stateOf(p) == _PrayerState.done).length;
     final total = prayers.length;
     final percent = total == 0 ? 0 : (completed / total * 100).round();
 
@@ -80,17 +136,23 @@ class TodaysPrayersCard extends ConsumerWidget {
                           Flexible(
                             child: _PrayerCheck(
                               prayer: p,
-                              done: isDone(p),
+                              state: stateOf(p),
                               icon: _icons[p.name] ?? Icons.circle_outlined,
+                              // A prayer whose time has not arrived yet
+                              // cannot have been performed. Say so rather
+                              // than leaving the tap to fall through to the
+                              // card underneath, which would navigate away.
+                              onTap: stateOf(p) == _PrayerState.upcoming
+                                  ? () => _showNotYetDue(context, strings)
+                                  : () => ref
+                                      .read(prayerTrackerProvider.notifier)
+                                      .toggle(logicalDate, p.name),
                             ),
                           ),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    _OverallProgress(
-                      strings: strings,
-                      percent: percent,
-                    ),
+                    _OverallProgress(strings: strings, percent: percent),
                   ],
                 ),
               ),
@@ -139,10 +201,7 @@ class _Header extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   AppStrings.arabicTodaysProgress,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colors.textMuted,
-                  ),
+                  style: TextStyle(fontSize: 13, color: colors.textMuted),
                 ),
               ],
             ],
@@ -173,36 +232,76 @@ class _Header extends StatelessWidget {
 
 class _PrayerCheck extends StatelessWidget {
   final PrayerTime prayer;
-  final bool done;
+  final _PrayerState state;
   final IconData icon;
+
+  final VoidCallback onTap;
 
   const _PrayerCheck({
     required this.prayer,
-    required this.done,
+    required this.state,
     required this.icon,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
 
+    // Three states, three looks: done is solid green, open (time passed but
+    // not ticked) is outlined in gold so it reads as "still to log", and
+    // upcoming is faded back.
+    final (Color fill, Color border, Color content, double borderWidth) =
+        switch (state) {
+      _PrayerState.done => (
+          colors.darkGreen,
+          colors.darkGreen,
+          Colors.white,
+          0.0,
+        ),
+      _PrayerState.open => (
+          colors.accentGold.withValues(alpha: 0.12),
+          colors.accentGold,
+          colors.accentGold,
+          2.0,
+        ),
+      _PrayerState.upcoming => (
+          colors.background,
+          colors.textMuted.withValues(alpha: 0.25),
+          colors.textMuted.withValues(alpha: 0.6),
+          1.0,
+        ),
+    };
+
+    final labelColor = switch (state) {
+      _PrayerState.done => colors.darkGreen,
+      _PrayerState.open => colors.textDark,
+      _PrayerState.upcoming => colors.textMuted,
+    };
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: done ? colors.darkGreen : colors.background,
-            shape: BoxShape.circle,
-            border: done
-                ? null
-                : Border.all(color: colors.textMuted.withValues(alpha: 0.3)),
-          ),
-          child: Icon(
-            done ? Icons.check : icon,
-            size: done ? 24 : 20,
-            color: done ? Colors.white : colors.textMuted,
+        // The card behind this has its own tap target for opening the prayers
+        // tab; this InkWell sits on top so a tap on the circle toggles instead.
+        InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: fill,
+              shape: BoxShape.circle,
+              border: borderWidth == 0
+                  ? null
+                  : Border.all(color: border, width: borderWidth),
+            ),
+            child: Icon(
+              state == _PrayerState.done ? Icons.check : icon,
+              size: state == _PrayerState.done ? 24 : 20,
+              color: content,
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
@@ -213,7 +312,7 @@ class _PrayerCheck extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
-            color: done ? colors.darkGreen : colors.textDark,
+            color: labelColor,
           ),
         ),
         Text(
@@ -222,7 +321,9 @@ class _PrayerCheck extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 11,
-            color: colors.textMuted,
+            color: state == _PrayerState.upcoming
+                ? colors.textMuted.withValues(alpha: 0.6)
+                : colors.textMuted,
           ),
         ),
       ],

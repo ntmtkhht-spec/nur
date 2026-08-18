@@ -23,6 +23,9 @@ class AppStrings {
   /// Suffix after the percentage, e.g. "80 % erledigt".
   final String percentComplete;
 
+  /// Shown when a prayer that has not started yet is tapped.
+  final String prayerNotYetDue;
+
   /// Written direction for this language.
   final TextDirection direction;
 
@@ -30,6 +33,7 @@ class AppStrings {
     required this.todaysProgress,
     required this.overallProgress,
     required this.percentComplete,
+    required this.prayerNotYetDue,
     this.direction = TextDirection.ltr,
   });
 
@@ -37,24 +41,28 @@ class AppStrings {
     todaysProgress: 'Heutiger Fortschritt',
     overallProgress: 'Gesamtfortschritt',
     percentComplete: '% erledigt',
+    prayerNotYetDue: 'Dieses Gebet liegt noch vor dir.',
   );
 
   static const _en = AppStrings(
     todaysProgress: "Today's Progress",
     overallProgress: 'Overall Progress',
     percentComplete: '% Complete',
+    prayerNotYetDue: 'This prayer is still ahead.',
   );
 
   static const _tr = AppStrings(
     todaysProgress: 'Bugünkü İlerleme',
     overallProgress: 'Genel İlerleme',
     percentComplete: '% Tamamlandı',
+    prayerNotYetDue: 'Bu namazın vakti henüz gelmedi.',
   );
 
   static const _ar = AppStrings(
     todaysProgress: 'تقدم اليوم',
     overallProgress: 'التقدم العام',
     percentComplete: '٪ مكتمل',
+    prayerNotYetDue: 'لم يحن وقت هذه الصلاة بعد.',
     direction: TextDirection.rtl,
   );
 
