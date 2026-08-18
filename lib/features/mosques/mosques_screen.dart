@@ -166,47 +166,12 @@ class _MosqueResults extends ConsumerWidget {
 
     return Column(
       children: [
-        SizedBox(
-          height: 44,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            children: [
-              for (final meters in [2000, 5000, 10000, 25000])
-                Padding(
-                  padding: const EdgeInsets.only(right: AppSpacing.xs),
-                  child: GestureDetector(
-                    onTap: () =>
-                        ref.read(mosqueRadiusProvider.notifier).set(meters),
-                    child: Container(
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                      ),
-                      decoration: BoxDecoration(
-                        color: radius == meters
-                            ? colors.darkGreen
-                            : colors.cardBg,
-                        borderRadius: AppRadius.circularXl,
-                      ),
-                      child: Text(
-                        '${meters ~/ 1000} km',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: radius == meters
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          color: radius == meters
-                              ? Colors.white
-                              : colors.textDark,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+        _RadiusSlider(
+          radius: radius,
+          onChanged: (meters) =>
+              ref.read(mosqueRadiusProvider.notifier).set(meters),
         ),
+        const SizedBox(height: AppSpacing.lg),
         Expanded(
           child: switch (mosquesAsync) {
             AsyncLoading() => Center(
@@ -245,6 +210,75 @@ class _MosqueResults extends ConsumerWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+/// Search radius picker.
+///
+/// The steps stay discrete rather than free-scrolling: results are cached per
+/// (location, radius) and every distinct value is another Overpass query, so
+/// a continuous slider would blow through both.
+class _RadiusSlider extends StatelessWidget {
+  final int radius;
+  final ValueChanged<int> onChanged;
+
+  static const _steps = [2000, 5000, 10000, 25000];
+
+  const _RadiusSlider({required this.radius, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final index = _steps.indexOf(radius);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Umkreis',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: colors.textMuted,
+                ),
+              ),
+              Text(
+                '${radius ~/ 1000} km',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: colors.darkGreen,
+                ),
+              ),
+            ],
+          ),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 4,
+              activeTrackColor: colors.darkGreen,
+              inactiveTrackColor: colors.accentGold.withValues(alpha: 0.2),
+              thumbColor: colors.darkGreen,
+              overlayColor: colors.darkGreen.withValues(alpha: 0.12),
+              activeTickMarkColor: Colors.transparent,
+              inactiveTickMarkColor: Colors.transparent,
+              showValueIndicator: ShowValueIndicator.never,
+            ),
+            child: Slider(
+              value: (index < 0 ? 1 : index).toDouble(),
+              min: 0,
+              max: (_steps.length - 1).toDouble(),
+              divisions: _steps.length - 1,
+              onChanged: (v) => onChanged(_steps[v.round()]),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

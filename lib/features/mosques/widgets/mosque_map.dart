@@ -1,18 +1,23 @@
+import 'package:dio/dio.dart';
+import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
+import 'package:http_cache_file_store/http_cache_file_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_cache/flutter_map_cache.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../models/mosque.dart';
 import 'mosque_card.dart';
 
-/// OpenStreetMap view of the mosques the search returned.
+/// Map view of the mosques the search returned.
 ///
-/// Tiles come from the public OSM servers, which is free and needs no API key
-/// — the mosque data itself already comes from OSM via Overpass. Their tile
-/// usage policy requires an identifying user agent and visible attribution,
-/// both of which are set below.
+/// Tiles are CARTO's "Positron" style: OSM data rendered in a pale, low-detail
+/// palette, which keeps the mosque pins readable instead of competing with
+/// road colours. Free and no API key, same as the raw OSM tiles, and it wants
+/// the same thing in return — attribution, set at the bottom of the stack.
 class MosqueMap extends StatefulWidget {
   final List<Mosque> mosques;
 
@@ -36,15 +41,55 @@ class MosqueMap extends StatefulWidget {
 }
 
 class _MosqueMapState extends State<MosqueMap> {
+  final _controller = MapController();
   Mosque? _selected;
 
+  /// Tiles are immutable, so caching them on disk turns every repeat visit
+  /// into zero network requests. Without this the map refetches the same
+  /// tiles on every open, which is what makes it feel slow.
+  CacheStore? _tileCache;
+
+  @override
+  void initState() {
+    super.initState();
+    _openCache();
+  }
+
+  Future<void> _openCache() async {
+    final dir = await getTemporaryDirectory();
+    if (!mounted) return;
+    setState(() {
+      _tileCache = FileCacheStore('${dir.path}/map_tiles');
+    });
+  }
+
   /// Roughly fits the search circle onto a phone screen.
-  double get _initialZoom => switch (widget.radiusMeters) {
+  double get _zoomForRadius => switch (widget.radiusMeters) {
         <= 2000 => 13,
         <= 5000 => 12,
         <= 10000 => 11,
         _ => 9.5,
       };
+
+  @override
+  void didUpdateWidget(MosqueMap old) {
+    super.didUpdateWidget(old);
+    // Widening the radius while the map is open would otherwise keep the old
+    // zoom and push the new results off screen.
+    if (old.radiusMeters != widget.radiusMeters) {
+      _controller.move(
+        LatLng(widget.userLat, widget.userLng),
+        _zoomForRadius,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _tileCache?.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,9 +99,10 @@ class _MosqueMapState extends State<MosqueMap> {
     return Stack(
       children: [
         FlutterMap(
+          mapController: _controller,
           options: MapOptions(
             initialCenter: LatLng(widget.userLat, widget.userLng),
-            initialZoom: _initialZoom,
+            initialZoom: _zoomForRadius,
             minZoom: 3,
             maxZoom: 18,
             // Tapping empty map dismisses the detail sheet.
@@ -64,9 +110,23 @@ class _MosqueMapState extends State<MosqueMap> {
           ),
           children: [
             TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              // @2x tiles are ~76 KB against ~28 KB for the plain ones, so
+              // only ask for them where the extra pixels are actually visible.
+              urlTemplate: MediaQuery.devicePixelRatioOf(context) >= 2
+                  ? 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'
+                  : 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.nur.nurApp',
-              maxNativeZoom: 19,
+              maxNativeZoom: 20,
+              // One ring of off-screen tiles is enough to cover a small pan;
+              // the default keeps fetching tiles the user never sees.
+              panBuffer: 1,
+              tileProvider: _tileCache == null
+                  ? NetworkTileProvider()
+                  : CachedTileProvider(
+                      maxStale: const Duration(days: 30),
+                      store: _tileCache!,
+                      dio: Dio(),
+                    ),
             ),
             MarkerLayer(
               markers: [
@@ -159,7 +219,7 @@ class _MapAttribution extends StatelessWidget {
         color: Colors.white.withValues(alpha: 0.75),
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         child: const Text(
-          '© OpenStreetMap',
+          '© OpenStreetMap, © CARTO',
           style: TextStyle(fontSize: 10, color: Colors.black87),
         ),
       ),
