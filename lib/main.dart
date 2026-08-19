@@ -29,7 +29,7 @@ void main() async {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
-      child: const NurApp(),
+      child: const MunirApp(),
     ),
   );
 }

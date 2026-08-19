@@ -9,7 +9,7 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get appName => 'نور';
+  String get appName => 'منير';
 
   @override
   String get navHome => 'الرئيسية';

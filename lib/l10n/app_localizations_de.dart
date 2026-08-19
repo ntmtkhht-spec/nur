@@ -9,7 +9,7 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
-  String get appName => 'Nur';
+  String get appName => 'Munir';
 
   @override
   String get navHome => 'Start';

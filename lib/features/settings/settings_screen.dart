@@ -109,7 +109,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: AppSpacing.lg),
           Center(
             child: Text(
-              _version.isEmpty ? '' : 'Nur App $_version',
+              _version.isEmpty ? '' : 'Munir $_version',
               style: TextStyle(fontSize: 12, color: colors.textMuted),
             ),
           ),

@@ -1,7 +1,7 @@
 import 'package:adhan_dart/adhan_dart.dart' as adhan;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nur_app/core/models/prayer.dart';
-import 'package:nur_app/core/providers/providers.dart';
+import 'package:munir/core/models/prayer.dart';
+import 'package:munir/core/providers/providers.dart';
 
 /// Berlin in July is the pathological case: at 52.5°N the sun never descends
 /// 18° below the horizon, so MWL's Fajr/Isha angles are unreachable and both

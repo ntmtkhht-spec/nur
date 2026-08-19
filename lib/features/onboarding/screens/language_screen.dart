@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../onboarding_state.dart';
 import '../widgets/onboarding_scaffold.dart';
 import '../widgets/ornament_divider.dart';
 
-const _languages = [
-  (code: 'Deutsch', flag: '🇩🇪'),
-  (code: 'English', flag: '🇬🇧'),
-  (code: 'Türkçe', flag: '🇹🇷'),
-  (code: 'العربية', flag: '🇸🇦'),
-  (code: 'Français', flag: '🇫🇷'),
-];
+/// Flags per locale code; the labels come from [languageDisplayNames] so the
+/// picker and the settings screen can never drift apart.
+const _flags = {
+  'de': '🇩🇪',
+  'en': '🇬🇧',
+  'tr': '🇹🇷',
+  'ar': '🇸🇦',
+  'fr': '🇫🇷',
+};
 
 class LanguageScreen extends ConsumerWidget {
   final int stepIndex;
@@ -51,13 +54,13 @@ class LanguageScreen extends ConsumerWidget {
           style: TextStyle(fontSize: 14, color: AppColors.textMuted),
         ),
         const SizedBox(height: 28),
-        for (final lang in _languages) ...[
+        for (final code in supportedLanguageCodes) ...[
           _LanguageTile(
-            flag: lang.flag,
-            code: lang.code,
-            isSelected: selected == lang.code,
+            flag: _flags[code] ?? '',
+            label: languageDisplayNames[code]!,
+            isSelected: selected == code,
             onTap: () =>
-                ref.read(onboardingProvider.notifier).setLanguage(lang.code),
+                ref.read(onboardingProvider.notifier).setLanguage(code),
           ),
           const SizedBox(height: 12),
         ],
@@ -68,13 +71,13 @@ class LanguageScreen extends ConsumerWidget {
 
 class _LanguageTile extends StatelessWidget {
   final String flag;
-  final String code;
+  final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _LanguageTile({
     required this.flag,
-    required this.code,
+    required this.label,
     required this.isSelected,
     required this.onTap,
   });
@@ -99,7 +102,7 @@ class _LanguageTile extends StatelessWidget {
             const SizedBox(width: 14),
             Expanded(
               child: Text(
-                code,
+                label,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,

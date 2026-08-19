@@ -8,6 +8,7 @@ import 'package:intl/intl.dart' as intl;
 import 'app_localizations_ar.dart';
 import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_fr.dart';
 import 'app_localizations_tr.dart';
 
 // ignore_for_file: type=lint
@@ -99,13 +100,14 @@ abstract class AppLocalizations {
     Locale('ar'),
     Locale('de'),
     Locale('en'),
+    Locale('fr'),
     Locale('tr'),
   ];
 
   /// No description provided for @appName.
   ///
   /// In de, this message translates to:
-  /// **'Nur'**
+  /// **'Munir'**
   String get appName;
 
   /// No description provided for @navHome.
@@ -828,7 +830,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['ar', 'de', 'en', 'tr'].contains(locale.languageCode);
+      <String>['ar', 'de', 'en', 'fr', 'tr'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -843,6 +845,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
+    case 'fr':
+      return AppLocalizationsFr();
     case 'tr':
       return AppLocalizationsTr();
   }

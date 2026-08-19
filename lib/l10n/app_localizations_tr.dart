@@ -9,7 +9,7 @@ class AppLocalizationsTr extends AppLocalizations {
   AppLocalizationsTr([String locale = 'tr']) : super(locale);
 
   @override
-  String get appName => 'Nur';
+  String get appName => 'Munir';
 
   @override
   String get navHome => 'Ana sayfa';

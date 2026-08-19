@@ -1,4 +1,4 @@
-package com.nur.nur_app
+package com.munir.app
 
 import io.flutter.embedding.android.FlutterActivity
 

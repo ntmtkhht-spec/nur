@@ -64,7 +64,7 @@ final userNameProvider =
 // ---------------------------------------------------------------------------
 
 /// Locale codes the app ships translations for, in the order the picker shows.
-const supportedLanguageCodes = ['de', 'en', 'tr', 'ar'];
+const supportedLanguageCodes = ['de', 'en', 'tr', 'ar', 'fr'];
 
 /// Display names for the language picker, in the language itself.
 const languageDisplayNames = {
@@ -72,6 +72,7 @@ const languageDisplayNames = {
   'en': 'English',
   'tr': 'Türkçe',
   'ar': 'العربية',
+  'fr': 'Français',
 };
 
 class AppLanguageNotifier extends Notifier<String> {

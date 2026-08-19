@@ -115,7 +115,7 @@ class _MosqueMapState extends State<MosqueMap> {
               urlTemplate: MediaQuery.devicePixelRatioOf(context) >= 2
                   ? 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'
                   : 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.nur.nurApp',
+              userAgentPackageName: 'com.munir.app',
               maxNativeZoom: 20,
               // One ring of off-screen tiles is enough to cover a small pan;
               // the default keeps fetching tiles the user never sees.

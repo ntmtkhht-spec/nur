@@ -1,7 +1,7 @@
 import 'package:adhan_dart/adhan_dart.dart' as adhan;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nur_app/core/models/prayer.dart';
-import 'package:nur_app/core/providers/providers.dart';
+import 'package:munir/core/models/prayer.dart';
+import 'package:munir/core/providers/providers.dart';
 
 void main() {
   group('Prayer Times Logic Tests', () {

@@ -14,7 +14,7 @@ class OverpassService {
   static const _endpoint = 'https://overpass-api.de/api/interpreter';
 
   /// Overpass rejects requests without a User-Agent with HTTP 406.
-  static const _userAgent = 'NurApp/1.0 (Islamic prayer times app)';
+  static const _userAgent = 'MunirApp/1.0 (Islamic prayer times app)';
 
   final http.Client _client;
 

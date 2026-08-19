@@ -15,8 +15,8 @@ import 'features/surah/screens/surah_list_screen.dart';
 import 'features/tasbih/tasbih_screen.dart';
 import 'shared/widgets/app_bottom_nav.dart';
 
-class NurApp extends ConsumerWidget {
-  const NurApp({super.key});
+class MunirApp extends ConsumerWidget {
+  const MunirApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,7 +25,7 @@ class NurApp extends ConsumerWidget {
     final languageCode = ref.watch(appLanguageProvider);
 
     return MaterialApp(
-      title: 'Nur',
+      title: 'Munir',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       themeMode: ThemeMode.light,

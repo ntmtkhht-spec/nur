@@ -2,8 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:nur_app/app.dart';
-import 'package:nur_app/core/providers/providers.dart';
+import 'package:munir/app.dart';
+import 'package:munir/core/providers/providers.dart';
 
 void main() {
   testWidgets('Fresh install shows onboarding language screen', (tester) async {
@@ -13,7 +13,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-        child: const NurApp(),
+        child: const MunirApp(),
       ),
     );
 
@@ -28,7 +28,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-        child: const NurApp(),
+        child: const MunirApp(),
       ),
     );
 
@@ -44,7 +44,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-        child: const NurApp(),
+        child: const MunirApp(),
       ),
     );
 
