@@ -8,6 +8,7 @@ import '../../../core/models/prayer.dart';
 import '../../../core/providers/navigation_provider.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/prayer_icons.dart';
 import '../../../core/theme/app_tokens.dart';
 
 /// How a prayer is drawn in the progress row.
@@ -34,14 +35,6 @@ class TodaysPrayersCard extends ConsumerStatefulWidget {
 }
 
 class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard> {
-  static const _icons = <String, IconData>{
-    'Fajr': Icons.wb_twilight,
-    'Dhuhr': Icons.wb_sunny_outlined,
-    'Asr': Icons.mosque_outlined,
-    'Maghrib': Icons.wb_twilight_outlined,
-    'Isha': Icons.nightlight_round,
-  };
-
   Timer? _ticker;
 
   @override
@@ -137,7 +130,7 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard> {
                             child: _PrayerCheck(
                               prayer: p,
                               state: stateOf(p),
-                              icon: _icons[p.name] ?? Icons.circle_outlined,
+                              icon: prayerIcons[p.name] ?? fallbackPrayerIcon,
                               // A prayer whose time has not arrived yet
                               // cannot have been performed. Say so rather
                               // than leaving the tap to fall through to the

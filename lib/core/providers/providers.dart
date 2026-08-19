@@ -669,6 +669,16 @@ class PrayerTrackerNotifier extends Notifier<Map<String, bool>> {
     state = {...state, key: !current};
   }
 
+  /// Wipes the whole prayer history. Offered from the settings screen, which
+  /// asks for confirmation first — this does not ask again.
+  Future<void> resetAll() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    for (final key in state.keys) {
+      await prefs.remove(key);
+    }
+    state = {};
+  }
+
   int get currentStreak {
     int streak = 0;
     DateTime date = DateTime.now();

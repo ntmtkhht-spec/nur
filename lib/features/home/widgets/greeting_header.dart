@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../settings/settings_screen.dart';
 
 class GreetingHeader extends ConsumerWidget {
   const GreetingHeader({super.key});
@@ -108,21 +109,32 @@ class GreetingHeader extends ConsumerWidget {
               ],
             ),
           ),
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: colors.cardBg,
-              border: Border.all(
-                color: colors.accentGold.withValues(alpha: 0.3),
-                width: 1.5,
+          // Entry point for every app-wide setting.
+          Material(
+            color: Colors.transparent,
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
               ),
-            ),
-            child: Icon(
-              Icons.mosque_outlined,
-              color: colors.accentGold,
-              size: 26,
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colors.cardBg,
+                  border: Border.all(
+                    color: colors.accentGold.withValues(alpha: 0.3),
+                    width: 1.5,
+                  ),
+                ),
+                child: Icon(
+                  Icons.settings_outlined,
+                  color: colors.accentGold,
+                  size: 26,
+                ),
+              ),
             ),
           ),
         ],
