@@ -23,7 +23,7 @@ class OnboardingScaffold extends StatelessWidget {
   OnboardingScaffold({
     super.key,
     required this.currentStep,
-    this.totalSteps = 3,
+    this.totalSteps = 4,
     this.buttonLabel,
     this.buttonIsSecondary = false,
     required this.onNext,

@@ -573,4 +573,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsAccountDeleted => 'Konto gelöscht.';
+
+  @override
+  String get onboardingAccountTitle => 'Fortschritt sichern';
+
+  @override
+  String get onboardingAccountBody =>
+      'Mit einem Konto bleibt dein Gebets-Verlauf erhalten — auch bei einem Gerätewechsel. Ohne Konto wird alles nur auf diesem Gerät gespeichert.';
+
+  @override
+  String get commonLater => 'Später';
 }

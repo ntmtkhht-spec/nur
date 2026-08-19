@@ -570,4 +570,14 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get settingsAccountDeleted => 'Hesap silindi.';
+
+  @override
+  String get onboardingAccountTitle => 'İlerlemeni koru';
+
+  @override
+  String get onboardingAccountBody =>
+      'Hesapla namaz geçmişin korunur — cihaz değiştirsen bile. Hesapsız her şey yalnızca bu cihazda kalır.';
+
+  @override
+  String get commonLater => 'Daha sonra';
 }

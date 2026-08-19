@@ -571,4 +571,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsAccountDeleted => 'Compte supprimé.';
+
+  @override
+  String get onboardingAccountTitle => 'Conservez votre progression';
+
+  @override
+  String get onboardingAccountBody =>
+      'Avec un compte, votre historique de prières est conservé — même en changeant d\'appareil. Sans compte, tout reste uniquement sur cet appareil.';
+
+  @override
+  String get commonLater => 'Plus tard';
 }

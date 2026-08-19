@@ -560,4 +560,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settingsAccountDeleted => 'تم حذف الحساب.';
+
+  @override
+  String get onboardingAccountTitle => 'احفظ تقدمك';
+
+  @override
+  String get onboardingAccountBody =>
+      'مع حساب يبقى سجل صلاتك محفوظاً — حتى عند تغيير الجهاز. بدون حساب يبقى كل شيء على هذا الجهاز فقط.';
+
+  @override
+  String get commonLater => 'لاحقاً';
 }

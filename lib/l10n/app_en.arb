@@ -168,5 +168,8 @@
   "settingsSignInFailed": "Sign-in failed.",
   "settingsSyncNow": "Sync now",
   "settingsSyncDone": "Synced.",
-  "settingsAccountDeleted": "Account deleted."
+  "settingsAccountDeleted": "Account deleted.",
+  "onboardingAccountTitle": "Keep your progress",
+  "onboardingAccountBody": "With an account your prayer history is kept — even when you change devices. Without one, everything stays on this device only.",
+  "commonLater": "Later"
 }

@@ -1117,6 +1117,24 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Konto gelöscht.'**
   String get settingsAccountDeleted;
+
+  /// No description provided for @onboardingAccountTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Fortschritt sichern'**
+  String get onboardingAccountTitle;
+
+  /// No description provided for @onboardingAccountBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit einem Konto bleibt dein Gebets-Verlauf erhalten — auch bei einem Gerätewechsel. Ohne Konto wird alles nur auf diesem Gerät gespeichert.'**
+  String get onboardingAccountBody;
+
+  /// No description provided for @commonLater.
+  ///
+  /// In de, this message translates to:
+  /// **'Später'**
+  String get commonLater;
 }
 
 class _AppLocalizationsDelegate

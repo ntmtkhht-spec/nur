@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'onboarding_state.dart';
+import 'screens/account_screen.dart';
 import 'screens/adhan_screen.dart';
 import 'screens/language_screen.dart';
 import 'screens/location_screen.dart';
 
-/// Three steps: language, location, notifications — then straight into the
-/// app.
+/// Four steps: language, location, notifications, account — then into the
+/// app. The account step offers sign-in but never requires it.
 ///
 /// It used to be nine screens including a feature carousel, a name prompt and
 /// a calculation-method picker. Those asked for things the app either does
@@ -22,7 +23,7 @@ class OnboardingFlow extends ConsumerStatefulWidget {
 }
 
 class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
-  static const _totalSteps = 3;
+  static const _totalSteps = 4;
 
   int _step = 0;
 
@@ -40,7 +41,8 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     return switch (_step) {
       0 => LanguageScreen(stepIndex: 0, onNext: _next),
       1 => LocationScreen(stepIndex: 1, onNext: _next, onSkip: _next),
-      _ => AdhanScreen(stepIndex: 2, onNext: _next),
+      2 => AdhanScreen(stepIndex: 2, onNext: _next),
+      _ => AccountScreen(stepIndex: 3, onNext: _next),
     };
   }
 }

@@ -168,5 +168,8 @@
   "settingsSignInFailed": "Giriş başarısız.",
   "settingsSyncNow": "Şimdi eşitle",
   "settingsSyncDone": "Eşitlendi.",
-  "settingsAccountDeleted": "Hesap silindi."
+  "settingsAccountDeleted": "Hesap silindi.",
+  "onboardingAccountTitle": "İlerlemeni koru",
+  "onboardingAccountBody": "Hesapla namaz geçmişin korunur — cihaz değiştirsen bile. Hesapsız her şey yalnızca bu cihazda kalır.",
+  "commonLater": "Daha sonra"
 }

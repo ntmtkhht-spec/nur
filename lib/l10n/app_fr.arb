@@ -168,5 +168,8 @@
   "settingsSignInFailed": "Échec de la connexion.",
   "settingsSyncNow": "Synchroniser",
   "settingsSyncDone": "Synchronisé.",
-  "settingsAccountDeleted": "Compte supprimé."
+  "settingsAccountDeleted": "Compte supprimé.",
+  "onboardingAccountTitle": "Conservez votre progression",
+  "onboardingAccountBody": "Avec un compte, votre historique de prières est conservé — même en changeant d'appareil. Sans compte, tout reste uniquement sur cet appareil.",
+  "commonLater": "Plus tard"
 }

@@ -168,5 +168,8 @@
   "settingsSignInFailed": "فشل تسجيل الدخول.",
   "settingsSyncNow": "مزامنة الآن",
   "settingsSyncDone": "تمت المزامنة.",
-  "settingsAccountDeleted": "تم حذف الحساب."
+  "settingsAccountDeleted": "تم حذف الحساب.",
+  "onboardingAccountTitle": "احفظ تقدمك",
+  "onboardingAccountBody": "مع حساب يبقى سجل صلاتك محفوظاً — حتى عند تغيير الجهاز. بدون حساب يبقى كل شيء على هذا الجهاز فقط.",
+  "commonLater": "لاحقاً"
 }
