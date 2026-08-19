@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' hide TextDirection;
+
+import '../../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
@@ -11,6 +14,7 @@ class GreetingHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final userName = ref.watch(userNameProvider);
     final hijriDate = ref.watch(hijriDateProvider);
     final locationAsync = ref.watch(locationProvider);
@@ -36,8 +40,8 @@ class GreetingHeader extends ConsumerWidget {
                   // needs to. The name is also optional, so avoid leaving a
                   // dangling comma when it has not been set.
                   userName.trim().isEmpty
-                      ? 'Assalamu alaikum'
-                      : 'Assalamu alaikum, ${userName.trim()}',
+                      ? l10n.greetingNoName
+                      : l10n.greeting(userName.trim()),
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
@@ -48,6 +52,9 @@ class GreetingHeader extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   hijriDate,
+                  // The Hijri string is Latin ("6 Rabi al-Awwal 1448"); under
+                  // RTL its leading day number would jump to the end.
+                  textDirection: TextDirection.ltr,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -56,7 +63,7 @@ class GreetingHeader extends ConsumerWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  _formatGermanDate(now),
+                  _formatDate(context, now),
                   style: TextStyle(
                     fontSize: 14,
                     color: colors.textMuted,
@@ -142,16 +149,9 @@ class GreetingHeader extends ConsumerWidget {
     );
   }
 
-  static const _weekdays = [
-    'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag',
-    'Freitag', 'Samstag', 'Sonntag',
-  ];
-
-  static const _months = [
-    'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-    'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
-  ];
-
-  String _formatGermanDate(DateTime d) =>
-      '${_weekdays[d.weekday - 1]}, ${d.day}. ${_months[d.month - 1]} ${d.year}';
+  /// Weekday and month names come from intl so they follow the app locale;
+  /// the hardcoded German list this replaced only ever produced German.
+  String _formatDate(BuildContext context, DateTime d) =>
+      DateFormat.yMMMMEEEEd(Localizations.localeOf(context).toLanguageTag())
+          .format(d);
 }

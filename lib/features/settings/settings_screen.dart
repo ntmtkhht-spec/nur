@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:adhan_dart/adhan_dart.dart' as adhan;
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/i18n/prayer_names.dart';
 import '../../core/providers/providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/prayer_icons.dart';
@@ -29,10 +31,12 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   static const _muezzinLabels = {
     MuezzinVoice.misharyAlafasy: 'Mishary Alafasy',
     MuezzinVoice.makkahAdhan: 'Makkah Adhan',
-    MuezzinVoice.silent: 'Nur Vibration / stumm',
+    MuezzinVoice.silent: '',
   };
 
   /// Methods worth offering. The package knows more, but a list of thirty
@@ -86,7 +90,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       backgroundColor: colors.background,
       appBar: AppBar(
         title: Text(
-          'Einstellungen',
+          l10n.settingsTitle,
           style: TextStyle(color: colors.textDark, fontWeight: FontWeight.bold),
         ),
         backgroundColor: colors.background,
@@ -126,24 +130,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     };
 
     return SettingsSection(
-      title: 'Gebet',
+      title: l10n.settingsSectionPrayer,
       children: [
         SettingsTile(
           icon: Icons.place_outlined,
-          label: 'Standort',
+          label: l10n.settingsLocation,
           value: city,
           showDivider: false,
           onTap: () => ref.read(locationProvider.notifier).detectViaGps(),
-          subtitle: 'Tippen, um neu zu bestimmen',
+          subtitle: l10n.settingsLocationHint,
         ),
         SettingsTile(
           icon: Icons.calculate_outlined,
-          label: 'Berechnungsmethode',
+          label: l10n.settingsCalculationMethod,
           value: method.shortLabel,
           onTap: () async {
             final picked = await showOptionPicker<adhan.CalculationMethod>(
               context: context,
-              title: 'Berechnungsmethode',
+              title: l10n.settingsCalculationMethod,
               current: method,
               options: [
                 for (final m in _methods)
@@ -157,23 +161,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         SettingsTile(
           icon: Icons.balance_outlined,
-          label: 'Rechtsschule',
+          label: l10n.settingsMadhab,
           value: madhab == adhan.Madhab.hanafi ? 'Hanafi' : 'Shafi',
           onTap: () async {
             final picked = await showOptionPicker<adhan.Madhab>(
               context: context,
-              title: 'Rechtsschule',
+              title: l10n.settingsMadhab,
               current: madhab,
-              options: const [
+              options: [
                 (
                   value: adhan.Madhab.shafi,
                   label: 'Shafi',
-                  subtitle: 'Auch Maliki und Hanbali — früheres Asr',
+                  subtitle: l10n.settingsMadhabShafiHint,
                 ),
                 (
                   value: adhan.Madhab.hanafi,
                   label: 'Hanafi',
-                  subtitle: 'Späteres Asr',
+                  subtitle: l10n.settingsMadhabHanafiHint,
                 ),
               ],
             );
@@ -196,11 +200,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ref.watch(prayerTimesProvider).where((p) => p.isPrayer).toList();
 
     return SettingsSection(
-      title: 'Benachrichtigungen',
+      title: l10n.settingsNotifications,
       children: [
         SettingsTile(
           icon: Icons.notifications_outlined,
-          label: 'Benachrichtigungen',
+          label: l10n.settingsNotifications,
           showDivider: false,
           trailing: Switch(
             value: enabled,
@@ -213,7 +217,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           for (final p in prayers)
             SettingsTile(
               icon: prayerIcons[p.name] ?? fallbackPrayerIcon,
-              label: p.name,
+              label: localizedPrayerName(l10n, p.name),
               subtitle: p.arabicName,
               trailing: Switch(
                 value: perPrayer.contains(p.name),
@@ -224,12 +228,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
         SettingsTile(
           icon: Icons.volume_up_outlined,
-          label: 'Adhan-Stimme',
+          label: l10n.settingsAdhanVoice,
           value: _muezzinLabels[voice],
           onTap: () async {
             final picked = await showOptionPicker<MuezzinVoice>(
               context: context,
-              title: 'Adhan-Stimme',
+              title: l10n.settingsAdhanVoice,
               current: voice,
               options: [
                 for (final v in MuezzinVoice.values)
@@ -252,32 +256,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final language = ref.watch(appLanguageProvider);
 
     return SettingsSection(
-      title: 'Darstellung',
+      title: l10n.settingsSectionDisplay,
       children: [
         SettingsTile(
           icon: Icons.person_outline,
-          label: 'Name',
-          value: name.isEmpty ? 'nicht gesetzt' : name,
+          label: l10n.settingsName,
+          value: name.isEmpty ? l10n.settingsNotConfigured : name,
           showDivider: false,
           onTap: _editName,
         ),
         SettingsTile(
           icon: Icons.language_outlined,
-          label: 'Sprache',
-          value: language,
-          // Honest about the state of things: only part of the app follows
-          // this today, see lib/core/i18n/app_strings.dart.
-          subtitle: 'Bisher nur teilweise übersetzt',
+          label: l10n.settingsLanguage,
+          value: languageDisplayNames[language] ?? language,
           onTap: () async {
             final picked = await showOptionPicker<String>(
               context: context,
-              title: 'Sprache',
+              title: l10n.settingsLanguage,
               current: language,
-              options: const [
-                (value: 'Deutsch', label: 'Deutsch', subtitle: null),
-                (value: 'English', label: 'English', subtitle: null),
-                (value: 'Türkçe', label: 'Türkçe', subtitle: null),
-                (value: 'العربية', label: 'العربية', subtitle: null),
+              options: [
+                for (final code in supportedLanguageCodes)
+                  (
+                    value: code,
+                    label: languageDisplayNames[code]!,
+                    subtitle: null,
+                  ),
               ],
             );
             if (picked != null) {
@@ -297,7 +300,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.background,
-        title: const Text('Name'),
+        title: Text(l10n.settingsName),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -307,12 +310,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Abbrechen'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () =>
                 Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Speichern'),
+            child: Text(l10n.commonSave),
           ),
         ],
       ),
@@ -329,12 +332,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final consent = ref.watch(mosqueSearchConsentProvider);
 
     return SettingsSection(
-      title: 'Daten',
+      title: l10n.settingsSectionData,
       children: [
         SettingsTile(
           icon: Icons.travel_explore_outlined,
-          label: 'Moscheesuche erlauben',
-          subtitle: 'Sendet deine Koordinaten an OpenStreetMap',
+          label: l10n.settingsMosqueConsent,
+          subtitle: l10n.settingsMosqueConsentHint,
           showDivider: false,
           trailing: Switch(
             value: consent,
@@ -350,14 +353,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         SettingsTile(
           icon: Icons.map_outlined,
-          label: 'Kartenspeicher leeren',
-          subtitle: 'Gespeicherte Kartenkacheln entfernen',
+          label: l10n.settingsClearMapCache,
+          subtitle: l10n.settingsClearMapCacheHint,
           onTap: _clearMapCache,
         ),
         SettingsTile(
           icon: Icons.restart_alt,
-          label: 'Gebets-Verlauf zurücksetzen',
-          subtitle: 'Löscht alle abgehakten Gebete und die Serie',
+          label: l10n.settingsResetTracker,
+          subtitle: l10n.settingsResetTrackerHint,
           destructive: true,
           onTap: _resetTracker,
         ),
@@ -371,7 +374,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await dir.delete(recursive: true);
     }
     if (!mounted) return;
-    _toast('Kartenspeicher geleert.');
+    _toast(l10n.settingsClearMapCacheDone);
   }
 
   Future<void> _resetTracker() async {
@@ -387,7 +390,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Abbrechen'),
+            child: Text(l10n.commonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
@@ -403,31 +406,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (confirmed != true) return;
     await ref.read(prayerTrackerProvider.notifier).resetAll();
     if (!mounted) return;
-    _toast('Verlauf zurückgesetzt.');
+    _toast(l10n.settingsResetTrackerDone);
   }
 
   // ----------------------------------------------------------------- legal
 
   Widget _legalSection() {
     return SettingsSection(
-      title: 'Rechtliches',
+      title: l10n.settingsSectionLegal,
       children: [
         SettingsTile(
           icon: Icons.privacy_tip_outlined,
-          label: 'Datenschutzerklärung',
+          label: l10n.settingsPrivacy,
           showDivider: false,
           // Both stores require this before release; the URL does not exist
           // yet, so say so rather than opening a dead link.
-          onTap: () => _toast('Noch nicht hinterlegt.'),
+          onTap: () => _toast(l10n.settingsNotConfigured),
         ),
         SettingsTile(
           icon: Icons.info_outline,
-          label: 'Impressum',
-          onTap: () => _toast('Noch nicht hinterlegt.'),
+          label: l10n.settingsImprint,
+          onTap: () => _toast(l10n.settingsNotConfigured),
         ),
         SettingsTile(
           icon: Icons.source_outlined,
-          label: 'Datenquellen',
+          label: l10n.settingsDataSources,
           subtitle: 'OpenStreetMap, CARTO, alquran.cloud',
           onTap: () => launchUrl(
             Uri.parse('https://www.openstreetmap.org/copyright'),

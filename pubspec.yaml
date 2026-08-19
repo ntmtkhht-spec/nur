@@ -55,6 +55,9 @@ dependencies:
   http_cache_file_store: ^2.0.2
   package_info_plus: ^10.2.1
   path_provider: ^2.1.6
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +83,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # Generates AppLocalizations from lib/l10n/*.arb
+  generate: true
 
   assets:
     - assets/images/

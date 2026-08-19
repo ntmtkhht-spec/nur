@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+
+import '../../l10n/app_localizations.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -18,6 +20,7 @@ class QiblaScreen extends ConsumerStatefulWidget {
 class _QiblaScreenState extends ConsumerState<QiblaScreen> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final qiblaBearing = ref.watch(qiblaBearingProvider);
     final distanceKm = ref.watch(distanceToKaabaProvider);
 
@@ -31,7 +34,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
       backgroundColor: colors.background,
       appBar: AppBar(
         title: Text(
-          'Qibla',
+          l10n.qiblaTitle,
           style: TextStyle(
             color: colors.textDark,
             fontWeight: FontWeight.bold,
@@ -103,7 +106,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
 
   void _showCalibrateHint() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text(
           'Bewege dein Gerät in einer Acht (∞), um den Kompass zu kalibrieren.',
         ),
@@ -513,6 +516,7 @@ class _AlignmentBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       width: double.infinity,
@@ -534,8 +538,8 @@ class _AlignmentBanner extends StatelessWidget {
           const SizedBox(width: 12),
           Text(
             aligned
-                ? 'Ausgerichtet — Richtung Mekka'
-                : 'Drehe dich zur Kaaba',
+                ? l10n.qiblaAligned
+                : l10n.qiblaTurnToKaaba,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,

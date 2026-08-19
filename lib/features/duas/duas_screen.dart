@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -34,6 +36,7 @@ class _DuasScreenState extends State<DuasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = AppColors.of(context);
     final isSearching = _query.trim().isNotEmpty;
     final results = _searchResults;
@@ -42,7 +45,7 @@ class _DuasScreenState extends State<DuasScreen> {
       backgroundColor: colors.background,
       appBar: AppBar(
         title: Text(
-          'Duas',
+          l10n.duasTitle,
           style: TextStyle(
             color: colors.textDark,
             fontWeight: FontWeight.bold,
@@ -63,7 +66,7 @@ class _DuasScreenState extends State<DuasScreen> {
               controller: _searchController,
               onChanged: (v) => setState(() => _query = v),
               decoration: InputDecoration(
-                hintText: 'Dua suchen…',
+                hintText: l10n.duasSearchHint,
                 prefixIcon: Icon(Icons.search, color: colors.textMuted),
                 suffixIcon: _query.isEmpty
                     ? null
@@ -303,7 +306,7 @@ class _DuaCard extends StatelessWidget {
                   '(${dua.source})',
             ));
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text('Dua kopiert'),
                 duration: Duration(seconds: 1),
                 behavior: SnackBarBehavior.floating,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -20,6 +22,7 @@ class _MosquesScreenState extends ConsumerState<MosquesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = AppColors.of(context);
     final hasConsent = ref.watch(mosqueSearchConsentProvider);
 
@@ -27,7 +30,7 @@ class _MosquesScreenState extends ConsumerState<MosquesScreen> {
       backgroundColor: colors.background,
       appBar: AppBar(
         title: Text(
-          'Moscheen',
+          l10n.mosquesTitle,
           style: TextStyle(
             color: colors.textDark,
             fontWeight: FontWeight.bold,
@@ -39,7 +42,7 @@ class _MosquesScreenState extends ConsumerState<MosquesScreen> {
         actions: [
           if (hasConsent)
             IconButton(
-              tooltip: _showMap ? 'Liste' : 'Karte',
+              tooltip: _showMap ? l10n.mosquesShowList : l10n.mosquesShowMap,
               icon: Icon(
                 _showMap ? Icons.view_list_outlined : Icons.map_outlined,
                 color: colors.primaryGreen,
@@ -48,7 +51,7 @@ class _MosquesScreenState extends ConsumerState<MosquesScreen> {
             ),
           if (hasConsent)
             IconButton(
-              tooltip: 'Aktualisieren',
+              tooltip: l10n.mosquesRefresh,
               icon: Icon(Icons.refresh, color: colors.primaryGreen),
               // .refresh(), not invalidate(): invalidating just reruns build(),
               // which would hit the cache again and look like nothing happened.
@@ -229,6 +232,7 @@ class _RadiusSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = AppColors.of(context);
     final index = _steps.indexOf(radius);
 
@@ -241,7 +245,7 @@ class _RadiusSlider extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Umkreis',
+                l10n.mosquesRadius,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -329,6 +333,7 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = AppColors.of(context);
 
     return Center(
@@ -356,8 +361,8 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             OutlinedButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Erneut versuchen'),
+              icon: Icon(Icons.refresh, size: 18),
+              label: Text(l10n.mosquesRetry),
               style: OutlinedButton.styleFrom(
                 foregroundColor: colors.primaryGreen,
               ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers/navigation_provider.dart';
+import 'l10n/app_localizations.dart';
 import 'core/providers/providers.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
@@ -13,16 +15,28 @@ import 'features/surah/screens/surah_list_screen.dart';
 import 'features/tasbih/tasbih_screen.dart';
 import 'shared/widgets/app_bottom_nav.dart';
 
-class NurApp extends StatelessWidget {
+class NurApp extends ConsumerWidget {
   const NurApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Text direction follows from the locale, so picking Arabic flips the
+    // whole app to RTL without any per-widget handling.
+    final languageCode = ref.watch(appLanguageProvider);
+
     return MaterialApp(
       title: 'Nur',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       themeMode: ThemeMode.light,
+      locale: Locale(languageCode),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: const _RootGate(),
     );
   }

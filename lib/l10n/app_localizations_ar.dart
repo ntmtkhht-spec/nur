@@ -1,0 +1,401 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Arabic (`ar`).
+class AppLocalizationsAr extends AppLocalizations {
+  AppLocalizationsAr([String locale = 'ar']) : super(locale);
+
+  @override
+  String get appName => 'نور';
+
+  @override
+  String get navHome => 'الرئيسية';
+
+  @override
+  String get navPrayers => 'الصلاة';
+
+  @override
+  String get navQuran => 'القرآن';
+
+  @override
+  String get navTasbih => 'التسبيح';
+
+  @override
+  String get navQibla => 'القبلة';
+
+  @override
+  String greeting(String name) {
+    return 'السلام عليكم، $name';
+  }
+
+  @override
+  String get greetingNoName => 'السلام عليكم';
+
+  @override
+  String get nextPrayer => 'الصلاة القادمة';
+
+  @override
+  String inHoursMinutes(int hours, int minutes) {
+    return 'خلال $hours س $minutes د';
+  }
+
+  @override
+  String inMinutesSeconds(int minutes, int seconds) {
+    return 'خلال $minutes د $seconds ث';
+  }
+
+  @override
+  String get todaysProgress => 'تقدم اليوم';
+
+  @override
+  String get overallProgress => 'التقدم العام';
+
+  @override
+  String percentComplete(int percent) {
+    return '$percent٪ مكتمل';
+  }
+
+  @override
+  String get prayerNotYetDue => 'لم يحن وقت هذه الصلاة بعد.';
+
+  @override
+  String get prayerFajr => 'الفجر';
+
+  @override
+  String get prayerSunrise => 'الشروق';
+
+  @override
+  String get prayerDhuhr => 'الظهر';
+
+  @override
+  String get prayerAsr => 'العصر';
+
+  @override
+  String get prayerMaghrib => 'المغرب';
+
+  @override
+  String get prayerIsha => 'العشاء';
+
+  @override
+  String get quickMosques => 'المساجد';
+
+  @override
+  String get quickQibla => 'القبلة';
+
+  @override
+  String get quickDuas => 'الأدعية';
+
+  @override
+  String get quickNames => 'أسماء الله الحسنى';
+
+  @override
+  String get locationWarning =>
+      'لا يوجد وصول إلى الموقع. مواقيت الصلاة تستخدم القيم الافتراضية (برلين).';
+
+  @override
+  String get activate => 'تفعيل';
+
+  @override
+  String get today => 'اليوم';
+
+  @override
+  String todayShort(String date) {
+    return 'اليوم، $date';
+  }
+
+  @override
+  String get mosquesTitle => 'المساجد';
+
+  @override
+  String get mosquesRadius => 'نطاق البحث';
+
+  @override
+  String mosquesKm(int km) {
+    return '$km كم';
+  }
+
+  @override
+  String get mosquesRefresh => 'تحديث';
+
+  @override
+  String get mosquesShowList => 'قائمة';
+
+  @override
+  String get mosquesShowMap => 'خريطة';
+
+  @override
+  String get mosquesRoute => 'الاتجاهات';
+
+  @override
+  String get mosquesWebsite => 'الموقع الإلكتروني';
+
+  @override
+  String get mosquesCall => 'اتصال';
+
+  @override
+  String mosquesEmpty(int km) {
+    return 'لم يتم العثور على مساجد ضمن $km كم.';
+  }
+
+  @override
+  String get mosquesRetry => 'حاول مرة أخرى';
+
+  @override
+  String get mosquesCouldNotOpen => 'تعذّر الفتح.';
+
+  @override
+  String mosquesDistanceKm(String km) {
+    return '$km كم';
+  }
+
+  @override
+  String get mosquesConsentTitle => 'ابحث عن المساجد القريبة منك';
+
+  @override
+  String get mosquesConsentBody =>
+      'سيتم إرسال إحداثياتك إلى OpenStreetMap. لن تُرسل أي بيانات أخرى.';
+
+  @override
+  String get mosquesConsentAccept => 'أوافق، ابحث';
+
+  @override
+  String get qiblaTitle => 'القبلة';
+
+  @override
+  String get qiblaTurnToKaaba => 'استدر نحو الكعبة';
+
+  @override
+  String qiblaDistanceToMecca(String km) {
+    return 'المسافة إلى مكة: $km كم';
+  }
+
+  @override
+  String get qiblaNoCompass => 'جهازك لا يحتوي على بوصلة.';
+
+  @override
+  String get tasbihTitle => 'التسبيح';
+
+  @override
+  String get tasbihTapToCount => 'اضغط للعد';
+
+  @override
+  String tasbihRound(int round) {
+    return 'الجولة $round';
+  }
+
+  @override
+  String get tasbihReset => 'إعادة تعيين';
+
+  @override
+  String get quranTitle => 'القرآن';
+
+  @override
+  String quranVerses(int count) {
+    return '$count آية';
+  }
+
+  @override
+  String get quranSearchHint => 'ابحث عن سورة…';
+
+  @override
+  String get duasTitle => 'الأدعية';
+
+  @override
+  String get duasSearchHint => 'ابحث عن دعاء…';
+
+  @override
+  String duasCount(int count) {
+    return '$count دعاء';
+  }
+
+  @override
+  String get namesTitle => 'أسماء الله الحسنى';
+
+  @override
+  String get namesSearchHint => 'ابحث بالاسم أو المعنى…';
+
+  @override
+  String get settingsTitle => 'الإعدادات';
+
+  @override
+  String get settingsSectionPrayer => 'الصلاة';
+
+  @override
+  String get settingsSectionNotifications => 'الإشعارات';
+
+  @override
+  String get settingsSectionDisplay => 'المظهر';
+
+  @override
+  String get settingsSectionData => 'البيانات';
+
+  @override
+  String get settingsSectionLegal => 'قانوني';
+
+  @override
+  String get settingsLocation => 'الموقع';
+
+  @override
+  String get settingsLocationHint => 'اضغط لتحديد الموقع من جديد';
+
+  @override
+  String get settingsCalculationMethod => 'طريقة الحساب';
+
+  @override
+  String get settingsMadhab => 'المذهب';
+
+  @override
+  String get settingsNotifications => 'الإشعارات';
+
+  @override
+  String get settingsAdhanVoice => 'صوت الأذان';
+
+  @override
+  String get settingsName => 'الاسم';
+
+  @override
+  String get settingsNameHint => 'بماذا نناديك؟';
+
+  @override
+  String get settingsLanguage => 'اللغة';
+
+  @override
+  String get settingsMosqueConsent => 'السماح بالبحث عن المساجد';
+
+  @override
+  String get settingsMosqueConsentHint => 'يُرسل إحداثياتك إلى OpenStreetMap';
+
+  @override
+  String get settingsClearMapCache => 'مسح ذاكرة الخرائط';
+
+  @override
+  String get settingsClearMapCacheHint => 'إزالة مربعات الخريطة المحفوظة';
+
+  @override
+  String get settingsClearMapCacheDone => 'تم مسح ذاكرة الخرائط.';
+
+  @override
+  String get settingsResetTracker => 'إعادة تعيين سجل الصلاة';
+
+  @override
+  String get settingsResetTrackerHint =>
+      'يحذف جميع الصلوات المسجّلة وسلسلة المتابعة';
+
+  @override
+  String get settingsResetTrackerConfirm =>
+      'هل تريد إعادة التعيين فعلاً؟ ستفقد جميع الصلوات المسجّلة وسلسلة المتابعة.';
+
+  @override
+  String get settingsResetTrackerDone => 'تمت إعادة تعيين سجل الصلاة.';
+
+  @override
+  String get settingsPrivacy => 'سياسة الخصوصية';
+
+  @override
+  String get settingsImprint => 'بيانات الناشر';
+
+  @override
+  String get settingsNotConfigured => 'لم يتم إعداده بعد';
+
+  @override
+  String settingsVersion(String version) {
+    return 'الإصدار $version';
+  }
+
+  @override
+  String get commonCancel => 'إلغاء';
+
+  @override
+  String get commonDelete => 'حذف';
+
+  @override
+  String get commonSave => 'حفظ';
+
+  @override
+  String get commonReset => 'إعادة تعيين';
+
+  @override
+  String get commonClose => 'إغلاق';
+
+  @override
+  String get commonContinue => 'متابعة';
+
+  @override
+  String get commonBack => 'رجوع';
+
+  @override
+  String get commonDone => 'تم';
+
+  @override
+  String commonComingSoon(String feature) {
+    return '$feature قريباً!';
+  }
+
+  @override
+  String get onboardingLanguageTitle => 'اختر اللغة';
+
+  @override
+  String get onboardingNameTitle => 'ما اسمك؟';
+
+  @override
+  String get onboardingNameHint => 'اسمك';
+
+  @override
+  String get onboardingLocationTitle => 'الموقع';
+
+  @override
+  String get onboardingLocationBody => 'نحتاج موقعك لحساب مواقيت الصلاة بدقة.';
+
+  @override
+  String get onboardingLocationAllow => 'السماح بالوصول للموقع';
+
+  @override
+  String get onboardingLocationManual => 'اختر المدينة يدوياً';
+
+  @override
+  String get onboardingMethodTitle => 'طريقة الحساب';
+
+  @override
+  String get onboardingAdhanTitle => 'صوت الأذان';
+
+  @override
+  String get onboardingDoneTitle => 'كل شيء جاهز';
+
+  @override
+  String get onboardingDoneBody => 'نسأل الله أن يعينك هذا التطبيق على صلاتك.';
+
+  @override
+  String get onboardingStart => 'لنبدأ';
+
+  @override
+  String notificationPrayerTimeTitle(String prayer) {
+    return 'حان وقت $prayer';
+  }
+
+  @override
+  String get notificationPrayerTimeBody => 'حان وقت الصلاة.';
+
+  @override
+  String get settingsMadhabShafiHint => 'وكذلك المالكي والحنبلي — العصر مبكراً';
+
+  @override
+  String get settingsMadhabHanafiHint => 'العصر متأخراً';
+
+  @override
+  String get muezzinSilent => 'اهتزاز فقط / صامت';
+
+  @override
+  String get settingsNotSet => 'غير محدد';
+
+  @override
+  String get qiblaAligned => 'في الاتجاه الصحيح — نحو مكة';
+
+  @override
+  String get settingsDataSources => 'مصادر البيانات';
+
+  @override
+  String get nowLabel => 'الآن';
+}

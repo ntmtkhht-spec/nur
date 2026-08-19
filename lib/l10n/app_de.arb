@@ -1,0 +1,233 @@
+{
+  "@@locale": "de",
+  "appName": "Nur",
+  "navHome": "Start",
+  "navPrayers": "Gebet",
+  "navQuran": "Qur'an",
+  "navTasbih": "Tasbih",
+  "navQibla": "Qibla",
+  "greeting": "Assalamu alaikum, {name}",
+  "@greeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingNoName": "Assalamu alaikum",
+  "nextPrayer": "Nächstes Gebet",
+  "inHoursMinutes": "in {hours} Std {minutes} Min",
+  "@inHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "inMinutesSeconds": "in {minutes} Min {seconds} Sek",
+  "@inMinutesSeconds": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "todaysProgress": "Heutiger Fortschritt",
+  "overallProgress": "Gesamtfortschritt",
+  "percentComplete": "{percent} % erledigt",
+  "@percentComplete": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "prayerNotYetDue": "Dieses Gebet liegt noch vor dir.",
+  "prayerFajr": "Fajr",
+  "prayerSunrise": "Sonnenaufgang",
+  "prayerDhuhr": "Dhuhr",
+  "prayerAsr": "Asr",
+  "prayerMaghrib": "Maghrib",
+  "prayerIsha": "Isha",
+  "quickMosques": "Moscheen",
+  "quickQibla": "Qibla",
+  "quickDuas": "Duas",
+  "quickNames": "99 Namen",
+  "locationWarning": "Standortzugriff fehlt. Gebetszeiten nutzen Standardwerte (Berlin).",
+  "activate": "Aktivieren",
+  "today": "Heute",
+  "todayShort": "Heute, {date}",
+  "@todayShort": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "mosquesTitle": "Moscheen",
+  "mosquesRadius": "Umkreis",
+  "mosquesKm": "{km} km",
+  "@mosquesKm": {
+    "placeholders": {
+      "km": {
+        "type": "int"
+      }
+    }
+  },
+  "mosquesRefresh": "Aktualisieren",
+  "mosquesShowList": "Liste",
+  "mosquesShowMap": "Karte",
+  "mosquesRoute": "Route",
+  "mosquesWebsite": "Website",
+  "mosquesCall": "Anrufen",
+  "mosquesEmpty": "Keine Moscheen im Umkreis von {km} km gefunden.",
+  "@mosquesEmpty": {
+    "placeholders": {
+      "km": {
+        "type": "int"
+      }
+    }
+  },
+  "mosquesRetry": "Erneut versuchen",
+  "mosquesCouldNotOpen": "Konnte nicht geöffnet werden.",
+  "mosquesDistanceKm": "{km} km",
+  "@mosquesDistanceKm": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "mosquesConsentTitle": "Moscheen in deiner Nähe finden",
+  "mosquesConsentBody": "Dafür werden deine Koordinaten an OpenStreetMap gesendet. Es werden keine weiteren Daten übertragen.",
+  "mosquesConsentAccept": "Einverstanden, suchen",
+  "qiblaTitle": "Qibla",
+  "qiblaTurnToKaaba": "Drehe dich zur Kaaba",
+  "qiblaDistanceToMecca": "Entfernung nach Mekka: {km} km",
+  "@qiblaDistanceToMecca": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "qiblaNoCompass": "Dein Gerät hat keinen Kompass.",
+  "tasbihTitle": "Tasbih",
+  "tasbihTapToCount": "Tippe zum Zählen",
+  "tasbihRound": "{round}. Runde",
+  "@tasbihRound": {
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "tasbihReset": "Zurücksetzen",
+  "quranTitle": "Qur'an",
+  "quranVerses": "{count} Verse",
+  "@quranVerses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "quranSearchHint": "Sure suchen…",
+  "duasTitle": "Duas",
+  "duasSearchHint": "Dua suchen…",
+  "duasCount": "{count} Duas",
+  "@duasCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "namesTitle": "Die 99 Namen",
+  "namesSearchHint": "Name oder Bedeutung suchen…",
+  "settingsTitle": "Einstellungen",
+  "settingsSectionPrayer": "Gebet",
+  "settingsSectionNotifications": "Benachrichtigungen",
+  "settingsSectionDisplay": "Darstellung",
+  "settingsSectionData": "Daten",
+  "settingsSectionLegal": "Rechtliches",
+  "settingsLocation": "Standort",
+  "settingsLocationHint": "Tippen, um neu zu bestimmen",
+  "settingsCalculationMethod": "Berechnungsmethode",
+  "settingsMadhab": "Rechtsschule",
+  "settingsNotifications": "Benachrichtigungen",
+  "settingsAdhanVoice": "Adhan-Stimme",
+  "settingsName": "Name",
+  "settingsNameHint": "Wie sollen wir dich ansprechen?",
+  "settingsLanguage": "Sprache",
+  "settingsMosqueConsent": "Moscheesuche erlauben",
+  "settingsMosqueConsentHint": "Sendet deine Koordinaten an OpenStreetMap",
+  "settingsClearMapCache": "Kartenspeicher leeren",
+  "settingsClearMapCacheHint": "Gespeicherte Kartenkacheln entfernen",
+  "settingsClearMapCacheDone": "Kartenspeicher geleert.",
+  "settingsResetTracker": "Gebets-Verlauf zurücksetzen",
+  "settingsResetTrackerHint": "Löscht alle abgehakten Gebete und die Serie",
+  "settingsResetTrackerConfirm": "Wirklich zurücksetzen? Alle abgehakten Gebete und deine Serie gehen verloren.",
+  "settingsResetTrackerDone": "Gebets-Verlauf zurückgesetzt.",
+  "settingsPrivacy": "Datenschutz",
+  "settingsImprint": "Impressum",
+  "settingsNotConfigured": "Noch nicht hinterlegt",
+  "settingsVersion": "Version {version}",
+  "@settingsVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "commonCancel": "Abbrechen",
+  "commonDelete": "Löschen",
+  "commonSave": "Speichern",
+  "commonReset": "Zurücksetzen",
+  "commonClose": "Schließen",
+  "commonContinue": "Weiter",
+  "commonBack": "Zurück",
+  "commonDone": "Fertig",
+  "commonComingSoon": "{feature} kommt bald!",
+  "@commonComingSoon": {
+    "placeholders": {
+      "feature": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingLanguageTitle": "Sprache wählen",
+  "onboardingNameTitle": "Wie heißt du?",
+  "onboardingNameHint": "Dein Name",
+  "onboardingLocationTitle": "Standort",
+  "onboardingLocationBody": "Für genaue Gebetszeiten brauchen wir deinen Standort.",
+  "onboardingLocationAllow": "Standort erlauben",
+  "onboardingLocationManual": "Stadt manuell wählen",
+  "onboardingMethodTitle": "Berechnungsmethode",
+  "onboardingAdhanTitle": "Adhan-Stimme",
+  "onboardingDoneTitle": "Alles bereit",
+  "onboardingDoneBody": "Möge dir die App bei deinen Gebeten helfen.",
+  "onboardingStart": "Los geht's",
+  "notificationPrayerTimeTitle": "{prayer} ist jetzt",
+  "@notificationPrayerTimeTitle": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPrayerTimeBody": "Zeit für das Gebet.",
+  "settingsMadhabShafiHint": "Auch Maliki und Hanbali — früheres Asr",
+  "settingsMadhabHanafiHint": "Späteres Asr",
+  "muezzinSilent": "Nur Vibration / stumm",
+  "settingsNotSet": "nicht gesetzt",
+  "qiblaAligned": "Ausgerichtet — Richtung Mekka",
+  "settingsDataSources": "Datenquellen",
+  "nowLabel": "jetzt"
+}

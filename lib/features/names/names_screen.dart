@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -36,6 +38,7 @@ class _NamesScreenState extends State<NamesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = AppColors.of(context);
     final results = _filtered;
 
@@ -43,7 +46,7 @@ class _NamesScreenState extends State<NamesScreen> {
       backgroundColor: colors.background,
       appBar: AppBar(
         title: Text(
-          'Die 99 Namen',
+          l10n.namesTitle,
           style: TextStyle(
             color: colors.textDark,
             fontWeight: FontWeight.bold,
@@ -64,7 +67,7 @@ class _NamesScreenState extends State<NamesScreen> {
               controller: _searchController,
               onChanged: (v) => setState(() => _query = v),
               decoration: InputDecoration(
-                hintText: 'Name oder Bedeutung suchen…',
+                hintText: l10n.namesSearchHint,
                 prefixIcon: Icon(Icons.search, color: colors.textMuted),
                 suffixIcon: _query.isEmpty
                     ? null
@@ -137,7 +140,7 @@ class _NameCard extends StatelessWidget {
               text: '${name.transliteration} — ${name.meaning}',
             ));
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 content: Text('Kopiert'),
                 duration: Duration(seconds: 1),
                 behavior: SnackBarBehavior.floating,

@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/i18n/app_strings.dart';
+import '../../../core/i18n/prayer_names.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/models/prayer.dart';
 import '../../../core/providers/navigation_provider.dart';
 import '../../../core/providers/providers.dart';
@@ -54,7 +55,7 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard> {
     super.dispose();
   }
 
-  void _showNotYetDue(BuildContext context, AppStrings strings) {
+  void _showNotYetDue(BuildContext context, AppLocalizations strings) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -68,7 +69,7 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard> {
 
   @override
   Widget build(BuildContext context) {
-    final strings = ref.watch(appStringsProvider);
+    final strings = AppLocalizations.of(context);
     final logicalDate = ref.watch(logicalDateProvider);
     final tracker = ref.watch(prayerTrackerProvider);
     final colors = AppColors.of(context);
@@ -94,9 +95,7 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: Directionality(
-        textDirection: strings.direction,
-        child: Container(
+      child: Container(
           decoration: BoxDecoration(
             color: colors.cardBg,
             borderRadius: AppRadius.circularLg,
@@ -152,13 +151,12 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard> {
             ),
           ),
         ),
-      ),
     );
   }
 }
 
 class _Header extends StatelessWidget {
-  final AppStrings strings;
+  final AppLocalizations strings;
   final int completed;
   final int total;
 
@@ -172,8 +170,8 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     // No point repeating the Arabic heading when the app is already Arabic.
-    final showArabicSubtitle =
-        strings.todaysProgress != AppStrings.arabicTodaysProgress;
+    // Skip the Arabic subtitle when the interface is already Arabic.
+    final showArabicSubtitle = Localizations.localeOf(context).languageCode != 'ar';
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,7 +191,7 @@ class _Header extends StatelessWidget {
               if (showArabicSubtitle) ...[
                 const SizedBox(height: 2),
                 Text(
-                  AppStrings.arabicTodaysProgress,
+                  'تقدم اليوم',
                   style: TextStyle(fontSize: 13, color: colors.textMuted),
                 ),
               ],
@@ -299,7 +297,7 @@ class _PrayerCheck extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          prayer.name,
+          localizedPrayerName(AppLocalizations.of(context), prayer.name),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
@@ -308,8 +306,9 @@ class _PrayerCheck extends StatelessWidget {
             color: labelColor,
           ),
         ),
-        Text(
-          prayer.arabicName,
+        if (Localizations.localeOf(context).languageCode != 'ar')
+          Text(
+            prayer.arabicName,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
@@ -325,7 +324,7 @@ class _PrayerCheck extends StatelessWidget {
 }
 
 class _OverallProgress extends StatelessWidget {
-  final AppStrings strings;
+  final AppLocalizations strings;
   final int percent;
 
   const _OverallProgress({required this.strings, required this.percent});
@@ -348,7 +347,7 @@ class _OverallProgress extends StatelessWidget {
               ),
             ),
             Text(
-              '$percent${strings.percentComplete}',
+              strings.percentComplete(percent),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,

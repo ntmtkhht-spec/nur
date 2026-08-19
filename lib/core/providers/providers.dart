@@ -60,24 +60,50 @@ final userNameProvider =
     NotifierProvider<UserNameNotifier, String>(UserNameNotifier.new);
 
 // ---------------------------------------------------------------------------
-// App language (preference persisted; only German is fully localized today)
+// App language
 // ---------------------------------------------------------------------------
 
+/// Locale codes the app ships translations for, in the order the picker shows.
+const supportedLanguageCodes = ['de', 'en', 'tr', 'ar'];
+
+/// Display names for the language picker, in the language itself.
+const languageDisplayNames = {
+  'de': 'Deutsch',
+  'en': 'English',
+  'tr': 'Türkçe',
+  'ar': 'العربية',
+};
+
 class AppLanguageNotifier extends Notifier<String> {
+  static const _key = 'app_language';
+
   @override
   String build() {
-    final prefs = ref.read(sharedPreferencesProvider);
-    return prefs.getString('app_language') ?? 'Deutsch';
+    final stored = ref.read(sharedPreferencesProvider).getString(_key);
+    return _normalize(stored);
   }
 
-  void update(String language) {
-    ref.read(sharedPreferencesProvider).setString('app_language', language);
-    state = language;
+  /// Earlier builds stored the display name ('Deutsch') rather than a locale
+  /// code, so anything that is not a known code is mapped back onto one.
+  static String _normalize(String? stored) {
+    if (stored == null) return 'de';
+    if (supportedLanguageCodes.contains(stored)) return stored;
+    for (final entry in languageDisplayNames.entries) {
+      if (entry.value == stored) return entry.key;
+    }
+    return 'de';
+  }
+
+  void update(String languageCode) {
+    if (!supportedLanguageCodes.contains(languageCode)) return;
+    ref.read(sharedPreferencesProvider).setString(_key, languageCode);
+    state = languageCode;
   }
 }
 
 final appLanguageProvider =
     NotifierProvider<AppLanguageNotifier, String>(AppLanguageNotifier.new);
+
 
 // ---------------------------------------------------------------------------
 // Location

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -14,8 +16,8 @@ class MosqueCard extends StatelessWidget {
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!ok && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Konnte nicht geöffnet werden.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).mosquesCouldNotOpen),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -94,7 +96,7 @@ class MosqueCard extends StatelessWidget {
             children: [
               _ActionButton(
                 icon: Icons.directions_outlined,
-                label: 'Route',
+                label: AppLocalizations.of(context).mosquesRoute,
                 onTap: () => _open(
                   context,
                   Uri.parse(
@@ -106,13 +108,13 @@ class MosqueCard extends StatelessWidget {
               if (mosque.website != null)
                 _ActionButton(
                   icon: Icons.language,
-                  label: 'Website',
+                  label: AppLocalizations.of(context).mosquesWebsite,
                   onTap: () => _open(context, Uri.parse(mosque.website!)),
                 ),
               if (mosque.phone != null)
                 _ActionButton(
                   icon: Icons.call_outlined,
-                  label: 'Anrufen',
+                  label: AppLocalizations.of(context).mosquesCall,
                   onTap: () => _open(
                     context,
                     Uri.parse('tel:${mosque.phone}'),

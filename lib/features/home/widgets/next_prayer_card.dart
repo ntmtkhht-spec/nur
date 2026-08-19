@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import '../../../core/i18n/prayer_names.dart';
+import '../../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
@@ -33,6 +36,7 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final prayer = ref.watch(nextPrayerProvider);
     final colors = AppColors.of(context);
     final currentPrayer = ref.watch(currentPrayerProvider);
@@ -44,11 +48,11 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
 
     String countdownText;
     if (remaining.isNegative) {
-      countdownText = 'jetzt';
+      countdownText = l10n.nowLabel;
     } else if (hours > 0) {
-      countdownText = 'in $hours Std $minutes Min';
+      countdownText = l10n.inHoursMinutes(hours, minutes);
     } else {
-      countdownText = 'in $minutes Min ${seconds.toString().padLeft(2, '0')} Sek';
+      countdownText = l10n.inMinutesSeconds(minutes, seconds);
     }
 
     double progress = 0.0;
@@ -117,7 +121,7 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'NÄCHSTES GEBET',
+                      l10n.nextPrayer.toUpperCase(),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -125,19 +129,21 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
                         letterSpacing: 1.5,
                       ),
                     ),
-                    Text(
-                      prayer.arabicName,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
+                    // Redundant once the heading itself is Arabic.
+                    if (Localizations.localeOf(context).languageCode != 'ar')
+                      Text(
+                        prayer.arabicName,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
-                  prayer.name,
+                  localizedPrayerName(l10n, prayer.name),
                   style: const TextStyle(
                     fontSize: 42,
                     fontWeight: FontWeight.w800,

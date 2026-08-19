@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 
 class AppBottomNav extends StatelessWidget {
@@ -13,6 +14,7 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     // We map our 5 app tabs to 5 navigation items + 1 central golden button.
     // The central golden button isn't a tab, it will just show a snackbar or popup for now.
     
@@ -38,13 +40,13 @@ class AppBottomNav extends StatelessWidget {
         children: [
           _NavItem(
             icon: Icons.home_rounded,
-            label: 'Start',
+            label: l10n.navHome,
             isActive: currentIndex == 0,
             onTap: () => onTap(0),
           ),
           _NavItem(
             icon: Icons.mosque_rounded,
-            label: 'Gebet',
+            label: l10n.navPrayers,
             isActive: currentIndex == 1,
             onTap: () => onTap(1),
           ),
@@ -83,13 +85,13 @@ class AppBottomNav extends StatelessWidget {
           
           _NavItem(
             icon: Icons.track_changes_rounded,
-            label: "Tasbih",
+            label: l10n.navTasbih,
             isActive: currentIndex == 3,
             onTap: () => onTap(3),
           ),
           _NavItem(
             icon: Icons.explore_rounded, // Compass
-            label: 'Qibla',
+            label: l10n.navQibla,
             isActive: currentIndex == 4,
             onTap: () => onTap(4),
           ),

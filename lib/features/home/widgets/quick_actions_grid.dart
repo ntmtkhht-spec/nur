@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../duas/duas_screen.dart';
@@ -24,7 +26,7 @@ class QuickActionsGrid extends StatelessWidget {
                   Expanded(
                     child: _QuickActionTile(
                       icon: Icons.mosque_outlined,
-                      label: "Moscheen",
+                      label: AppLocalizations.of(context).quickMosques,
                       destination: (_) => const MosquesScreen(),
                     ),
                   ),
@@ -32,7 +34,7 @@ class QuickActionsGrid extends StatelessWidget {
                   Expanded(
                     child: _QuickActionTile(
                       icon: Icons.front_hand_outlined,
-                      label: 'Duas',
+                      label: AppLocalizations.of(context).quickDuas,
                       destination: (_) => const DuasScreen(),
                     ),
                   ),
@@ -46,7 +48,7 @@ class QuickActionsGrid extends StatelessWidget {
                   Expanded(
                     child: _QuickActionTile(
                       icon: Icons.explore_outlined,
-                      label: 'Qibla',
+                      label: AppLocalizations.of(context).quickQibla,
                       destination: (_) => const QiblaScreen(),
                     ),
                   ),
@@ -54,7 +56,7 @@ class QuickActionsGrid extends StatelessWidget {
                   Expanded(
                     child: _QuickActionTile(
                       icon: Icons.all_inclusive_outlined,
-                      label: '99 Namen',
+                      label: AppLocalizations.of(context).quickNames,
                       destination: (_) => const NamesScreen(),
                     ),
                   ),

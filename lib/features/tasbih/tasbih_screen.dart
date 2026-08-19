@@ -1,5 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+
+import '../../l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +13,7 @@ class TasbihScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final state = ref.watch(tasbihProvider);
     final notifier = ref.read(tasbihProvider.notifier);
 
@@ -27,8 +30,8 @@ class TasbihScreen extends ConsumerWidget {
                 children: [
                   const SizedBox(width: 48), // Spacer to balance reset button
                   const Spacer(),
-                  const Text(
-                    'Tasbih',
+                  Text(
+                    l10n.tasbihTitle,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
@@ -153,10 +156,10 @@ class TasbihScreen extends ConsumerWidget {
             // Hint
             Column(
               children: [
-                const Icon(Icons.touch_app_outlined, size: 32, color: AppColors.textMuted),
+                Icon(Icons.touch_app_outlined, size: 32, color: AppColors.textMuted),
                 const SizedBox(height: 8),
                 Text(
-                  'Tippe zum Zählen',
+                  l10n.tasbihTapToCount,
                   style: TextStyle(
                     fontSize: 14,
                     color: AppColors.textMuted.withValues(alpha: 0.8),

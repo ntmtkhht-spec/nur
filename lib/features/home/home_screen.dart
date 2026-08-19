@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
@@ -62,11 +64,11 @@ class _LocationWarningBanner extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.location_off_outlined, color: Colors.red, size: 24),
+            Icon(Icons.location_off_outlined, color: Colors.red, size: 24),
             const SizedBox(width: AppSpacing.sm),
-            const Expanded(
+            Expanded(
               child: Text(
-                'Standortzugriff fehlt. Gebetszeiten nutzen Standardwerte (Berlin).',
+                AppLocalizations.of(context).locationWarning,
                 style: TextStyle(fontSize: 13, color: Colors.red),
               ),
             ),
@@ -74,7 +76,7 @@ class _LocationWarningBanner extends ConsumerWidget {
               onPressed: () {
                 ref.read(locationProvider.notifier).detectViaGps();
               },
-              child: const Text('Aktivieren', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              child: Text(AppLocalizations.of(context).activate, style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
