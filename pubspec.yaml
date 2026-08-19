@@ -72,6 +72,7 @@ dev_dependencies:
   riverpod_generator: ^4.0.4
   build_runner: ^2.15.1
   riverpod_lint: ^3.1.4
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -115,3 +116,13 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Launcher icons are generated from assets/icon/ with:
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/icon/icon.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  adaptive_icon_background: "#16402D"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
