@@ -44,3 +44,15 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 .claude/
+
+# Firebase configuration.
+# These carry project ids and client keys. Firebase treats them as public by
+# design — they ship inside every built app, and the real protection is the
+# Firestore security rules, not secrecy. They are kept out of this public
+# repository anyway so the project is not trivially discoverable, and fed to
+# CI from repository secrets instead. Regenerate locally with:
+#   flutterfire configure --project=munir-9360e
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
+firebase.json

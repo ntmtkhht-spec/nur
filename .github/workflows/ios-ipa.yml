@@ -25,6 +25,26 @@ jobs:
       - name: Flutter version
         run: flutter --version
 
+      # The Firebase config files are not in the repository (it is public);
+      # they are restored here from repository secrets. Without them the
+      # build fails at Firebase.initializeApp.
+      - name: Restore Firebase configuration
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
+        run: |
+          set -e
+          for var in GOOGLE_SERVICES_JSON GOOGLE_SERVICE_INFO_PLIST FIREBASE_OPTIONS_DART; do
+            if [ -z "${!var}" ]; then
+              echo "::error::Secret $var is empty — add it under Settings > Secrets."
+              exit 1
+            fi
+          done
+          echo "$GOOGLE_SERVICES_JSON" | base64 --decode > android/app/google-services.json
+          echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > ios/Runner/GoogleService-Info.plist
+          echo "$FIREBASE_OPTIONS_DART" | base64 --decode > lib/firebase_options.dart
+
       - name: Install dependencies
         run: flutter pub get
 
