@@ -72,13 +72,24 @@ class OnboardingScaffold extends StatelessWidget {
               ),
             ),
 
-            // Content
+            // Content, vertically centred. The minHeight constraint is what
+            // makes centring work inside a scroll view: without it the column
+            // shrinks to its children and sits at the top, and with a plain
+            // Center it could no longer scroll once the content grows.
             Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 28),
-                child: Column(
-                  children: children,
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: children,
+                    ),
+                  ),
                 ),
               ),
             ),
