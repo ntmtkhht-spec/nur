@@ -314,7 +314,7 @@ packages:
     source: hosted
     version: "5.11.0"
   dio_cache_interceptor:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dio_cache_interceptor
       sha256: "9472f9f3dcaa384ae68e60606c1d04e6314dea5eab39f18d94ff9b0a300dbbe4"

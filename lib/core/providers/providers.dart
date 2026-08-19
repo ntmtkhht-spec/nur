@@ -36,8 +36,8 @@ class HasCompletedOnboardingNotifier extends Notifier<bool> {
 
 final hasCompletedOnboardingProvider =
     NotifierProvider<HasCompletedOnboardingNotifier, bool>(
-  HasCompletedOnboardingNotifier.new,
-);
+      HasCompletedOnboardingNotifier.new,
+    );
 
 // ---------------------------------------------------------------------------
 // User
@@ -56,8 +56,9 @@ class UserNameNotifier extends Notifier<String> {
   }
 }
 
-final userNameProvider =
-    NotifierProvider<UserNameNotifier, String>(UserNameNotifier.new);
+final userNameProvider = NotifierProvider<UserNameNotifier, String>(
+  UserNameNotifier.new,
+);
 
 // ---------------------------------------------------------------------------
 // App language
@@ -102,9 +103,9 @@ class AppLanguageNotifier extends Notifier<String> {
   }
 }
 
-final appLanguageProvider =
-    NotifierProvider<AppLanguageNotifier, String>(AppLanguageNotifier.new);
-
+final appLanguageProvider = NotifierProvider<AppLanguageNotifier, String>(
+  AppLanguageNotifier.new,
+);
 
 // ---------------------------------------------------------------------------
 // Location
@@ -126,11 +127,7 @@ class LocationData {
     this.isoCountryCode,
   });
 
-  static const fallback = LocationData(
-    lat: 52.52,
-    lng: 13.405,
-    city: 'Berlin',
-  );
+  static const fallback = LocationData(lat: 52.52, lng: 13.405, city: 'Berlin');
 }
 
 class LocationNotifier extends AsyncNotifier<LocationData> {
@@ -227,15 +224,17 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
         final city = p.locality?.trim().isNotEmpty == true
             ? p.locality!.trim()
             : p.subAdministrativeArea?.trim().isNotEmpty == true
-                ? p.subAdministrativeArea!.trim()
-                : p.administrativeArea?.trim().isNotEmpty == true
-                    ? p.administrativeArea!.trim()
-                    : null;
+            ? p.subAdministrativeArea!.trim()
+            : p.administrativeArea?.trim().isNotEmpty == true
+            ? p.administrativeArea!.trim()
+            : null;
         if (city == null) continue;
 
         final country = p.country?.trim();
         return (
-          city: country != null && country.isNotEmpty ? '$city, $country' : city,
+          city: country != null && country.isNotEmpty
+              ? '$city, $country'
+              : city,
           isoCountryCode: p.isoCountryCode,
         );
       }
@@ -263,8 +262,9 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
   }
 }
 
-final locationProvider =
-    AsyncNotifierProvider<LocationNotifier, LocationData>(LocationNotifier.new);
+final locationProvider = AsyncNotifierProvider<LocationNotifier, LocationData>(
+  LocationNotifier.new,
+);
 
 // ---------------------------------------------------------------------------
 // Calculation method + Madhab (persisted settings)
@@ -274,22 +274,22 @@ extension CalculationMethodLabel on adhan.CalculationMethod {
   /// Compact badge label for tight spaces. Falls back to the method's own
   /// display name so newly added methods still render something meaningful.
   String get shortLabel => switch (this) {
-        adhan.CalculationMethod.muslimWorldLeague => 'MWL',
-        adhan.CalculationMethod.northAmerica => 'ISNA',
-        adhan.CalculationMethod.ummAlQura => 'UAQ',
-        adhan.CalculationMethod.egyptian => 'Egypt',
-        adhan.CalculationMethod.karachi => 'Karachi',
-        adhan.CalculationMethod.turkiye => 'Diyanet',
-        adhan.CalculationMethod.dubai => 'Dubai',
-        adhan.CalculationMethod.qatar => 'Qatar',
-        adhan.CalculationMethod.kuwait => 'Kuwait',
-        adhan.CalculationMethod.singapore => 'Singapur',
-        adhan.CalculationMethod.france => 'UOIF',
-        adhan.CalculationMethod.jafari => 'Jafari',
-        adhan.CalculationMethod.tehran => 'Tehran',
-        adhan.CalculationMethod.moonsightingCommittee => 'Moonsighting',
-        _ => displayName,
-      };
+    adhan.CalculationMethod.muslimWorldLeague => 'MWL',
+    adhan.CalculationMethod.northAmerica => 'ISNA',
+    adhan.CalculationMethod.ummAlQura => 'UAQ',
+    adhan.CalculationMethod.egyptian => 'Egypt',
+    adhan.CalculationMethod.karachi => 'Karachi',
+    adhan.CalculationMethod.turkiye => 'Diyanet',
+    adhan.CalculationMethod.dubai => 'Dubai',
+    adhan.CalculationMethod.qatar => 'Qatar',
+    adhan.CalculationMethod.kuwait => 'Kuwait',
+    adhan.CalculationMethod.singapore => 'Singapur',
+    adhan.CalculationMethod.france => 'UOIF',
+    adhan.CalculationMethod.jafari => 'Jafari',
+    adhan.CalculationMethod.tehran => 'Tehran',
+    adhan.CalculationMethod.moonsightingCommittee => 'Moonsighting',
+    _ => displayName,
+  };
 }
 
 class CalculationMethodNotifier extends Notifier<adhan.CalculationMethod> {
@@ -305,15 +305,17 @@ class CalculationMethodNotifier extends Notifier<adhan.CalculationMethod> {
   }
 
   void update(adhan.CalculationMethod method) {
-    ref.read(sharedPreferencesProvider).setString('calculation_method', method.name);
+    ref
+        .read(sharedPreferencesProvider)
+        .setString('calculation_method', method.name);
     state = method;
   }
 }
 
 final calculationMethodProvider =
     NotifierProvider<CalculationMethodNotifier, adhan.CalculationMethod>(
-  CalculationMethodNotifier.new,
-);
+      CalculationMethodNotifier.new,
+    );
 
 class MadhabNotifier extends Notifier<adhan.Madhab> {
   @override
@@ -326,13 +328,17 @@ class MadhabNotifier extends Notifier<adhan.Madhab> {
   void update(adhan.Madhab madhab) {
     ref
         .read(sharedPreferencesProvider)
-        .setString('madhab', madhab == adhan.Madhab.hanafi ? 'hanafi' : 'shafi');
+        .setString(
+          'madhab',
+          madhab == adhan.Madhab.hanafi ? 'hanafi' : 'shafi',
+        );
     state = madhab;
   }
 }
 
-final madhabProvider =
-    NotifierProvider<MadhabNotifier, adhan.Madhab>(MadhabNotifier.new);
+final madhabProvider = NotifierProvider<MadhabNotifier, adhan.Madhab>(
+  MadhabNotifier.new,
+);
 
 adhan.CalculationParameters resolveCalculationParameters(
   adhan.CalculationMethod method,
@@ -343,16 +349,20 @@ adhan.CalculationParameters resolveCalculationParameters(
     adhan.CalculationMethod.dubai => adhan.CalculationMethodParameters.dubai(),
     adhan.CalculationMethod.egyptian =>
       adhan.CalculationMethodParameters.egyptian(),
-    adhan.CalculationMethod.france => adhan.CalculationMethodParameters.france(),
+    adhan.CalculationMethod.france =>
+      adhan.CalculationMethodParameters.france(),
     adhan.CalculationMethod.gulfRegion =>
       adhan.CalculationMethodParameters.gulfRegion(),
     adhan.CalculationMethod.indonesian =>
       adhan.CalculationMethodParameters.indonesian(),
-    adhan.CalculationMethod.jafari => adhan.CalculationMethodParameters.jafari(),
-    adhan.CalculationMethod.jordan => adhan.CalculationMethodParameters.jordan(),
+    adhan.CalculationMethod.jafari =>
+      adhan.CalculationMethodParameters.jafari(),
+    adhan.CalculationMethod.jordan =>
+      adhan.CalculationMethodParameters.jordan(),
     adhan.CalculationMethod.karachi =>
       adhan.CalculationMethodParameters.karachi(),
-    adhan.CalculationMethod.kuwait => adhan.CalculationMethodParameters.kuwait(),
+    adhan.CalculationMethod.kuwait =>
+      adhan.CalculationMethodParameters.kuwait(),
     adhan.CalculationMethod.moonsightingCommittee =>
       adhan.CalculationMethodParameters.moonsightingCommittee(),
     adhan.CalculationMethod.morocco =>
@@ -365,10 +375,12 @@ adhan.CalculationParameters resolveCalculationParameters(
     adhan.CalculationMethod.portugal =>
       adhan.CalculationMethodParameters.portugal(),
     adhan.CalculationMethod.qatar => adhan.CalculationMethodParameters.qatar(),
-    adhan.CalculationMethod.russia => adhan.CalculationMethodParameters.russia(),
+    adhan.CalculationMethod.russia =>
+      adhan.CalculationMethodParameters.russia(),
     adhan.CalculationMethod.singapore =>
       adhan.CalculationMethodParameters.singapore(),
-    adhan.CalculationMethod.tehran => adhan.CalculationMethodParameters.tehran(),
+    adhan.CalculationMethod.tehran =>
+      adhan.CalculationMethodParameters.tehran(),
     adhan.CalculationMethod.tunisia =>
       adhan.CalculationMethodParameters.tunisia(),
     adhan.CalculationMethod.turkiye =>
@@ -445,11 +457,16 @@ final logicalDateProvider = Provider<DateTime>((ref) {
   };
   final method = ref.watch(calculationMethodProvider);
   final madhab = ref.watch(madhabProvider);
-  
+
   var now = DateTime.now();
-  final prayers = computePrayerTimes(location: location, method: method, madhab: madhab, date: now);
+  final prayers = computePrayerTimes(
+    location: location,
+    method: method,
+    madhab: madhab,
+    date: now,
+  );
   final fajr = prayers.firstWhere((p) => p.name == 'Fajr').time;
-  
+
   if (now.isBefore(fajr)) {
     return now.subtract(const Duration(days: 1));
   }
@@ -466,13 +483,21 @@ final prayerTimesProvider = Provider<List<PrayerTime>>((ref) {
   final madhab = ref.watch(madhabProvider);
   final date = ref.watch(logicalDateProvider);
 
-  return computePrayerTimes(location: location, method: method, madhab: madhab, date: date, includeSunrise: true);
+  return computePrayerTimes(
+    location: location,
+    method: method,
+    madhab: madhab,
+    date: date,
+    includeSunrise: true,
+  );
 });
 
 /// Returns prayer times for [date] (day-precision) including sunrise.
 /// Used by the prayers screen where the user browses per day.
-final prayerTimesForDateProvider =
-    Provider.family<List<PrayerTime>, DateTime>((ref, date) {
+final prayerTimesForDateProvider = Provider.family<List<PrayerTime>, DateTime>((
+  ref,
+  date,
+) {
   final locationAsync = ref.watch(locationProvider);
   final location = switch (locationAsync) {
     AsyncData(:final value) => value,
@@ -493,7 +518,7 @@ final prayerTimesForDateProvider =
 final currentPrayerProvider = Provider<PrayerTime?>((ref) {
   final prayers = ref.watch(prayerTimesProvider);
   final now = DateTime.now();
-  
+
   // Find the last prayer that has started
   PrayerTime? current;
   for (final p in prayers) {
@@ -508,14 +533,14 @@ final currentPrayerProvider = Provider<PrayerTime?>((ref) {
 final nextPrayerProvider = Provider<PrayerTime>((ref) {
   final prayers = ref.watch(prayerTimesProvider);
   final now = DateTime.now();
-  
+
   for (final p in prayers) {
     if (!p.isPrayer) continue;
     if (p.time.isAfter(now)) {
       return p;
     }
   }
-  
+
   // If no more prayers today, it's Fajr of tomorrow (relative to logicalDate)
   final locationAsync = ref.watch(locationProvider);
   final location = switch (locationAsync) {
@@ -525,7 +550,7 @@ final nextPrayerProvider = Provider<PrayerTime>((ref) {
   final method = ref.watch(calculationMethodProvider);
   final madhab = ref.watch(madhabProvider);
   final logicalDate = ref.watch(logicalDateProvider);
-  
+
   final tomorrow = logicalDate.add(const Duration(days: 1));
   final tomorrowPrayers = computePrayerTimes(
     location: location,
@@ -533,7 +558,7 @@ final nextPrayerProvider = Provider<PrayerTime>((ref) {
     madhab: madhab,
     date: DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 12),
   );
-  
+
   return tomorrowPrayers.firstWhere((p) => p.name == 'Fajr');
 });
 
@@ -588,8 +613,8 @@ class MuezzinVoiceNotifier extends Notifier<MuezzinVoice> {
 
 final muezzinVoiceProvider =
     NotifierProvider<MuezzinVoiceNotifier, MuezzinVoice>(
-  MuezzinVoiceNotifier.new,
-);
+      MuezzinVoiceNotifier.new,
+    );
 
 class NotificationsEnabledNotifier extends Notifier<bool> {
   @override
@@ -599,15 +624,17 @@ class NotificationsEnabledNotifier extends Notifier<bool> {
   }
 
   void set(bool enabled) {
-    ref.read(sharedPreferencesProvider).setBool('notifications_enabled', enabled);
+    ref
+        .read(sharedPreferencesProvider)
+        .setBool('notifications_enabled', enabled);
     state = enabled;
   }
 }
 
 final notificationsEnabledProvider =
     NotifierProvider<NotificationsEnabledNotifier, bool>(
-  NotificationsEnabledNotifier.new,
-);
+      NotificationsEnabledNotifier.new,
+    );
 
 /// Which individual prayers should trigger an Adhan notification.
 /// Default: all five prayers enabled.
@@ -636,8 +663,8 @@ class PrayerNotificationsNotifier extends Notifier<Set<String>> {
 
 final prayerNotificationsProvider =
     NotifierProvider<PrayerNotificationsNotifier, Set<String>>(
-  PrayerNotificationsNotifier.new,
-);
+      PrayerNotificationsNotifier.new,
+    );
 
 // ---------------------------------------------------------------------------
 // Qibla
@@ -650,10 +677,15 @@ final qiblaBearingProvider = Provider<double>((ref) {
     AsyncData(:final value) => value,
     _ => LocationData.fallback,
   };
-  final bearing =
-      adhan.Qibla.qibla(adhan.Coordinates(location.lat, location.lng));
-  return (bearing + 360) % 360;
+  return calculateQiblaBearing(location);
 });
+
+double calculateQiblaBearing(LocationData location) {
+  final bearing = adhan.Qibla.qibla(
+    adhan.Coordinates(location.lat, location.lng),
+  );
+  return (bearing + 360) % 360;
+}
 
 /// Great-circle distance from user to the Kaaba, in km. Haversine.
 final distanceToKaabaProvider = Provider<double>((ref) {
@@ -662,6 +694,10 @@ final distanceToKaabaProvider = Provider<double>((ref) {
     AsyncData(:final value) => value,
     _ => LocationData.fallback,
   };
+  return calculateDistanceToKaabaKm(location);
+});
+
+double calculateDistanceToKaabaKm(LocationData location) {
   const kaabaLat = 21.4225241;
   const kaabaLng = 39.8261818;
   const earthRadiusKm = 6371.0;
@@ -670,14 +706,15 @@ final distanceToKaabaProvider = Provider<double>((ref) {
 
   final dLat = toRad(kaabaLat - location.lat);
   final dLng = toRad(kaabaLng - location.lng);
-  final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+  final a =
+      math.sin(dLat / 2) * math.sin(dLat / 2) +
       math.cos(toRad(location.lat)) *
           math.cos(toRad(kaabaLat)) *
           math.sin(dLng / 2) *
           math.sin(dLng / 2);
   final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
   return earthRadiusKm * c;
-});
+}
 
 // ---------------------------------------------------------------------------
 // Prayer Tracker (persistent)
@@ -773,8 +810,8 @@ class PrayerTrackerNotifier extends Notifier<Map<String, bool>> {
 
 final prayerTrackerProvider =
     NotifierProvider<PrayerTrackerNotifier, Map<String, bool>>(
-  PrayerTrackerNotifier.new,
-);
+      PrayerTrackerNotifier.new,
+    );
 
 // ---------------------------------------------------------------------------
 // Daily Reminder (rotating)
@@ -783,132 +820,116 @@ final prayerTrackerProvider =
 const _reminders = [
   (
     title: 'Erinnere dich an Allah',
-    subtitle: 'Sei beständig, auch in kleinen Taten.'
+    subtitle: 'Sei beständig, auch in kleinen Taten.',
   ),
   (
     title: 'Bitte um Vergebung',
-    subtitle: 'Istighfar reinigt das Herz und bringt inneren Frieden.'
+    subtitle: 'Istighfar reinigt das Herz und bringt inneren Frieden.',
   ),
   (
     title: 'Lies den Quran',
-    subtitle: 'Jeder Buchstabe bringt dich Allah näher.'
+    subtitle: 'Jeder Buchstabe bringt dich Allah näher.',
   ),
   (
     title: 'Sei dankbar',
-    subtitle: 'Wer dankbar ist, dem wird Allah mehr geben.'
+    subtitle: 'Wer dankbar ist, dem wird Allah mehr geben.',
   ),
-  (
-    title: 'Geduld ist Stärke',
-    subtitle: 'Allah ist mit den Geduldigen.'
-  ),
+  (title: 'Geduld ist Stärke', subtitle: 'Allah ist mit den Geduldigen.'),
   (
     title: 'Sprich Gutes',
-    subtitle: 'Ein gutes Wort ist wie ein Baum mit festen Wurzeln.'
+    subtitle: 'Ein gutes Wort ist wie ein Baum mit festen Wurzeln.',
   ),
   (
     title: 'Vertraue auf Allah',
-    subtitle: 'Tawakkul — plane, handle, und vertraue auf Sein Ergebnis.'
+    subtitle: 'Tawakkul — plane, handle, und vertraue auf Sein Ergebnis.',
   ),
   (
     title: 'Hilf deinem Nächsten',
-    subtitle: 'Wer einem Menschen hilft, dem hilft Allah.'
+    subtitle: 'Wer einem Menschen hilft, dem hilft Allah.',
   ),
-  (
-    title: 'Sei demütig',
-    subtitle: 'Demut erhöht den Rang bei Allah.'
-  ),
+  (title: 'Sei demütig', subtitle: 'Demut erhöht den Rang bei Allah.'),
   (
     title: 'Gedenke des Todes',
-    subtitle: 'Er erinnert uns an das, was wirklich zählt.'
+    subtitle: 'Er erinnert uns an das, was wirklich zählt.',
   ),
   (
     title: 'Bete mit Hingabe',
-    subtitle: 'Das Gebet ist die Säule des Glaubens.'
+    subtitle: 'Das Gebet ist die Säule des Glaubens.',
   ),
   (
     title: 'Gib Sadaqa',
-    subtitle: 'Jede Spende löscht Sünden wie Wasser Feuer löscht.'
+    subtitle: 'Jede Spende löscht Sünden wie Wasser Feuer löscht.',
   ),
   (
     title: 'Kontrolliere deinen Zorn',
-    subtitle: 'Der Starke ist nicht der Ringer, sondern wer sich beherrscht.'
+    subtitle: 'Der Starke ist nicht der Ringer, sondern wer sich beherrscht.',
   ),
   (
     title: 'Bewahre deine Zunge',
-    subtitle: 'Schweigen ist Gold — besonders wenn Worte verletzen.'
+    subtitle: 'Schweigen ist Gold — besonders wenn Worte verletzen.',
   ),
   (
     title: 'Pflege die Verwandtschaft',
-    subtitle: 'Silat ar-Rahim bringt Segen ins Leben.'
+    subtitle: 'Silat ar-Rahim bringt Segen ins Leben.',
   ),
   (
     title: 'Strebe nach Wissen',
-    subtitle: 'Wissen zu suchen ist Pflicht für jeden Muslim.'
+    subtitle: 'Wissen zu suchen ist Pflicht für jeden Muslim.',
   ),
   (
     title: 'Sende Segen auf den Propheten',
-    subtitle: 'Allahumma salli ala Muhammad — jeden Tag.'
+    subtitle: 'Allahumma salli ala Muhammad — jeden Tag.',
   ),
   (
     title: 'Dhikr beruhigt das Herz',
-    subtitle: 'Im Gedenken an Allah finden die Herzen Ruhe.'
+    subtitle: 'Im Gedenken an Allah finden die Herzen Ruhe.',
   ),
   (
     title: 'Verzeihe anderen',
-    subtitle: 'Verzeihung befreit dein Herz mehr als das des anderen.'
+    subtitle: 'Verzeihung befreit dein Herz mehr als das des anderen.',
   ),
   (
     title: 'Nutze deine Zeit',
-    subtitle: 'Jede Minute ist ein Geschenk — investiere sie weise.'
+    subtitle: 'Jede Minute ist ein Geschenk — investiere sie weise.',
   ),
   (
     title: 'Beginne mit Bismillah',
-    subtitle: 'Im Namen Allahs — lass alles gesegnet beginnen.'
+    subtitle: 'Im Namen Allahs — lass alles gesegnet beginnen.',
   ),
-  (
-    title: 'Mache Dua',
-    subtitle: 'Dua ist die Waffe des Gläubigen.'
-  ),
+  (title: 'Mache Dua', subtitle: 'Dua ist die Waffe des Gläubigen.'),
   (
     title: 'Halte deine Versprechen',
-    subtitle: 'Treue zum Wort ist ein Zeichen des Imans.'
+    subtitle: 'Treue zum Wort ist ein Zeichen des Imans.',
   ),
-  (
-    title: 'Sei aufrichtig',
-    subtitle: 'Ikhlas — handle nur um Allahs willen.'
-  ),
+  (title: 'Sei aufrichtig', subtitle: 'Ikhlas — handle nur um Allahs willen.'),
   (
     title: 'Besuche die Kranken',
-    subtitle: 'Es ist ein Recht des Muslims auf seinen Bruder.'
+    subtitle: 'Es ist ein Recht des Muslims auf seinen Bruder.',
   ),
-  (
-    title: 'Lächle',
-    subtitle: 'Ein Lächeln ist Sadaqa.'
-  ),
+  (title: 'Lächle', subtitle: 'Ein Lächeln ist Sadaqa.'),
   (
     title: 'Meide das Verbotene',
-    subtitle: 'Was haram ist, schadet — auch wenn es kurzfristig reizt.'
+    subtitle: 'Was haram ist, schadet — auch wenn es kurzfristig reizt.',
   ),
   (
     title: 'Stehe in der Nacht auf',
-    subtitle: 'Qiyam al-Layl — die beste Zeit für Dua.'
+    subtitle: 'Qiyam al-Layl — die beste Zeit für Dua.',
   ),
   (
     title: 'Reinige deine Absicht',
-    subtitle: 'Taten werden nach Absichten beurteilt.'
+    subtitle: 'Taten werden nach Absichten beurteilt.',
   ),
   (
     title: 'Verbreite den Salam',
-    subtitle: 'Assalamu alaikum — Frieden sei mit dir.'
+    subtitle: 'Assalamu alaikum — Frieden sei mit dir.',
   ),
 ];
 
-final dailyReminderProvider =
-    Provider<({String title, String subtitle})>((ref) {
+final dailyReminderProvider = Provider<({String title, String subtitle})>((
+  ref,
+) {
   final dayOfYear = DateTime.now()
       .difference(DateTime(DateTime.now().year, 1, 1))
       .inDays;
   return _reminders[dayOfYear % _reminders.length];
 });
-
-

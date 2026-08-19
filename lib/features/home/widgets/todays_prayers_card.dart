@@ -35,12 +35,28 @@ class TodaysPrayersCard extends ConsumerStatefulWidget {
   ConsumerState<TodaysPrayersCard> createState() => _TodaysPrayersCardState();
 }
 
-class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard> {
+class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard>
+    with SingleTickerProviderStateMixin {
   Timer? _ticker;
+  Timer? _celebrationCleanup;
+  late final AnimationController _celebrationController;
+  int? _lastCompleted;
+  String? _lastLogicalDateKey;
+  String? _celebratedDateKey;
+  bool _showCompletionPraise = false;
 
   @override
   void initState() {
     super.initState();
+    _celebrationController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 1900),
+        )..addStatusListener((status) {
+          if (status == AnimationStatus.completed && mounted) {
+            setState(() => _showCompletionPraise = false);
+          }
+        });
     // Prayer times pass while the home screen sits open, so a circle has to be
     // able to move from "upcoming" to "open" without the user leaving the tab.
     _ticker = Timer.periodic(
@@ -52,6 +68,8 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard> {
   @override
   void dispose() {
     _ticker?.cancel();
+    _celebrationCleanup?.cancel();
+    _celebrationController.dispose();
     super.dispose();
   }
 
@@ -67,6 +85,40 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard> {
       );
   }
 
+  void _maybeCelebrateCompletion({
+    required DateTime logicalDate,
+    required int completed,
+    required int total,
+  }) {
+    final dateKey =
+        '${logicalDate.year}_${logicalDate.month}_${logicalDate.day}';
+
+    if (_lastLogicalDateKey != dateKey) {
+      _lastLogicalDateKey = dateKey;
+      _lastCompleted = completed;
+      return;
+    }
+
+    final reachedFullProgress =
+        total > 0 &&
+        completed == total &&
+        (_lastCompleted ?? completed) < total;
+    _lastCompleted = completed;
+
+    if (!reachedFullProgress || _celebratedDateKey == dateKey) return;
+
+    _celebratedDateKey = dateKey;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _celebrationCleanup?.cancel();
+      setState(() => _showCompletionPraise = true);
+      _celebrationController.forward(from: 0);
+      _celebrationCleanup = Timer(const Duration(milliseconds: 2200), () {
+        if (mounted) setState(() => _showCompletionPraise = false);
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
@@ -77,82 +129,243 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard> {
 
     // Only the five obligatory prayers belong on the progress row; sunrise is
     // a time marker, not something to tick off.
-    final prayers =
-        ref.watch(prayerTimesProvider).where((p) => p.isPrayer).toList();
+    final prayers = ref
+        .watch(prayerTimesProvider)
+        .where((p) => p.isPrayer)
+        .toList();
 
     _PrayerState stateOf(PrayerTime p) {
-      final done = tracker[
-              'prayer_tracker_${logicalDate.year}_${logicalDate.month}_${logicalDate.day}_${p.name}'] ==
+      final done =
+          tracker['prayer_tracker_${logicalDate.year}_${logicalDate.month}_${logicalDate.day}_${p.name}'] ==
           true;
       if (done) return _PrayerState.done;
       return p.time.isAfter(now) ? _PrayerState.upcoming : _PrayerState.open;
     }
 
-    final completed =
-        prayers.where((p) => stateOf(p) == _PrayerState.done).length;
+    final completed = prayers
+        .where((p) => stateOf(p) == _PrayerState.done)
+        .length;
     final total = prayers.length;
     final percent = total == 0 ? 0 : (completed / total * 100).round();
+    _maybeCelebrateCompletion(
+      logicalDate: logicalDate,
+      completed: completed,
+      total: total,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: Container(
-          decoration: BoxDecoration(
-            color: colors.cardBg,
-            borderRadius: AppRadius.circularLg,
-            boxShadow: AppShadows.sm,
-          ),
-          child: Material(
-            color: Colors.transparent,
-            borderRadius: AppRadius.circularLg,
-            child: InkWell(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: colors.cardBg,
               borderRadius: AppRadius.circularLg,
-              onTap: () => ref
-                  .read(mainTabIndexProvider.notifier)
-                  .select(prayersTabIndex),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              boxShadow: AppShadows.sm,
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: AppRadius.circularLg,
+              child: InkWell(
+                borderRadius: AppRadius.circularLg,
+                onTap: () => ref
+                    .read(mainTabIndexProvider.notifier)
+                    .select(prayersTabIndex),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _Header(
+                        strings: strings,
+                        completed: completed,
+                        total: total,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (final p in prayers)
+                            Flexible(
+                              child: _PrayerCheck(
+                                prayer: p,
+                                state: stateOf(p),
+                                icon: prayerIcons[p.name] ?? fallbackPrayerIcon,
+                                // A prayer whose time has not arrived yet
+                                // cannot have been performed. Say so rather
+                                // than leaving the tap to fall through to the
+                                // card underneath, which would navigate away.
+                                onTap: stateOf(p) == _PrayerState.upcoming
+                                    ? () => _showNotYetDue(context, strings)
+                                    : () => ref
+                                          .read(prayerTrackerProvider.notifier)
+                                          .toggle(logicalDate, p.name),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _OverallProgress(strings: strings, percent: percent),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          if (_showCompletionPraise)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: _CompletionPraise(
+                  controller: _celebrationController,
+                  colors: colors,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompletionPraise extends StatelessWidget {
+  final Animation<double> controller;
+  final AppColorsExtension colors;
+
+  const _CompletionPraise({required this.controller, required this.colors});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, child) {
+        final t = controller.value;
+        final enter = Curves.easeOutBack.transform((t / 0.34).clamp(0.0, 1.0));
+        final exit =
+            1 - Curves.easeIn.transform(((t - 0.74) / 0.26).clamp(0.0, 1.0));
+        final sparkle = Curves.easeOut.transform((t / 0.55).clamp(0.0, 1.0));
+
+        return Opacity(
+          opacity: (enter * exit).clamp(0.0, 1.0),
+          child: Transform.translate(
+            offset: Offset(0, -8 * enter),
+            child: Transform.scale(
+              scale: 0.86 + (0.14 * enter),
+              child: Center(
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
                   children: [
-                    _Header(
-                      strings: strings,
-                      completed: completed,
-                      total: total,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        for (final p in prayers)
-                          Flexible(
-                            child: _PrayerCheck(
-                              prayer: p,
-                              state: stateOf(p),
-                              icon: prayerIcons[p.name] ?? fallbackPrayerIcon,
-                              // A prayer whose time has not arrived yet
-                              // cannot have been performed. Say so rather
-                              // than leaving the tap to fall through to the
-                              // card underneath, which would navigate away.
-                              onTap: stateOf(p) == _PrayerState.upcoming
-                                  ? () => _showNotYetDue(context, strings)
-                                  : () => ref
-                                      .read(prayerTrackerProvider.notifier)
-                                      .toggle(logicalDate, p.name),
+                    for (final particle in _praiseParticles)
+                      Transform.translate(
+                        offset: Offset(
+                          particle.dx * sparkle,
+                          particle.dy * sparkle,
+                        ),
+                        child: Transform.rotate(
+                          angle: particle.angle * sparkle,
+                          child: Icon(
+                            Icons.auto_awesome,
+                            size: particle.size,
+                            color: colors.accentGold.withValues(
+                              alpha: 0.85 * exit,
                             ),
                           ),
-                      ],
+                        ),
+                      ),
+                    Container(
+                      constraints: const BoxConstraints(maxWidth: 230),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.darkGreen,
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                        border: Border.all(
+                          color: colors.accentGold.withValues(alpha: 0.55),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colors.darkGreen.withValues(alpha: 0.24),
+                            blurRadius: 18,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                          SizedBox(width: AppSpacing.xs),
+                          Flexible(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'MashaAllah!',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                    height: 1.05,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  '5/5 geschafft',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    _OverallProgress(strings: strings, percent: percent),
                   ],
                 ),
               ),
             ),
           ),
-        ),
+        );
+      },
     );
   }
+}
+
+const _praiseParticles = [
+  _PraiseParticle(dx: -92, dy: -44, size: 15, angle: -0.4),
+  _PraiseParticle(dx: -68, dy: 38, size: 12, angle: 0.8),
+  _PraiseParticle(dx: 76, dy: -50, size: 16, angle: 0.5),
+  _PraiseParticle(dx: 88, dy: 34, size: 13, angle: -0.7),
+];
+
+class _PraiseParticle {
+  final double dx;
+  final double dy;
+  final double size;
+  final double angle;
+
+  const _PraiseParticle({
+    required this.dx,
+    required this.dy,
+    required this.size,
+    required this.angle,
+  });
 }
 
 class _Header extends StatelessWidget {
@@ -171,7 +384,8 @@ class _Header extends StatelessWidget {
     final colors = AppColors.of(context);
     // No point repeating the Arabic heading when the app is already Arabic.
     // Skip the Arabic subtitle when the interface is already Arabic.
-    final showArabicSubtitle = Localizations.localeOf(context).languageCode != 'ar';
+    final showArabicSubtitle =
+        Localizations.localeOf(context).languageCode != 'ar';
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,26 +456,30 @@ class _PrayerCheck extends StatelessWidget {
     // Three states, three looks: done is solid green, open (time passed but
     // not ticked) is outlined in gold so it reads as "still to log", and
     // upcoming is faded back.
-    final (Color fill, Color border, Color content, double borderWidth) =
-        switch (state) {
+    final (
+      Color fill,
+      Color border,
+      Color content,
+      double borderWidth,
+    ) = switch (state) {
       _PrayerState.done => (
-          colors.darkGreen,
-          colors.darkGreen,
-          Colors.white,
-          0.0,
-        ),
+        colors.darkGreen,
+        colors.darkGreen,
+        Colors.white,
+        0.0,
+      ),
       _PrayerState.open => (
-          colors.accentGold.withValues(alpha: 0.12),
-          colors.accentGold,
-          colors.accentGold,
-          2.0,
-        ),
+        colors.accentGold.withValues(alpha: 0.12),
+        colors.accentGold,
+        colors.accentGold,
+        2.0,
+      ),
       _PrayerState.upcoming => (
-          colors.background,
-          colors.textMuted.withValues(alpha: 0.25),
-          colors.textMuted.withValues(alpha: 0.6),
-          1.0,
-        ),
+        colors.background,
+        colors.textMuted.withValues(alpha: 0.25),
+        colors.textMuted.withValues(alpha: 0.6),
+        1.0,
+      ),
     };
 
     final labelColor = switch (state) {
@@ -309,15 +527,15 @@ class _PrayerCheck extends StatelessWidget {
         if (Localizations.localeOf(context).languageCode != 'ar')
           Text(
             prayer.arabicName,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: 11,
-            color: state == _PrayerState.upcoming
-                ? colors.textMuted.withValues(alpha: 0.6)
-                : colors.textMuted,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 11,
+              color: state == _PrayerState.upcoming
+                  ? colors.textMuted.withValues(alpha: 0.6)
+                  : colors.textMuted,
+            ),
           ),
-        ),
       ],
     );
   }

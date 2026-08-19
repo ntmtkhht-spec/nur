@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' hide TextDirection;
-
-import '../../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../settings/settings_screen.dart';
 
+/// Top of the home screen: greeting, date, location.
+///
+/// The greeting carries the top line: this screen should open warmly before it
+/// becomes informational. Dates stay present, but deliberately secondary.
+///
+/// The Gregorian date and the city share one line instead of two, and the
+/// calculation method is gone: "MWL" means nothing to a first-time user and
+/// is one tap away in Settings.
 class GreetingHeader extends ConsumerWidget {
   const GreetingHeader({super.key});
 
@@ -17,13 +24,18 @@ class GreetingHeader extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final userName = ref.watch(userNameProvider);
     final hijriDate = ref.watch(hijriDateProvider);
-    final locationAsync = ref.watch(locationProvider);
-    final location = switch (locationAsync) {
+    final colors = AppColors.of(context);
+
+    final location = switch (ref.watch(locationProvider)) {
       AsyncData(:final value) => value,
       _ => null,
     };
-    final now = DateTime.now();
-    final colors = AppColors.of(context);
+
+    // Short form ("Wed, 19 Aug 2026"): the long weekday and month names ran
+    // the line close to the settings button on narrow phones.
+    final date = DateFormat.yMMMEd(
+      Localizations.localeOf(context).toLanguageTag(),
+    ).format(DateTime.now());
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -35,18 +47,16 @@ class GreetingHeader extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  // No hardcoded line break: it stranded short names on a line
-                  // of their own. Let the text wrap only when it actually
-                  // needs to. The name is also optional, so avoid leaving a
-                  // dangling comma when it has not been set.
                   userName.trim().isEmpty
                       ? l10n.greetingNoName
                       : l10n.greeting(userName.trim()),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 26,
+                    fontSize: 25,
                     fontWeight: FontWeight.w800,
-                    color: colors.textDark,
-                    height: 1.2,
+                    color: colors.darkGreen,
+                    height: 1.08,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
@@ -56,90 +66,56 @@ class GreetingHeader extends ConsumerWidget {
                   // RTL its leading day number would jump to the end.
                   textDirection: TextDirection.ltr,
                   style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: colors.primaryGreen,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _formatDate(context, now),
-                  style: TextStyle(
                     fontSize: 14,
-                    color: colors.textMuted,
+                    fontWeight: FontWeight.w700,
+                    color: colors.primaryGreen.withValues(alpha: 0.86),
+                    height: 1.15,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xs),
-                if (location != null)
-                  InkWell(
-                    borderRadius: AppRadius.circularSm,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Einstellungen für Standort öffnen...'),
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 2.0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.location_on, size: 14, color: colors.textMuted),
-                          const SizedBox(width: 4),
-                          Text(
-                            location.city,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: colors.textMuted,
-                              fontWeight: FontWeight.w500,
-                            ),
+                const SizedBox(height: 3),
+                InkWell(
+                  borderRadius: AppRadius.circularSm,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Wrap(
+                      spacing: AppSpacing.xs,
+                      runSpacing: 3,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _MetaText(label: date, color: colors.textMuted),
+                        if (location != null)
+                          _MetaText(
+                            icon: Icons.location_on_outlined,
+                            label: location.city,
+                            color: colors.textMuted,
+                            emphasized: true,
                           ),
-                          const SizedBox(width: AppSpacing.xs),
-                          Icon(Icons.calculate_outlined, size: 14, color: colors.textMuted),
-                          const SizedBox(width: 4),
-                          Text(
-                            ref.watch(calculationMethodProvider).shortLabel,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: colors.textMuted,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(Icons.chevron_right, size: 16, color: colors.textMuted),
-                        ],
-                      ),
+                      ],
                     ),
                   ),
+                ),
               ],
             ),
           ),
+          const SizedBox(width: AppSpacing.sm),
           // Entry point for every app-wide setting.
           Material(
-            color: Colors.transparent,
+            color: colors.goldLight.withValues(alpha: 0.5),
             shape: const CircleBorder(),
-            clipBehavior: Clip.antiAlias,
             child: InkWell(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              ),
-              child: Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colors.cardBg,
-                  border: Border.all(
-                    color: colors.accentGold.withValues(alpha: 0.3),
-                    width: 1.5,
-                  ),
-                ),
+              customBorder: const CircleBorder(),
+              onTap: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
                 child: Icon(
                   Icons.settings_outlined,
+                  size: 22,
                   color: colors.accentGold,
-                  size: 26,
                 ),
               ),
             ),
@@ -148,10 +124,45 @@ class GreetingHeader extends ConsumerWidget {
       ),
     );
   }
+}
 
-  /// Weekday and month names come from intl so they follow the app locale;
-  /// the hardcoded German list this replaced only ever produced German.
-  String _formatDate(BuildContext context, DateTime d) =>
-      DateFormat.yMMMMEEEEd(Localizations.localeOf(context).toLanguageTag())
-          .format(d);
+class _MetaText extends StatelessWidget {
+  final IconData? icon;
+  final String label;
+  final Color color;
+  final bool emphasized;
+
+  const _MetaText({
+    this.icon,
+    required this.label,
+    required this.color,
+    this.emphasized = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (icon != null) ...[
+          Icon(icon, size: 11, color: color.withValues(alpha: 0.82)),
+          const SizedBox(width: 3),
+        ],
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 170),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: emphasized ? FontWeight.w500 : FontWeight.w400,
+              color: color.withValues(alpha: 0.88),
+              height: 1.2,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

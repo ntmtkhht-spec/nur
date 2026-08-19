@@ -65,11 +65,11 @@ class _MosqueMapState extends State<MosqueMap> {
 
   /// Roughly fits the search circle onto a phone screen.
   double get _zoomForRadius => switch (widget.radiusMeters) {
-        <= 2000 => 13,
-        <= 5000 => 12,
-        <= 10000 => 11,
-        _ => 9.5,
-      };
+    <= 2000 => 13,
+    <= 5000 => 12,
+    <= 10000 => 11,
+    _ => 9.5,
+  };
 
   @override
   void didUpdateWidget(MosqueMap old) {
@@ -77,10 +77,7 @@ class _MosqueMapState extends State<MosqueMap> {
     // Widening the radius while the map is open would otherwise keep the old
     // zoom and push the new results off screen.
     if (old.radiusMeters != widget.radiusMeters) {
-      _controller.move(
-        LatLng(widget.userLat, widget.userLng),
-        _zoomForRadius,
-      );
+      _controller.move(LatLng(widget.userLat, widget.userLng), _zoomForRadius);
     }
   }
 
@@ -110,11 +107,10 @@ class _MosqueMapState extends State<MosqueMap> {
           ),
           children: [
             TileLayer(
-              // @2x tiles are ~76 KB against ~28 KB for the plain ones, so
-              // only ask for them where the extra pixels are actually visible.
-              urlTemplate: MediaQuery.devicePixelRatioOf(context) >= 2
-                  ? 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'
-                  : 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+              // Use regular tiles even on dense screens: the retina variants
+              // are much heavier and made the first map open feel sluggish.
+              urlTemplate:
+                  'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.munir.app',
               maxNativeZoom: 20,
               // One ring of off-screen tiles is enough to cover a small pan;
@@ -159,10 +155,7 @@ class _MosqueMapState extends State<MosqueMap> {
             left: AppSpacing.md,
             right: AppSpacing.md,
             bottom: AppSpacing.md,
-            child: SafeArea(
-              top: false,
-              child: MosqueCard(mosque: selected),
-            ),
+            child: SafeArea(top: false, child: MosqueCard(mosque: selected)),
           ),
       ],
     );

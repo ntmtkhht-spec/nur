@@ -73,12 +73,15 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
             ),
           ),
           loading: () => const Text('Laden...'),
-          error: (_, __) => const Text('Fehler'),
+          error: (_, _) => const Text('Fehler'),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined, color: AppColors.darkGreen),
+            icon: const Icon(
+              Icons.settings_outlined,
+              color: AppColors.darkGreen,
+            ),
             onPressed: () {},
           ),
         ],
@@ -90,7 +93,9 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
           if (!_playlistInitialized) {
             _playlistInitialized = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              ref.read(audioPlayerNotifierProvider.notifier).initPlaylist(surah.ayahs);
+              ref
+                  .read(audioPlayerNotifierProvider.notifier)
+                  .initPlaylist(surah.ayahs);
             });
           }
 
@@ -98,15 +103,15 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
             children: [
               ListView.builder(
                 controller: _scrollController,
-                padding: const EdgeInsets.only(top: 16, bottom: 200), // extra space for bottom bar
+                padding: const EdgeInsets.only(
+                  top: 16,
+                  bottom: 200,
+                ), // extra space for bottom bar
                 itemCount: surah.ayahs.length,
                 itemBuilder: (context, index) {
                   final ayah = surah.ayahs[index];
                   final isPlaying = audioState.currentAyahIndex == index;
-                  return VerseCard(
-                    ayah: ayah,
-                    isPlaying: isPlaying,
-                  );
+                  return VerseCard(ayah: ayah, isPlaying: isPlaying);
                 },
               ),
               const Positioned(
@@ -123,14 +128,20 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
                     onPressed: _scrollToTop,
                     backgroundColor: AppColors.primaryGreen,
                     mini: true,
-                    child: const Icon(Icons.arrow_upward, color: AppColors.white),
+                    child: const Icon(
+                      Icons.arrow_upward,
+                      color: AppColors.white,
+                    ),
                   ),
                 ),
             ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.darkGreen)),
-        error: (error, stack) => Center(child: Text('Fehler beim Laden: $error')),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.darkGreen),
+        ),
+        error: (error, stack) =>
+            Center(child: Text('Fehler beim Laden: $error')),
       ),
     );
   }

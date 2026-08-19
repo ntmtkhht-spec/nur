@@ -10,7 +10,7 @@ import '../models/mosque.dart';
 class MosqueCard extends StatelessWidget {
   final Mosque mosque;
 
-  const MosqueCard({required this.mosque});
+  const MosqueCard({super.key, required this.mosque});
 
   Future<void> _open(BuildContext context, Uri uri) async {
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -115,10 +115,7 @@ class MosqueCard extends StatelessWidget {
                 _ActionButton(
                   icon: Icons.call_outlined,
                   label: AppLocalizations.of(context).mosquesCall,
-                  onTap: () => _open(
-                    context,
-                    Uri.parse('tel:${mosque.phone}'),
-                  ),
+                  onTap: () => _open(context, Uri.parse('tel:${mosque.phone}')),
                 ),
             ],
           ),

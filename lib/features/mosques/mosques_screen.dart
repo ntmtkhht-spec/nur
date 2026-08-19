@@ -5,9 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_tokens.dart';
+import 'models/mosque.dart';
 import 'providers/mosques_provider.dart';
 import '../../core/providers/providers.dart';
-import 'widgets/mosque_card.dart';
 import 'widgets/mosque_map.dart';
 
 class MosquesScreen extends ConsumerStatefulWidget {
@@ -18,8 +18,6 @@ class MosquesScreen extends ConsumerStatefulWidget {
 }
 
 class _MosquesScreenState extends ConsumerState<MosquesScreen> {
-  bool _showMap = false;
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -31,24 +29,12 @@ class _MosquesScreenState extends ConsumerState<MosquesScreen> {
       appBar: AppBar(
         title: Text(
           l10n.mosquesTitle,
-          style: TextStyle(
-            color: colors.textDark,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: colors.textDark, fontWeight: FontWeight.bold),
         ),
         backgroundColor: colors.background,
         iconTheme: IconThemeData(color: colors.primaryGreen),
         elevation: 0,
         actions: [
-          if (hasConsent)
-            IconButton(
-              tooltip: _showMap ? l10n.mosquesShowList : l10n.mosquesShowMap,
-              icon: Icon(
-                _showMap ? Icons.view_list_outlined : Icons.map_outlined,
-                color: colors.primaryGreen,
-              ),
-              onPressed: () => setState(() => _showMap = !_showMap),
-            ),
           if (hasConsent)
             IconButton(
               tooltip: l10n.mosquesRefresh,
@@ -60,7 +46,7 @@ class _MosquesScreenState extends ConsumerState<MosquesScreen> {
             ),
         ],
       ),
-      body: hasConsent ? _MosqueResults(showMap: _showMap) : const _ConsentGate(),
+      body: hasConsent ? const _MosqueResults() : const _ConsentGate(),
     );
   }
 }
@@ -151,15 +137,24 @@ class _ConsentGate extends ConsumerWidget {
 }
 
 class _MosqueResults extends ConsumerWidget {
-  final bool showMap;
-
-  const _MosqueResults({required this.showMap});
+  const _MosqueResults();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colors = AppColors.of(context);
     final mosquesAsync = ref.watch(nearbyMosquesProvider);
     final radius = ref.watch(mosqueRadiusProvider);
+    final mosques = switch (mosquesAsync) {
+      AsyncData(:final value) => value,
+      _ => const <Mosque>[],
+    };
+    final isLoading = mosquesAsync is AsyncLoading;
+    final errorMessage = switch (mosquesAsync) {
+      AsyncError(:final error) => error.toString().replaceFirst(
+        'Exception: ',
+        '',
+      ),
+      _ => null,
+    };
     // The map needs a centre even while the real position is still resolving;
     // same fallback the search itself uses.
     final location = switch (ref.watch(locationProvider)) {
@@ -176,41 +171,34 @@ class _MosqueResults extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.lg),
         Expanded(
-          child: switch (mosquesAsync) {
-            AsyncLoading() => Center(
-                child: CircularProgressIndicator(color: colors.primaryGreen),
+          child: Stack(
+            children: [
+              MosqueMap(
+                mosques: mosques,
+                userLat: location.lat,
+                userLng: location.lng,
+                radiusMeters: radius,
               ),
-            AsyncError(:final error) => _ErrorState(
-                message: error.toString().replaceFirst('Exception: ', ''),
-                onRetry: () =>
-                    ref.read(nearbyMosquesProvider.notifier).refresh(),
-              ),
-            AsyncData(:final value) => value.isEmpty
-                ? _EmptyState(radiusMeters: radius)
-                : showMap
-                ? MosqueMap(
-                    mosques: value,
-                    userLat: location.lat,
-                    userLng: location.lng,
-                    radiusMeters: radius,
-                  )
-                : ListView.separated(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.xs,
-                      AppSpacing.lg,
-                      AppSpacing.xxl,
-                    ),
-                    itemCount: value.length + 1,
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(height: AppSpacing.xs),
-                    itemBuilder: (context, i) {
-                      if (i == value.length) return const _Attribution();
-                      return MosqueCard(mosque: value[i]);
-                    },
+              if (isLoading)
+                const Positioned(
+                  top: AppSpacing.sm,
+                  left: AppSpacing.md,
+                  right: AppSpacing.md,
+                  child: _MapStatusBanner.loading(),
+                ),
+              if (errorMessage != null)
+                Positioned(
+                  top: AppSpacing.sm,
+                  left: AppSpacing.md,
+                  right: AppSpacing.md,
+                  child: _MapStatusBanner.error(
+                    message: errorMessage,
+                    onRetry: () =>
+                        ref.read(nearbyMosquesProvider.notifier).refresh(),
                   ),
-          },
+                ),
+            ],
+          ),
         ),
       ],
     );
@@ -287,106 +275,80 @@ class _RadiusSlider extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  final int radiusMeters;
-
-  const _EmptyState({required this.radiusMeters});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.search_off, size: 56, color: colors.textMuted),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Keine Moschee im Umkreis von '
-              '${radiusMeters ~/ 1000} km gefunden.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15, color: colors.textMuted),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Versuche einen größeren Radius. Die Daten stammen aus '
-              'OpenStreetMap und sind je nach Region unterschiedlich '
-              'vollständig.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: colors.textMuted),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
+class _MapStatusBanner extends StatelessWidget {
+  final IconData icon;
   final String message;
-  final VoidCallback onRetry;
+  final VoidCallback? onRetry;
+  final bool isLoading;
 
-  const _ErrorState({required this.message, required this.onRetry});
+  const _MapStatusBanner.loading()
+    : icon = Icons.travel_explore,
+      message = 'Moscheen werden gesucht...',
+      onRetry = null,
+      isLoading = true;
+
+  const _MapStatusBanner.error({
+    required this.message,
+    required VoidCallback this.onRetry,
+  }) : icon = Icons.cloud_off,
+       isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colors = AppColors.of(context);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.94),
+          borderRadius: AppRadius.circularMd,
+          boxShadow: AppShadows.sm,
+        ),
+        child: Row(
           children: [
-            Icon(Icons.cloud_off, size: 56, color: colors.textMuted),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Suche fehlgeschlagen',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: colors.textDark,
+            if (isLoading)
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: colors.primaryGreen,
+                ),
+              )
+            else
+              Icon(icon, size: 18, color: colors.textMuted),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                message,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: colors.textDark,
+                ),
               ),
             ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: colors.textMuted),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            OutlinedButton.icon(
-              onPressed: onRetry,
-              icon: Icon(Icons.refresh, size: 18),
-              label: Text(l10n.mosquesRetry),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: colors.primaryGreen,
+            if (onRetry != null) ...[
+              const SizedBox(width: AppSpacing.xs),
+              TextButton(
+                onPressed: onRetry,
+                style: TextButton.styleFrom(
+                  foregroundColor: colors.primaryGreen,
+                  visualDensity: VisualDensity.compact,
+                ),
+                child: Text(l10n.mosquesRetry),
               ),
-            ),
+            ],
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _Attribution extends StatelessWidget {
-  const _Attribution();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.sm),
-      child: Text(
-        'Daten © OpenStreetMap-Mitwirkende (ODbL)',
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 11, color: colors.textMuted),
       ),
     );
   }

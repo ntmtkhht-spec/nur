@@ -6,7 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../providers/audio_player_provider.dart';
 
 class AudioPlayerBottomBar extends ConsumerWidget {
-  const AudioPlayerBottomBar({Key? key}) : super(key: key);
+  const AudioPlayerBottomBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,7 +21,7 @@ class AudioPlayerBottomBar extends ConsumerWidget {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: AppColors.darkGreen.withOpacity(0.3),
+            color: AppColors.darkGreen.withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -44,9 +44,13 @@ class AudioPlayerBottomBar extends ConsumerWidget {
               IconButton(
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
-                icon: const Icon(Icons.tune_rounded, color: AppColors.white, size: 20),
+                icon: const Icon(
+                  Icons.tune_rounded,
+                  color: AppColors.white,
+                  size: 20,
+                ),
                 onPressed: () {},
-              )
+              ),
             ],
           ),
           const SizedBox(height: 4),
@@ -55,7 +59,10 @@ class AudioPlayerBottomBar extends ConsumerWidget {
             children: [
               IconButton(
                 iconSize: 32,
-                icon: const Icon(Icons.skip_previous_rounded, color: AppColors.white),
+                icon: const Icon(
+                  Icons.skip_previous_rounded,
+                  color: AppColors.white,
+                ),
                 onPressed: () => notifier.seekToPrevious(),
               ),
               const SizedBox(width: 16),
@@ -75,22 +82,36 @@ class AudioPlayerBottomBar extends ConsumerWidget {
                         color: AppColors.accentGold,
                       ),
                       child: const Center(
-                        child: CircularProgressIndicator(color: AppColors.white),
+                        child: CircularProgressIndicator(
+                          color: AppColors.white,
+                        ),
                       ),
                     );
                   } else if (playing != true) {
-                    return _playPauseButton(Icons.play_arrow_rounded, notifier.play);
+                    return _playPauseButton(
+                      Icons.play_arrow_rounded,
+                      notifier.play,
+                    );
                   } else if (processingState != ProcessingState.completed) {
-                    return _playPauseButton(Icons.pause_rounded, notifier.pause);
+                    return _playPauseButton(
+                      Icons.pause_rounded,
+                      notifier.pause,
+                    );
                   } else {
-                    return _playPauseButton(Icons.replay_rounded, () => player.seek(Duration.zero, index: 0));
+                    return _playPauseButton(
+                      Icons.replay_rounded,
+                      () => player.seek(Duration.zero, index: 0),
+                    );
                   }
                 },
               ),
               const SizedBox(width: 16),
               IconButton(
                 iconSize: 32,
-                icon: const Icon(Icons.skip_next_rounded, color: AppColors.white),
+                icon: const Icon(
+                  Icons.skip_next_rounded,
+                  color: AppColors.white,
+                ),
                 onPressed: () => notifier.seekToNext(),
               ),
             ],
@@ -109,7 +130,7 @@ class AudioPlayerBottomBar extends ConsumerWidget {
                     total: duration,
                     onSeek: notifier.seek,
                     barHeight: 3,
-                    baseBarColor: AppColors.white.withOpacity(0.3),
+                    baseBarColor: AppColors.white.withValues(alpha: 0.3),
                     progressBarColor: AppColors.accentGold,
                     thumbColor: AppColors.accentGold,
                     thumbRadius: 6,

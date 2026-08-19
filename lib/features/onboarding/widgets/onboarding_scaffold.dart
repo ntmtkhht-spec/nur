@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 class OnboardingScaffold extends StatelessWidget {
   final int currentStep;
   final int totalSteps;
+
   /// Defaults to the localized "next" label when null.
   final String? buttonLabel;
 
@@ -20,7 +21,7 @@ class OnboardingScaffold extends StatelessWidget {
   final Widget? customButton;
   final List<Widget> children;
 
-  OnboardingScaffold({
+  const OnboardingScaffold({
     super.key,
     required this.currentStep,
     this.totalSteps = 4,
@@ -97,7 +98,8 @@ class OnboardingScaffold extends StatelessWidget {
             // Bottom button
             Padding(
               padding: const EdgeInsets.fromLTRB(28, 8, 28, 16),
-              child: customButton ??
+              child:
+                  customButton ??
                   (buttonIsSecondary
                       ? SizedBox(
                           width: double.infinity,
@@ -115,26 +117,26 @@ class OnboardingScaffold extends StatelessWidget {
                           ),
                         )
                       : SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: buttonEnabled ? onNext : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.darkGreen,
-                        disabledBackgroundColor:
-                            AppColors.darkGreen.withValues(alpha: 0.4),
-                        foregroundColor: AppColors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      child: Text(buttonLabel ?? l10n.commonNext),
-                    ),
-                  )),
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: buttonEnabled ? onNext : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.darkGreen,
+                              disabledBackgroundColor: AppColors.darkGreen
+                                  .withValues(alpha: 0.4),
+                              foregroundColor: AppColors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            child: Text(buttonLabel ?? l10n.commonNext),
+                          ),
+                        )),
             ),
           ],
         ),

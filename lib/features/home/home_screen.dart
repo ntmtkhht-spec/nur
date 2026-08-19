@@ -5,7 +5,6 @@ import '../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import 'widgets/daily_reminder_banner.dart';
 import 'widgets/greeting_header.dart';
@@ -40,7 +39,9 @@ class HomeScreen extends ConsumerWidget {
             const QuickActionsGrid(),
             const SizedBox(height: AppSpacing.lg),
             const DailyReminderBanner(),
-            const SizedBox(height: 120), // Bottom padding for bottom navigation bar
+            const SizedBox(
+              height: 120,
+            ), // Bottom padding for bottom navigation bar
           ],
         ),
       ),
@@ -76,7 +77,13 @@ class _LocationWarningBanner extends ConsumerWidget {
               onPressed: () {
                 ref.read(locationProvider.notifier).detectViaGps();
               },
-              child: Text(AppLocalizations.of(context).activate, style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              child: Text(
+                AppLocalizations.of(context).activate,
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         ),

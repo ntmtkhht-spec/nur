@@ -35,10 +35,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
       appBar: AppBar(
         title: Text(
           l10n.qiblaTitle,
-          style: TextStyle(
-            color: colors.textDark,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: colors.textDark, fontWeight: FontWeight.bold),
         ),
         backgroundColor: colors.background,
         iconTheme: IconThemeData(color: colors.primaryGreen),
@@ -53,45 +50,47 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
       ),
       body: SafeArea(
         child: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<CompassEvent?>(
-              stream: FlutterCompass.events,
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return _CompassUnavailable(
-                    message: 'Kompass nicht verfügbar auf diesem Gerät.',
-                  );
-                }
-                if (FlutterCompass.events == null) {
-                  return _CompassUnavailable(
-                    message: 'Kompass wird nicht unterstützt.',
-                  );
-                }
+          children: [
+            Expanded(
+              child: StreamBuilder<CompassEvent?>(
+                stream: FlutterCompass.events,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return _CompassUnavailable(
+                      message: 'Kompass nicht verfügbar auf diesem Gerät.',
+                    );
+                  }
+                  if (FlutterCompass.events == null) {
+                    return _CompassUnavailable(
+                      message: 'Kompass wird nicht unterstützt.',
+                    );
+                  }
 
-                final heading = snapshot.data?.heading;
-                if (heading == null && !snapshot.hasData) {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      color: colors.primaryGreen,
-                    ),
+                  final heading = snapshot.data?.heading;
+                  if (heading == null && !snapshot.hasData) {
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: colors.primaryGreen,
+                      ),
+                    );
+                  }
+
+                  final currentHeading = heading ?? 0;
+                  final relative = _relativeAngle(
+                    qiblaBearing - currentHeading,
                   );
-                }
+                  final aligned = relative.abs() <= 5;
 
-                final currentHeading = heading ?? 0;
-                final relative = _relativeAngle(qiblaBearing - currentHeading);
-                final aligned = relative.abs() <= 5;
-
-                return _QiblaBody(
-                  qiblaBearing: qiblaBearing,
-                  deviceHeading: currentHeading,
-                  distanceKm: distanceKm,
-                  aligned: aligned,
-                );
-              },
+                  return _QiblaBody(
+                    qiblaBearing: qiblaBearing,
+                    deviceHeading: currentHeading,
+                    distanceKm: distanceKm,
+                    aligned: aligned,
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );
@@ -136,17 +135,16 @@ class _QiblaBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final relative = qiblaBearing - deviceHeading;
+    final relative = _normalizeRelative(qiblaBearing - deviceHeading);
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          const SizedBox(height: 8),
-          _KaabaMarker(),
-          const SizedBox(height: 6),
+          const SizedBox(height: 14),
           _Compass(
+            qiblaBearing: qiblaBearing,
             deviceHeading: deviceHeading,
             qiblaRelative: relative,
           ),
@@ -155,15 +153,19 @@ class _QiblaBody extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             'Entfernung nach Mekka: ${_formatKm(distanceKm)} km',
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textMuted,
-            ),
+            style: const TextStyle(fontSize: 14, color: AppColors.textMuted),
           ),
           const SizedBox(height: 20),
         ],
       ),
     );
+  }
+
+  double _normalizeRelative(double raw) {
+    var a = raw % 360;
+    if (a > 180) a -= 360;
+    if (a < -180) a += 360;
+    return a;
   }
 
   String _formatKm(double km) {
@@ -179,70 +181,17 @@ class _QiblaBody extends StatelessWidget {
   }
 }
 
-class _KaabaMarker extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 46,
-          height: 56,
-          decoration: BoxDecoration(
-            color: AppColors.accentGold.withValues(alpha: 0.15),
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(24),
-            ),
-            border: Border.all(
-              color: AppColors.accentGold.withValues(alpha: 0.4),
-              width: 1,
-            ),
-          ),
-          child: const Center(
-            child: Icon(
-              Icons.holiday_village_rounded,
-              size: 26,
-              color: AppColors.accentGold,
-            ),
-          ),
-        ),
-        CustomPaint(
-          size: const Size(20, 12),
-          painter: _TrianglePainter(color: AppColors.accentGold),
-        ),
-      ],
-    );
-  }
-}
-
-class _TrianglePainter extends CustomPainter {
-  final Color color;
-
-  _TrianglePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = color;
-    final path = Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width / 2, size.height)
-      ..close();
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(_TrianglePainter old) => old.color != color;
-}
-
 // ---------------------------------------------------------------------------
 // Compass
 // ---------------------------------------------------------------------------
 
 class _Compass extends StatelessWidget {
+  final double qiblaBearing;
   final double deviceHeading;
   final double qiblaRelative;
 
   const _Compass({
+    required this.qiblaBearing,
     required this.deviceHeading,
     required this.qiblaRelative,
   });
@@ -252,36 +201,40 @@ class _Compass extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = math.min(constraints.maxWidth, 380).toDouble();
+        final markerSize = math.min(size * 0.14, 54.0);
+        const markerGap = 8.0;
         return SizedBox(
           width: size,
-          height: size,
-          child: Stack(
-            alignment: Alignment.center,
+          height: size + markerSize + markerGap,
+          child: Column(
             children: [
-              Transform.rotate(
-                angle: -deviceHeading * math.pi / 180.0,
-                child: CustomPaint(
-                  size: Size(size, size),
-                  painter: _CompassDialPainter(),
-                ),
-              ),
-              Transform.rotate(
-                angle: qiblaRelative * math.pi / 180.0,
-                child: CustomPaint(
-                  size: Size(size, size),
-                  painter: _QiblaNeedlePainter(),
-                ),
-              ),
-              Positioned(
-                bottom: size * 0.32,
-                child: Text(
-                  '${qiblaRelative.abs().round()}° ${_cardinal(qiblaRelative)}',
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.darkGreen,
+              _KaabaMarker(size: markerSize),
+              const SizedBox(height: markerGap),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Transform.rotate(
+                    angle: -deviceHeading * math.pi / 180.0,
+                    child: CustomPaint(
+                      size: Size(size, size),
+                      painter: _CompassDialPainter(),
+                    ),
                   ),
-                ),
+                  Transform.rotate(
+                    angle: qiblaRelative * math.pi / 180.0,
+                    child: CustomPaint(
+                      size: Size(size, size),
+                      painter: _QiblaNeedlePainter(),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: size * 0.16,
+                    child: _BearingPill(
+                      bearing: qiblaBearing,
+                      cardinal: _cardinal(qiblaBearing),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -304,155 +257,127 @@ class _Compass extends StatelessWidget {
   }
 }
 
+class _KaabaMarker extends StatelessWidget {
+  final double size;
+
+  const _KaabaMarker({required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Image.asset(
+        'assets/images/kaaba-qibla-icon.png',
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+      ),
+    );
+  }
+}
+
+class _BearingPill extends StatelessWidget {
+  final double bearing;
+  final String cardinal;
+
+  const _BearingPill({required this.bearing, required this.cardinal});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.goldLight),
+      ),
+      child: Text(
+        '${bearing.round()}° $cardinal',
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+          color: AppColors.darkGreen,
+        ),
+      ),
+    );
+  }
+}
+
 class _CompassDialPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
-    final outerRadius = size.width / 2;
-    final innerRadius = outerRadius * 0.72;
+    final outerRadius = size.width / 2 - 2;
+    final middleRadius = outerRadius * 0.78;
+    final innerRadius = outerRadius * 0.48;
 
-    // Outer ring background
+    final surface = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          Colors.white.withValues(alpha: 0.96),
+          AppColors.goldLight.withValues(alpha: 0.34),
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: outerRadius));
+    canvas.drawCircle(center, outerRadius, surface);
+
+    final ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4
+      ..color = AppColors.accentGold.withValues(alpha: 0.42);
+    canvas.drawCircle(center, outerRadius, ringPaint);
     canvas.drawCircle(
       center,
-      outerRadius,
-      Paint()..color = AppColors.accentGold.withValues(alpha: 0.08),
+      middleRadius,
+      ringPaint..color = AppColors.accentGold.withValues(alpha: 0.22),
     );
-
-    // Outer ring border
-    canvas.drawCircle(
-      center,
-      outerRadius,
-      Paint()
-        ..color = AppColors.accentGold.withValues(alpha: 0.3)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-    );
-
-    // Inner ring border
     canvas.drawCircle(
       center,
       innerRadius,
-      Paint()
-        ..color = AppColors.accentGold.withValues(alpha: 0.35)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2,
+      ringPaint..color = AppColors.darkGreen.withValues(alpha: 0.08),
     );
 
-    // Tick marks around outer ring
     final tickPaint = Paint()
-      ..color = AppColors.accentGold.withValues(alpha: 0.65)
+      ..color = AppColors.accentGold.withValues(alpha: 0.48)
+      ..strokeCap = StrokeCap.round
       ..strokeWidth = 1;
-    for (var deg = 0; deg < 360; deg += 2) {
+    for (var deg = 0; deg < 360; deg += 5) {
       final major = deg % 30 == 0;
-      final medium = deg % 10 == 0;
-      final tickLen = major ? 12.0 : (medium ? 7.0 : 3.5);
+      final tickLen = major ? 13.0 : 5.0;
       final angle = (deg - 90) * math.pi / 180.0;
       final outer = Offset(
-        center.dx + math.cos(angle) * (outerRadius - 6),
-        center.dy + math.sin(angle) * (outerRadius - 6),
+        center.dx + math.cos(angle) * (outerRadius - 12),
+        center.dy + math.sin(angle) * (outerRadius - 12),
       );
       final inner = Offset(
-        center.dx + math.cos(angle) * (outerRadius - 6 - tickLen),
-        center.dy + math.sin(angle) * (outerRadius - 6 - tickLen),
+        center.dx + math.cos(angle) * (outerRadius - 12 - tickLen),
+        center.dy + math.sin(angle) * (outerRadius - 12 - tickLen),
       );
       tickPaint.color = major
-          ? AppColors.accentGold.withValues(alpha: 0.9)
-          : AppColors.accentGold.withValues(alpha: 0.55);
-      tickPaint.strokeWidth = major ? 2 : 1;
+          ? AppColors.accentGold.withValues(alpha: 0.7)
+          : AppColors.accentGold.withValues(alpha: 0.26);
+      tickPaint.strokeWidth = major ? 1.8 : 1;
       canvas.drawLine(inner, outer, tickPaint);
     }
 
-    // Degree labels: 0, 30, 60, 90, ...
-    final labelStyle = TextStyle(
-      fontSize: size.width * 0.038,
-      color: AppColors.accentGold.withValues(alpha: 0.9),
-      fontWeight: FontWeight.w600,
-    );
-    for (var deg = 0; deg < 360; deg += 30) {
-      final angle = (deg - 90) * math.pi / 180.0;
-      final r = outerRadius - 34;
-      final pos = Offset(
-        center.dx + math.cos(angle) * r,
-        center.dy + math.sin(angle) * r,
-      );
-      final label = deg == 0
-          ? '0'
-          : deg == 273
-              ? '273'
-              : deg.toString();
-      final tp = TextPainter(
-        text: TextSpan(text: label, style: labelStyle),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tp.paint(canvas, pos - Offset(tp.width / 2, tp.height / 2));
-    }
-
-    // Cardinal Arabic letters: ش (N), خ (E), ج (S), غ (W)
-    const cardinals = {
-      0: 'ش',
-      90: 'خ',
-      180: 'ج',
-      270: 'غ',
-    };
-    final arabicStyle = TextStyle(
-      fontSize: size.width * 0.07,
-      color: AppColors.darkGreen,
-      fontWeight: FontWeight.w700,
+    const cardinals = {0: 'N', 90: 'E', 180: 'S', 270: 'W'};
+    final cardinalStyle = TextStyle(
+      fontSize: size.width * 0.045,
+      color: AppColors.darkGreen.withValues(alpha: 0.74),
+      fontWeight: FontWeight.w800,
     );
     cardinals.forEach((deg, letter) {
       final angle = (deg - 90) * math.pi / 180.0;
-      final r = innerRadius + (outerRadius - innerRadius) * 0.15;
+      final r = middleRadius + (outerRadius - middleRadius) * 0.32;
       final pos = Offset(
         center.dx + math.cos(angle) * r,
         center.dy + math.sin(angle) * r,
       );
       final tp = TextPainter(
-        text: TextSpan(text: letter, style: arabicStyle),
-        textDirection: TextDirection.rtl,
+        text: TextSpan(text: letter, style: cardinalStyle),
+        textDirection: TextDirection.ltr,
       )..layout();
       tp.paint(canvas, pos - Offset(tp.width / 2, tp.height / 2));
     });
-
-    // Inner Islamic star pattern (decorative)
-    _drawStarPattern(canvas, center, innerRadius * 0.9);
-  }
-
-  void _drawStarPattern(Canvas canvas, Offset center, double radius) {
-    final paint = Paint()
-      ..color = AppColors.accentGold.withValues(alpha: 0.1)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-
-    for (final r in [radius * 0.4, radius * 0.6, radius * 0.8]) {
-      _drawEightPointStar(canvas, center, r, paint);
-    }
-  }
-
-  void _drawEightPointStar(
-    Canvas canvas, Offset center, double radius, Paint paint,
-  ) {
-    _drawSquare(canvas, center, radius, 0, paint);
-    _drawSquare(canvas, center, radius, math.pi / 4, paint);
-  }
-
-  void _drawSquare(
-    Canvas canvas, Offset center, double r, double rotation, Paint paint,
-  ) {
-    final path = Path();
-    for (var i = 0; i < 4; i++) {
-      final angle = rotation + i * math.pi / 2;
-      final p = Offset(
-        center.dx + math.cos(angle) * r,
-        center.dy + math.sin(angle) * r,
-      );
-      if (i == 0) {
-        path.moveTo(p.dx, p.dy);
-      } else {
-        path.lineTo(p.dx, p.dy);
-      }
-    }
-    path.close();
-    canvas.drawPath(path, paint);
   }
 
   @override
@@ -466,7 +391,6 @@ class _QiblaNeedlePainter extends CustomPainter {
     final radius = size.width / 2;
     final needleLen = radius * 0.55;
 
-    // Needle
     final needlePaint = Paint()
       ..color = AppColors.darkGreen
       ..strokeWidth = 6
@@ -477,7 +401,6 @@ class _QiblaNeedlePainter extends CustomPainter {
       needlePaint,
     );
 
-    // Arrow head (triangle)
     final headPath = Path()
       ..moveTo(center.dx, center.dy - needleLen - 14)
       ..lineTo(center.dx - 10, center.dy - needleLen + 4)
@@ -485,12 +408,7 @@ class _QiblaNeedlePainter extends CustomPainter {
       ..close();
     canvas.drawPath(headPath, Paint()..color = AppColors.darkGreen);
 
-    // Center dot
-    canvas.drawCircle(
-      center,
-      8,
-      Paint()..color = AppColors.accentGold,
-    );
+    canvas.drawCircle(center, 8, Paint()..color = AppColors.accentGold);
     canvas.drawCircle(
       center,
       8,
@@ -522,9 +440,7 @@ class _AlignmentBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: aligned
-            ? AppColors.darkGreen
-            : AppColors.cardBg,
+        color: aligned ? AppColors.darkGreen : AppColors.cardBg,
         borderRadius: BorderRadius.circular(28),
       ),
       child: Row(
@@ -537,9 +453,7 @@ class _AlignmentBanner extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            aligned
-                ? l10n.qiblaAligned
-                : l10n.qiblaTurnToKaaba,
+            aligned ? l10n.qiblaAligned : l10n.qiblaTurnToKaaba,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
@@ -574,18 +488,12 @@ class _CompassUnavailable extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 15,
-              color: AppColors.textMuted,
-            ),
+            style: const TextStyle(fontSize: 15, color: AppColors.textMuted),
           ),
           const SizedBox(height: 8),
           Text(
             'Distanz: $distanceKm km',
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.textMuted,
-            ),
+            style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
           ),
         ],
       ),

@@ -6,11 +6,7 @@ class VerseCard extends StatelessWidget {
   final Ayah ayah;
   final bool isPlaying;
 
-  const VerseCard({
-    Key? key,
-    required this.ayah,
-    this.isPlaying = false,
-  }) : super(key: key);
+  const VerseCard({super.key, required this.ayah, this.isPlaying = false});
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +16,12 @@ class VerseCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: isPlaying ? Border.all(color: AppColors.primaryGreen, width: 2) : Border.all(color: AppColors.cardBg, width: 1),
+        border: isPlaying
+            ? Border.all(color: AppColors.primaryGreen, width: 2)
+            : Border.all(color: AppColors.cardBg, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
