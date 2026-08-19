@@ -528,4 +528,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonOr => 'or';
+
+  @override
+  String get settingsSectionAccount => 'Account';
+
+  @override
+  String get settingsSignInGoogle => 'Sign in with Google';
+
+  @override
+  String get settingsSignInWhy =>
+      'Backs up your prayer history and syncs it across your devices';
+
+  @override
+  String get settingsSignOut => 'Sign out';
+
+  @override
+  String get settingsDeleteAccount => 'Delete account';
+
+  @override
+  String get settingsDeleteAccountHint =>
+      'Permanently deletes your account and all stored data';
+
+  @override
+  String get settingsDeleteAccountConfirm =>
+      'Really delete your account? Your history on the servers will be permanently deleted. The data on this device stays.';
+
+  @override
+  String settingsSignedInAs(String email) {
+    return 'Signed in as $email';
+  }
+
+  @override
+  String get settingsSignInFailed => 'Sign-in failed.';
+
+  @override
+  String get settingsSyncNow => 'Sync now';
+
+  @override
+  String get settingsSyncDone => 'Synced.';
+
+  @override
+  String get settingsAccountDeleted => 'Account deleted.';
 }

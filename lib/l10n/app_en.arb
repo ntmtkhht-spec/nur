@@ -156,5 +156,17 @@
   "notificationChannelName": "Prayer times",
   "notificationChannelDescription": "Reminders for the daily prayer times",
   "onboardingLocationWhy": "We need your location for accurate prayer times and the qibla direction.",
-  "commonOr": "or"
+  "commonOr": "or",
+  "settingsSectionAccount": "Account",
+  "settingsSignInGoogle": "Sign in with Google",
+  "settingsSignInWhy": "Backs up your prayer history and syncs it across your devices",
+  "settingsSignOut": "Sign out",
+  "settingsDeleteAccount": "Delete account",
+  "settingsDeleteAccountHint": "Permanently deletes your account and all stored data",
+  "settingsDeleteAccountConfirm": "Really delete your account? Your history on the servers will be permanently deleted. The data on this device stays.",
+  "settingsSignedInAs": "Signed in as {email}",
+  "settingsSignInFailed": "Sign-in failed.",
+  "settingsSyncNow": "Sync now",
+  "settingsSyncDone": "Synced.",
+  "settingsAccountDeleted": "Account deleted."
 }

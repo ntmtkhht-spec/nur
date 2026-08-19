@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'core/providers/providers.dart';
+import 'core/services/auth_service.dart';
+import 'core/services/sync_service.dart';
 import 'firebase_options.dart';
 import 'core/theme/app_colors.dart';
 
@@ -34,6 +36,11 @@ void main() async {
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
+        // Lets the auth service clear Firestore data before deleting the
+        // account without depending on Firestore itself.
+        userDocumentDeleterProvider.overrideWith(
+          (ref) => (uid) => ref.read(syncServiceProvider).deleteUserData(uid),
+        ),
       ],
       child: const MunirApp(),
     ),

@@ -530,4 +530,45 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get commonOr => 'ou';
+
+  @override
+  String get settingsSectionAccount => 'Compte';
+
+  @override
+  String get settingsSignInGoogle => 'Se connecter avec Google';
+
+  @override
+  String get settingsSignInWhy =>
+      'Sauvegarde votre historique de prières et le synchronise entre vos appareils';
+
+  @override
+  String get settingsSignOut => 'Se déconnecter';
+
+  @override
+  String get settingsDeleteAccount => 'Supprimer le compte';
+
+  @override
+  String get settingsDeleteAccountHint =>
+      'Supprime définitivement votre compte et toutes les données enregistrées';
+
+  @override
+  String get settingsDeleteAccountConfirm =>
+      'Vraiment supprimer votre compte ? Votre historique sur les serveurs sera définitivement supprimé. Les données de cet appareil sont conservées.';
+
+  @override
+  String settingsSignedInAs(String email) {
+    return 'Connecté en tant que $email';
+  }
+
+  @override
+  String get settingsSignInFailed => 'Échec de la connexion.';
+
+  @override
+  String get settingsSyncNow => 'Synchroniser';
+
+  @override
+  String get settingsSyncDone => 'Synchronisé.';
+
+  @override
+  String get settingsAccountDeleted => 'Compte supprimé.';
 }

@@ -532,4 +532,45 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get commonOr => 'oder';
+
+  @override
+  String get settingsSectionAccount => 'Konto';
+
+  @override
+  String get settingsSignInGoogle => 'Mit Google anmelden';
+
+  @override
+  String get settingsSignInWhy =>
+      'Sichert deinen Gebets-Verlauf und synchronisiert ihn auf deinen Geräten';
+
+  @override
+  String get settingsSignOut => 'Abmelden';
+
+  @override
+  String get settingsDeleteAccount => 'Konto löschen';
+
+  @override
+  String get settingsDeleteAccountHint =>
+      'Löscht dein Konto und alle gespeicherten Daten endgültig';
+
+  @override
+  String get settingsDeleteAccountConfirm =>
+      'Konto wirklich löschen? Dein Verlauf auf den Servern wird endgültig gelöscht. Die Daten auf diesem Gerät bleiben erhalten.';
+
+  @override
+  String settingsSignedInAs(String email) {
+    return 'Angemeldet als $email';
+  }
+
+  @override
+  String get settingsSignInFailed => 'Anmeldung fehlgeschlagen.';
+
+  @override
+  String get settingsSyncNow => 'Jetzt synchronisieren';
+
+  @override
+  String get settingsSyncDone => 'Synchronisiert.';
+
+  @override
+  String get settingsAccountDeleted => 'Konto gelöscht.';
 }

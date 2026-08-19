@@ -1045,6 +1045,78 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'oder'**
   String get commonOr;
+
+  /// No description provided for @settingsSectionAccount.
+  ///
+  /// In de, this message translates to:
+  /// **'Konto'**
+  String get settingsSectionAccount;
+
+  /// No description provided for @settingsSignInGoogle.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit Google anmelden'**
+  String get settingsSignInGoogle;
+
+  /// No description provided for @settingsSignInWhy.
+  ///
+  /// In de, this message translates to:
+  /// **'Sichert deinen Gebets-Verlauf und synchronisiert ihn auf deinen Geräten'**
+  String get settingsSignInWhy;
+
+  /// No description provided for @settingsSignOut.
+  ///
+  /// In de, this message translates to:
+  /// **'Abmelden'**
+  String get settingsSignOut;
+
+  /// No description provided for @settingsDeleteAccount.
+  ///
+  /// In de, this message translates to:
+  /// **'Konto löschen'**
+  String get settingsDeleteAccount;
+
+  /// No description provided for @settingsDeleteAccountHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Löscht dein Konto und alle gespeicherten Daten endgültig'**
+  String get settingsDeleteAccountHint;
+
+  /// No description provided for @settingsDeleteAccountConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Konto wirklich löschen? Dein Verlauf auf den Servern wird endgültig gelöscht. Die Daten auf diesem Gerät bleiben erhalten.'**
+  String get settingsDeleteAccountConfirm;
+
+  /// No description provided for @settingsSignedInAs.
+  ///
+  /// In de, this message translates to:
+  /// **'Angemeldet als {email}'**
+  String settingsSignedInAs(String email);
+
+  /// No description provided for @settingsSignInFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Anmeldung fehlgeschlagen.'**
+  String get settingsSignInFailed;
+
+  /// No description provided for @settingsSyncNow.
+  ///
+  /// In de, this message translates to:
+  /// **'Jetzt synchronisieren'**
+  String get settingsSyncNow;
+
+  /// No description provided for @settingsSyncDone.
+  ///
+  /// In de, this message translates to:
+  /// **'Synchronisiert.'**
+  String get settingsSyncDone;
+
+  /// No description provided for @settingsAccountDeleted.
+  ///
+  /// In de, this message translates to:
+  /// **'Konto gelöscht.'**
+  String get settingsAccountDeleted;
 }
 
 class _AppLocalizationsDelegate

@@ -710,6 +710,24 @@ class PrayerTrackerNotifier extends Notifier<Map<String, bool>> {
     state = {...state, key: !current};
   }
 
+  /// Folds entries coming from another device into the local state.
+  ///
+  /// A prayer ticked off on either device stays ticked: the union is taken
+  /// rather than letting one side overwrite the other, because a sync must
+  /// never silently un-tick something the user recorded.
+  void mergeRemote(Map<String, bool> remote) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final merged = {...state};
+    remote.forEach((key, done) {
+      if (!key.startsWith('prayer_tracker_')) return;
+      if (done && merged[key] != true) {
+        merged[key] = true;
+        prefs.setBool(key, true);
+      }
+    });
+    state = merged;
+  }
+
   /// Wipes the whole prayer history. Offered from the settings screen, which
   /// asks for confirmation first — this does not ask again.
   Future<void> resetAll() async {

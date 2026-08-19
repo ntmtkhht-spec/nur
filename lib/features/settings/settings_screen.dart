@@ -10,6 +10,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/i18n/prayer_names.dart';
 import '../../core/providers/providers.dart';
+import '../../core/services/sync_service.dart';
+import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/prayer_icons.dart';
 import '../../core/theme/app_tokens.dart';
@@ -101,6 +103,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
         children: [
+          _accountSection(),
           _prayerSection(),
           _notificationSection(),
           _appearanceSection(),
@@ -119,6 +122,106 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   // ---------------------------------------------------------------- prayer
+
+  /// Signing in is optional: the app works fully without it, an account only
+  /// adds cross-device backup. Both stores require the deletion entry below
+  /// to be reachable from inside the app.
+  Widget _accountSection() {
+    final authState = ref.watch(authStateProvider);
+
+    return authState.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+      data: (user) => SettingsSection(
+        title: l10n.settingsSectionAccount,
+        children: user == null
+            ? [
+                SettingsTile(
+                  icon: Icons.login,
+                  label: l10n.settingsSignInGoogle,
+                  subtitle: l10n.settingsSignInWhy,
+                  showDivider: false,
+                  onTap: _signIn,
+                ),
+              ]
+            : [
+                SettingsTile(
+                  icon: Icons.account_circle_outlined,
+                  label: l10n.settingsSignedInAs(user.email ?? ''),
+                  onTap: null,
+                ),
+                SettingsTile(
+                  icon: Icons.sync,
+                  label: l10n.settingsSyncNow,
+                  onTap: () => _sync(user.uid),
+                ),
+                SettingsTile(
+                  icon: Icons.logout,
+                  label: l10n.settingsSignOut,
+                  onTap: _signOut,
+                ),
+                SettingsTile(
+                  icon: Icons.person_remove_outlined,
+                  label: l10n.settingsDeleteAccount,
+                  subtitle: l10n.settingsDeleteAccountHint,
+                  destructive: true,
+                  showDivider: false,
+                  onTap: _deleteAccount,
+                ),
+              ],
+      ),
+    );
+  }
+
+  Future<void> _signIn() async {
+    try {
+      final user = await ref.read(authServiceProvider).signInWithGoogle();
+      if (user == null) return; // dismissed, not an error
+      // Pull first so a fresh device inherits what is already stored, then
+      // push so the server learns about anything recorded offline.
+      await ref.read(syncServiceProvider).pull(user.uid);
+      await ref.read(syncServiceProvider).push(user.uid);
+      if (mounted) _toast(l10n.settingsSyncDone);
+    } catch (e, stack) {
+      // Surfaced in debug builds: a silent failure here is impossible to
+      // diagnose otherwise (missing Google account on the device, wrong
+      // SHA-1 in the Firebase project, provider not enabled).
+      debugPrint('Google sign-in failed: $e');
+      debugPrintStack(stackTrace: stack);
+      if (mounted) _toast(l10n.settingsSignInFailed);
+    }
+  }
+
+  Future<void> _sync(String uid) async {
+    try {
+      await ref.read(syncServiceProvider).pull(uid);
+      await ref.read(syncServiceProvider).push(uid);
+      if (mounted) _toast(l10n.settingsSyncDone);
+    } catch (e) {
+      debugPrint('Sync failed: $e');
+      if (mounted) _toast(l10n.settingsSignInFailed);
+    }
+  }
+
+  Future<void> _signOut() async {
+    await ref.read(authServiceProvider).signOut();
+  }
+
+  Future<void> _deleteAccount() async {
+    final confirmed = await _confirm(
+      l10n.settingsDeleteAccount,
+      l10n.settingsDeleteAccountConfirm,
+      l10n.commonDelete,
+    );
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(authServiceProvider).deleteAccount();
+      if (mounted) _toast(l10n.settingsAccountDeleted);
+    } catch (_) {
+      if (mounted) _toast(l10n.settingsSignInFailed);
+    }
+  }
 
   Widget _prayerSection() {
     final method = ref.watch(calculationMethodProvider);
@@ -377,16 +480,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _toast(l10n.settingsClearMapCacheDone);
   }
 
-  Future<void> _resetTracker() async {
-    final confirmed = await showDialog<bool>(
+  /// Shared confirmation for destructive actions. The reset dialog used to
+  /// carry its own hardcoded German text.
+  Future<bool?> _confirm(String title, String message, String confirmLabel) {
+    return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.of(context).background,
-        title: const Text('Verlauf zurücksetzen?'),
-        content: const Text(
-          'Alle abgehakten Gebete und deine Serie werden gelöscht. '
-          'Das lässt sich nicht rückgängig machen.',
-        ),
+        title: Text(title),
+        content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -394,13 +496,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
-              'Löschen',
-              style: TextStyle(color: Color(0xFFB3261E)),
+            child: Text(
+              confirmLabel,
+              style: const TextStyle(color: Color(0xFFB3261E)),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _resetTracker() async {
+    final confirmed = await _confirm(
+      l10n.settingsResetTracker,
+      l10n.settingsResetTrackerConfirm,
+      l10n.commonReset,
     );
 
     if (confirmed != true) return;

@@ -156,5 +156,17 @@
   "notificationChannelName": "مواقيت الصلاة",
   "notificationChannelDescription": "تنبيهات لمواقيت الصلاة اليومية",
   "onboardingLocationWhy": "نحتاج موقعك لحساب مواقيت الصلاة واتجاه القبلة بدقة.",
-  "commonOr": "أو"
+  "commonOr": "أو",
+  "settingsSectionAccount": "الحساب",
+  "settingsSignInGoogle": "تسجيل الدخول عبر Google",
+  "settingsSignInWhy": "يحفظ سجل صلاتك ويزامنه بين أجهزتك",
+  "settingsSignOut": "تسجيل الخروج",
+  "settingsDeleteAccount": "حذف الحساب",
+  "settingsDeleteAccountHint": "يحذف حسابك وجميع البيانات المحفوظة نهائياً",
+  "settingsDeleteAccountConfirm": "هل تريد حذف حسابك فعلاً؟ سيُحذف سجلك على الخوادم نهائياً. تبقى البيانات على هذا الجهاز.",
+  "settingsSignedInAs": "تم تسجيل الدخول باسم {email}",
+  "settingsSignInFailed": "فشل تسجيل الدخول.",
+  "settingsSyncNow": "مزامنة الآن",
+  "settingsSyncDone": "تمت المزامنة.",
+  "settingsAccountDeleted": "تم حذف الحساب."
 }

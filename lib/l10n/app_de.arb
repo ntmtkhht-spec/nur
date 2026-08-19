@@ -288,5 +288,24 @@
   "notificationChannelName": "Gebetszeiten",
   "notificationChannelDescription": "Erinnerungen zu den täglichen Gebetszeiten",
   "onboardingLocationWhy": "Wir brauchen deinen Standort für exakte Gebetszeiten und die Qibla-Richtung.",
-  "commonOr": "oder"
+  "commonOr": "oder",
+  "settingsSectionAccount": "Konto",
+  "settingsSignInGoogle": "Mit Google anmelden",
+  "settingsSignInWhy": "Sichert deinen Gebets-Verlauf und synchronisiert ihn auf deinen Geräten",
+  "settingsSignOut": "Abmelden",
+  "settingsDeleteAccount": "Konto löschen",
+  "settingsDeleteAccountHint": "Löscht dein Konto und alle gespeicherten Daten endgültig",
+  "settingsDeleteAccountConfirm": "Konto wirklich löschen? Dein Verlauf auf den Servern wird endgültig gelöscht. Die Daten auf diesem Gerät bleiben erhalten.",
+  "settingsSignedInAs": "Angemeldet als {email}",
+  "settingsSignInFailed": "Anmeldung fehlgeschlagen.",
+  "settingsSyncNow": "Jetzt synchronisieren",
+  "settingsSyncDone": "Synchronisiert.",
+  "settingsAccountDeleted": "Konto gelöscht.",
+  "@settingsSignedInAs": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  }
 }

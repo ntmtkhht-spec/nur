@@ -520,4 +520,44 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get commonOr => 'أو';
+
+  @override
+  String get settingsSectionAccount => 'الحساب';
+
+  @override
+  String get settingsSignInGoogle => 'تسجيل الدخول عبر Google';
+
+  @override
+  String get settingsSignInWhy => 'يحفظ سجل صلاتك ويزامنه بين أجهزتك';
+
+  @override
+  String get settingsSignOut => 'تسجيل الخروج';
+
+  @override
+  String get settingsDeleteAccount => 'حذف الحساب';
+
+  @override
+  String get settingsDeleteAccountHint =>
+      'يحذف حسابك وجميع البيانات المحفوظة نهائياً';
+
+  @override
+  String get settingsDeleteAccountConfirm =>
+      'هل تريد حذف حسابك فعلاً؟ سيُحذف سجلك على الخوادم نهائياً. تبقى البيانات على هذا الجهاز.';
+
+  @override
+  String settingsSignedInAs(String email) {
+    return 'تم تسجيل الدخول باسم $email';
+  }
+
+  @override
+  String get settingsSignInFailed => 'فشل تسجيل الدخول.';
+
+  @override
+  String get settingsSyncNow => 'مزامنة الآن';
+
+  @override
+  String get settingsSyncDone => 'تمت المزامنة.';
+
+  @override
+  String get settingsAccountDeleted => 'تم حذف الحساب.';
 }

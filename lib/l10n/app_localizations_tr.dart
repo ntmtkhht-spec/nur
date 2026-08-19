@@ -529,4 +529,45 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get commonOr => 'veya';
+
+  @override
+  String get settingsSectionAccount => 'Hesap';
+
+  @override
+  String get settingsSignInGoogle => 'Google ile giriş yap';
+
+  @override
+  String get settingsSignInWhy =>
+      'Namaz geçmişini yedekler ve cihazların arasında eşitler';
+
+  @override
+  String get settingsSignOut => 'Çıkış yap';
+
+  @override
+  String get settingsDeleteAccount => 'Hesabı sil';
+
+  @override
+  String get settingsDeleteAccountHint =>
+      'Hesabını ve kayıtlı tüm verileri kalıcı olarak siler';
+
+  @override
+  String get settingsDeleteAccountConfirm =>
+      'Hesabın gerçekten silinsin mi? Sunuculardaki geçmişin kalıcı olarak silinir. Bu cihazdaki veriler kalır.';
+
+  @override
+  String settingsSignedInAs(String email) {
+    return '$email olarak giriş yapıldı';
+  }
+
+  @override
+  String get settingsSignInFailed => 'Giriş başarısız.';
+
+  @override
+  String get settingsSyncNow => 'Şimdi eşitle';
+
+  @override
+  String get settingsSyncDone => 'Eşitlendi.';
+
+  @override
+  String get settingsAccountDeleted => 'Hesap silindi.';
 }

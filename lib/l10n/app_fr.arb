@@ -156,5 +156,17 @@
   "notificationChannelName": "Heures de prière",
   "notificationChannelDescription": "Rappels pour les horaires de prière quotidiens",
   "onboardingLocationWhy": "Nous avons besoin de votre position pour des horaires précis et la direction de la qibla.",
-  "commonOr": "ou"
+  "commonOr": "ou",
+  "settingsSectionAccount": "Compte",
+  "settingsSignInGoogle": "Se connecter avec Google",
+  "settingsSignInWhy": "Sauvegarde votre historique de prières et le synchronise entre vos appareils",
+  "settingsSignOut": "Se déconnecter",
+  "settingsDeleteAccount": "Supprimer le compte",
+  "settingsDeleteAccountHint": "Supprime définitivement votre compte et toutes les données enregistrées",
+  "settingsDeleteAccountConfirm": "Vraiment supprimer votre compte ? Votre historique sur les serveurs sera définitivement supprimé. Les données de cet appareil sont conservées.",
+  "settingsSignedInAs": "Connecté en tant que {email}",
+  "settingsSignInFailed": "Échec de la connexion.",
+  "settingsSyncNow": "Synchroniser",
+  "settingsSyncDone": "Synchronisé.",
+  "settingsAccountDeleted": "Compte supprimé."
 }
