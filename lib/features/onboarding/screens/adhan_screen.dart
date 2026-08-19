@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
@@ -9,10 +11,11 @@ import '../widgets/hero_badge.dart';
 import '../widgets/onboarding_scaffold.dart';
 import '../widgets/ornament_divider.dart';
 
-const _voiceLabels = {
+/// Reciter names stay as they are; only the silent option is translated.
+Map<MuezzinVoice, String> _voiceLabelsFor(AppLocalizations l10n) => {
   MuezzinVoice.misharyAlafasy: 'Mishary Alafasy',
   MuezzinVoice.makkahAdhan: 'Makkah Adhan',
-  MuezzinVoice.silent: 'Nur Vibration / stumm',
+  MuezzinVoice.silent: l10n.muezzinSilent,
 };
 
 class AdhanScreen extends ConsumerStatefulWidget {
@@ -33,6 +36,8 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
   bool _requesting = false;
 
   Future<void> _enableNotifications() async {
+    // Resolved before awaiting: after the gap the widget may be gone.
+    final l10n = AppLocalizations.of(context);
     setState(() => _requesting = true);
 
     final granted = await NotificationService.requestPermission();
@@ -44,8 +49,8 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
         SnackBar(
           content: Text(
             granted
-                ? 'Benachrichtigungen aktiviert.'
-                : 'Berechtigung wurde nicht erteilt.',
+                ? l10n.onboardingAdhanEnabled
+                : l10n.onboardingAdhanDenied,
           ),
           behavior: SnackBarBehavior.floating,
         ),
@@ -66,6 +71,7 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final selectedVoice = ref.watch(onboardingProvider).muezzinVoice;
 
     return OnboardingScaffold(
@@ -80,7 +86,7 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
             child: ElevatedButton.icon(
               onPressed: _requesting ? null : _enableNotifications,
               icon: _requesting
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
@@ -89,7 +95,7 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
                       ),
                     )
                   : const Icon(Icons.notifications_active_outlined, size: 20),
-              label: const Text('Benachrichtigungen aktivieren'),
+              label: Text(l10n.onboardingAdhanEnable),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.darkGreen,
                 foregroundColor: AppColors.white,
@@ -115,11 +121,11 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
         ],
       ),
       children: [
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         const HeroBadge(icon: Icons.notifications_none_rounded, size: 170),
         const SizedBox(height: 24),
-        const Text(
-          'Adhan-Erinnerungen',
+        Text(
+          l10n.onboardingAdhanHeading,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 24,
@@ -127,19 +133,19 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
             color: AppColors.textDark,
           ),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Lass dich zu jeder Gebetszeit sanft erinnern.',
+        SizedBox(height: 8),
+        Text(
+          l10n.onboardingAdhanBody,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 14, color: AppColors.textMuted),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         const OrnamentDivider(),
         const SizedBox(height: 20),
-        const Align(
+        Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            'MUEZZIN-STIMME',
+            l10n.onboardingMuezzinSection,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -151,11 +157,11 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
         const SizedBox(height: 10),
         for (final voice in MuezzinVoice.values) ...[
           _VoiceTile(
-            label: _voiceLabels[voice]!,
+            label: _voiceLabelsFor(l10n)[voice]!,
             isSelected: selectedVoice == voice,
             onTap: () =>
                 ref.read(onboardingProvider.notifier).setMuezzinVoice(voice),
-            onPlay: () => _previewVoice(_voiceLabels[voice]!),
+            onPlay: () => _previewVoice(_voiceLabelsFor(l10n)[voice]!),
           ),
           const SizedBox(height: 12),
         ],

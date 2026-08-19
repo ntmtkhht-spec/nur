@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
@@ -29,17 +31,18 @@ class LanguageScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final selected = ref.watch(onboardingProvider).language;
 
     return OnboardingScaffold(
       currentStep: stepIndex,
       onNext: onNext,
       children: [
-        const SizedBox(height: 24),
+        SizedBox(height: 24),
         const OrnamentDivider(),
         const SizedBox(height: 20),
-        const Text(
-          'Sprache wählen',
+        Text(
+          l10n.onboardingLanguageTitle,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 26,
@@ -47,9 +50,9 @@ class LanguageScreen extends ConsumerWidget {
             color: AppColors.textDark,
           ),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Du kannst das später jederzeit ändern',
+        SizedBox(height: 8),
+        Text(
+          l10n.onboardingLanguageSubtitle,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 14, color: AppColors.textMuted),
         ),
@@ -59,8 +62,12 @@ class LanguageScreen extends ConsumerWidget {
             flag: _flags[code] ?? '',
             label: languageDisplayNames[code]!,
             isSelected: selected == code,
-            onTap: () =>
-                ref.read(onboardingProvider.notifier).setLanguage(code),
+            onTap: () {
+              ref.read(onboardingProvider.notifier).setLanguage(code);
+              // Apply straight away: otherwise the remaining onboarding
+              // steps stay in the previous language until the very end.
+              ref.read(appLanguageProvider.notifier).update(code);
+            },
           ),
           const SizedBox(height: 12),
         ],

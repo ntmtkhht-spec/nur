@@ -1,25 +1,34 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../widgets/hero_badge.dart';
 
-const _slides = [
-  (
-    icon: Icons.mosque_outlined,
-    title: 'Verpasse kein Gebet mehr',
-    subtitle: 'Präzise Gebetszeiten für deinen Standort, mit Adhan-Erinnerung.',
-  ),
-  (
-    icon: Icons.auto_stories_outlined,
-    title: 'Der Quran, immer bei dir',
-    subtitle: 'Lies, höre und markiere deine Fortschritte — offline verfügbar.',
-  ),
-  (
-    icon: Icons.explore_outlined,
-    title: 'Finde die Qibla-Richtung',
-    subtitle: 'Ein präziser Kompass zeigt dir überall den Weg nach Makkah.',
-  ),
-];
+/// Slides are built per call because their texts come from localizations,
+/// which are only available with a BuildContext.
+List<({IconData icon, String title, String subtitle})> _slidesFor(
+  AppLocalizations l10n,
+) =>
+    [
+      (
+        icon: Icons.mosque_outlined,
+        title: l10n.featurePrayerTitle,
+        subtitle: l10n.featurePrayerBody,
+      ),
+      (
+        icon: Icons.auto_stories_outlined,
+        title: l10n.featureQuranTitle,
+        subtitle: l10n.featureQuranBody,
+      ),
+      (
+        icon: Icons.explore_outlined,
+        title: l10n.featureQiblaTitle,
+        subtitle: l10n.featureQiblaBody,
+      ),
+    ];
+
+const _slideCount = 3;
 
 class FeatureIntroScreen extends StatefulWidget {
   final VoidCallback onNext;
@@ -46,7 +55,7 @@ class _FeatureIntroScreenState extends State<FeatureIntroScreen> {
   }
 
   void _handleNext() {
-    if (_index < _slides.length - 1) {
+    if (_index < _slideCount - 1) {
       _controller.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
@@ -58,6 +67,7 @@ class _FeatureIntroScreenState extends State<FeatureIntroScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -70,8 +80,8 @@ class _FeatureIntroScreenState extends State<FeatureIntroScreen> {
                 children: [
                   GestureDetector(
                     onTap: widget.onSkip,
-                    child: const Text(
-                      'Überspringen',
+                    child: Text(
+                      l10n.commonSkip,
                       style: TextStyle(fontSize: 14, color: AppColors.textMuted),
                     ),
                   ),
@@ -81,10 +91,10 @@ class _FeatureIntroScreenState extends State<FeatureIntroScreen> {
             Expanded(
               child: PageView.builder(
                 controller: _controller,
-                itemCount: _slides.length,
+                itemCount: _slideCount,
                 onPageChanged: (i) => setState(() => _index = i),
                 itemBuilder: (context, i) {
-                  final slide = _slides[i];
+                  final slide = _slidesFor(l10n)[i];
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 28),
                     child: Column(
@@ -120,7 +130,7 @@ class _FeatureIntroScreenState extends State<FeatureIntroScreen> {
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_slides.length, (i) {
+              children: List.generate(_slideCount, (i) {
                 final isActive = i == _index;
                 return Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -153,7 +163,7 @@ class _FeatureIntroScreenState extends State<FeatureIntroScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  child: const Text('Weiter'),
+                  child: Text(l10n.commonNext),
                 ),
               ),
             ),

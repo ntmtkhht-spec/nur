@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
+
 import '../../../core/theme/app_colors.dart';
 
 class OnboardingScaffold extends StatelessWidget {
   final int currentStep;
   final int totalSteps;
-  final String buttonLabel;
+  /// Defaults to the localized "next" label when null.
+  final String? buttonLabel;
   final VoidCallback onNext;
   final VoidCallback? onSkip;
   final bool buttonEnabled;
   final Widget? customButton;
   final List<Widget> children;
 
-  const OnboardingScaffold({
+  OnboardingScaffold({
     super.key,
     required this.currentStep,
     this.totalSteps = 6,
-    this.buttonLabel = 'Weiter',
+    this.buttonLabel,
     required this.onNext,
     this.onSkip,
     this.buttonEnabled = true,
@@ -26,6 +29,7 @@ class OnboardingScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -42,8 +46,8 @@ class OnboardingScaffold extends StatelessWidget {
                   if (onSkip != null)
                     GestureDetector(
                       onTap: onSkip,
-                      child: const Text(
-                        'Überspringen',
+                      child: Text(
+                        l10n.commonSkip,
                         style: TextStyle(
                           fontSize: 14,
                           color: AppColors.textMuted,
@@ -89,7 +93,7 @@ class OnboardingScaffold extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      child: Text(buttonLabel),
+                      child: Text(buttonLabel ?? l10n.commonNext),
                     ),
                   ),
             ),

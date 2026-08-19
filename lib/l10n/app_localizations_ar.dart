@@ -398,4 +398,126 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nowLabel => 'الآن';
+
+  @override
+  String get onboardingLanguageSubtitle => 'يمكنك تغيير ذلك في أي وقت';
+
+  @override
+  String get onboardingNameQuestion => 'بماذا نناديك؟';
+
+  @override
+  String get onboardingNameSubtitle => 'من أجل تحيتك الشخصية.';
+
+  @override
+  String onboardingNamePreview(String name) {
+    return 'مثلاً لـ «السلام عليكم، $name»';
+  }
+
+  @override
+  String get onboardingLocationDetect => 'تحديد الموقع تلقائياً';
+
+  @override
+  String get onboardingLocationSearch => 'ابحث عن مدينة…';
+
+  @override
+  String get onboardingLocationSkip => 'المتابعة بدون الموقع';
+
+  @override
+  String get onboardingLocationPrivacy =>
+      'تُحسب مواقيت الصلاة والقبلة على جهازك. البحث عن المساجد وحده يرسل موقعك — وبعد إذنك.';
+
+  @override
+  String onboardingLocationDetected(String city) {
+    return 'تم تحديد الموقع: $city';
+  }
+
+  @override
+  String get onboardingLocationNotFound => 'لم يتم العثور على المكان.';
+
+  @override
+  String get onboardingMethodHeading => 'ضبط مواقيت الصلاة';
+
+  @override
+  String get onboardingMethodSection => 'طريقة الحساب';
+
+  @override
+  String get onboardingMadhabSection => 'حساب العصر (المذهب)';
+
+  @override
+  String get onboardingAdhanHeading => 'تنبيهات الأذان';
+
+  @override
+  String get onboardingAdhanBody => 'لتصلك تذكرة لطيفة عند كل وقت صلاة.';
+
+  @override
+  String get onboardingAdhanEnable => 'تفعيل الإشعارات';
+
+  @override
+  String get onboardingAdhanEnabled => 'تم تفعيل الإشعارات.';
+
+  @override
+  String get onboardingAdhanDenied => 'لم يتم منح الإذن.';
+
+  @override
+  String get onboardingMuezzinSection => 'صوت المؤذن';
+
+  @override
+  String get onboardingDoneHeading => 'كل شيء جاهز';
+
+  @override
+  String onboardingDoneHeadingNamed(String name) {
+    return 'كل شيء جاهز، $name';
+  }
+
+  @override
+  String get onboardingDoneCompanion => 'عسى أن يرافقك منير في يومك.';
+
+  @override
+  String get onboardingOpenApp => 'فتح التطبيق';
+
+  @override
+  String get onboardingAdhanOn => 'الأذان مفعّل';
+
+  @override
+  String get onboardingAdhanOff => 'الأذان متوقف';
+
+  @override
+  String get featurePrayerTitle => 'لا تفوّت صلاة بعد اليوم';
+
+  @override
+  String get featurePrayerBody => 'مواقيت دقيقة لموقعك، مع تنبيه الأذان.';
+
+  @override
+  String get featureQiblaTitle => 'اعرف اتجاه القبلة';
+
+  @override
+  String get featureQiblaBody => 'بوصلة دقيقة تدلك على مكة أينما كنت.';
+
+  @override
+  String get featureQuranTitle => 'القرآن معك دائماً';
+
+  @override
+  String get featureQuranBody => 'اقرأ واستمع وسجّل تقدمك — متاح دون إنترنت.';
+
+  @override
+  String get commonSkip => 'تخطي';
+
+  @override
+  String get commonNext => 'التالي';
+
+  @override
+  String get onboardingLocationQuestion => 'أين أنت؟';
+
+  @override
+  String get notificationChannelName => 'مواقيت الصلاة';
+
+  @override
+  String get notificationChannelDescription => 'تنبيهات لمواقيت الصلاة اليومية';
+
+  @override
+  String get onboardingLocationWhy =>
+      'نحتاج موقعك لحساب مواقيت الصلاة واتجاه القبلة بدقة.';
+
+  @override
+  String get commonOr => 'أو';
 }

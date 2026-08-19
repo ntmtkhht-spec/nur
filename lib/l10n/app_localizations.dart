@@ -817,6 +817,234 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'jetzt'**
   String get nowLabel;
+
+  /// No description provided for @onboardingLanguageSubtitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Du kannst das später jederzeit ändern'**
+  String get onboardingLanguageSubtitle;
+
+  /// No description provided for @onboardingNameQuestion.
+  ///
+  /// In de, this message translates to:
+  /// **'Wie dürfen wir dich nennen?'**
+  String get onboardingNameQuestion;
+
+  /// No description provided for @onboardingNameSubtitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Für deine persönliche Begrüßung.'**
+  String get onboardingNameSubtitle;
+
+  /// No description provided for @onboardingNamePreview.
+  ///
+  /// In de, this message translates to:
+  /// **'z. B. für „Assalamu alaikum, {name}“'**
+  String onboardingNamePreview(String name);
+
+  /// No description provided for @onboardingLocationDetect.
+  ///
+  /// In de, this message translates to:
+  /// **'Standort automatisch erkennen'**
+  String get onboardingLocationDetect;
+
+  /// No description provided for @onboardingLocationSearch.
+  ///
+  /// In de, this message translates to:
+  /// **'Stadt manuell suchen…'**
+  String get onboardingLocationSearch;
+
+  /// No description provided for @onboardingLocationSkip.
+  ///
+  /// In de, this message translates to:
+  /// **'Ohne Standort fortfahren'**
+  String get onboardingLocationSkip;
+
+  /// No description provided for @onboardingLocationPrivacy.
+  ///
+  /// In de, this message translates to:
+  /// **'Gebetszeiten und Qibla werden auf deinem Gerät berechnet. Nur die Moschee-Suche überträgt deinen Standort — und fragt vorher.'**
+  String get onboardingLocationPrivacy;
+
+  /// No description provided for @onboardingLocationDetected.
+  ///
+  /// In de, this message translates to:
+  /// **'Standort erkannt: {city}'**
+  String onboardingLocationDetected(String city);
+
+  /// No description provided for @onboardingLocationNotFound.
+  ///
+  /// In de, this message translates to:
+  /// **'Ort nicht gefunden.'**
+  String get onboardingLocationNotFound;
+
+  /// No description provided for @onboardingMethodHeading.
+  ///
+  /// In de, this message translates to:
+  /// **'Gebetszeiten anpassen'**
+  String get onboardingMethodHeading;
+
+  /// No description provided for @onboardingMethodSection.
+  ///
+  /// In de, this message translates to:
+  /// **'BERECHNUNGSMETHODE'**
+  String get onboardingMethodSection;
+
+  /// No description provided for @onboardingMadhabSection.
+  ///
+  /// In de, this message translates to:
+  /// **'ASR-BERECHNUNG (MADHAB)'**
+  String get onboardingMadhabSection;
+
+  /// No description provided for @onboardingAdhanHeading.
+  ///
+  /// In de, this message translates to:
+  /// **'Adhan-Erinnerungen'**
+  String get onboardingAdhanHeading;
+
+  /// No description provided for @onboardingAdhanBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Lass dich zu jeder Gebetszeit sanft erinnern.'**
+  String get onboardingAdhanBody;
+
+  /// No description provided for @onboardingAdhanEnable.
+  ///
+  /// In de, this message translates to:
+  /// **'Benachrichtigungen aktivieren'**
+  String get onboardingAdhanEnable;
+
+  /// No description provided for @onboardingAdhanEnabled.
+  ///
+  /// In de, this message translates to:
+  /// **'Benachrichtigungen aktiviert.'**
+  String get onboardingAdhanEnabled;
+
+  /// No description provided for @onboardingAdhanDenied.
+  ///
+  /// In de, this message translates to:
+  /// **'Berechtigung wurde nicht erteilt.'**
+  String get onboardingAdhanDenied;
+
+  /// No description provided for @onboardingMuezzinSection.
+  ///
+  /// In de, this message translates to:
+  /// **'MUEZZIN-STIMME'**
+  String get onboardingMuezzinSection;
+
+  /// No description provided for @onboardingDoneHeading.
+  ///
+  /// In de, this message translates to:
+  /// **'Alles bereit'**
+  String get onboardingDoneHeading;
+
+  /// No description provided for @onboardingDoneHeadingNamed.
+  ///
+  /// In de, this message translates to:
+  /// **'Alles bereit, {name}'**
+  String onboardingDoneHeadingNamed(String name);
+
+  /// No description provided for @onboardingDoneCompanion.
+  ///
+  /// In de, this message translates to:
+  /// **'Möge Munir dich durch deinen Tag begleiten.'**
+  String get onboardingDoneCompanion;
+
+  /// No description provided for @onboardingOpenApp.
+  ///
+  /// In de, this message translates to:
+  /// **'App öffnen'**
+  String get onboardingOpenApp;
+
+  /// No description provided for @onboardingAdhanOn.
+  ///
+  /// In de, this message translates to:
+  /// **'Adhan an'**
+  String get onboardingAdhanOn;
+
+  /// No description provided for @onboardingAdhanOff.
+  ///
+  /// In de, this message translates to:
+  /// **'Adhan aus'**
+  String get onboardingAdhanOff;
+
+  /// No description provided for @featurePrayerTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Verpasse kein Gebet mehr'**
+  String get featurePrayerTitle;
+
+  /// No description provided for @featurePrayerBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Präzise Gebetszeiten für deinen Standort, mit Adhan-Erinnerung.'**
+  String get featurePrayerBody;
+
+  /// No description provided for @featureQiblaTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Finde die Qibla-Richtung'**
+  String get featureQiblaTitle;
+
+  /// No description provided for @featureQiblaBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Ein präziser Kompass zeigt dir überall den Weg nach Makkah.'**
+  String get featureQiblaBody;
+
+  /// No description provided for @featureQuranTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Quran, immer bei dir'**
+  String get featureQuranTitle;
+
+  /// No description provided for @featureQuranBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Lies, höre und markiere deine Fortschritte — offline verfügbar.'**
+  String get featureQuranBody;
+
+  /// No description provided for @commonSkip.
+  ///
+  /// In de, this message translates to:
+  /// **'Überspringen'**
+  String get commonSkip;
+
+  /// No description provided for @commonNext.
+  ///
+  /// In de, this message translates to:
+  /// **'Weiter'**
+  String get commonNext;
+
+  /// No description provided for @onboardingLocationQuestion.
+  ///
+  /// In de, this message translates to:
+  /// **'Wo befindest du dich?'**
+  String get onboardingLocationQuestion;
+
+  /// No description provided for @notificationChannelName.
+  ///
+  /// In de, this message translates to:
+  /// **'Gebetszeiten'**
+  String get notificationChannelName;
+
+  /// No description provided for @notificationChannelDescription.
+  ///
+  /// In de, this message translates to:
+  /// **'Erinnerungen zu den täglichen Gebetszeiten'**
+  String get notificationChannelDescription;
+
+  /// No description provided for @onboardingLocationWhy.
+  ///
+  /// In de, this message translates to:
+  /// **'Wir brauchen deinen Standort für exakte Gebetszeiten und die Qibla-Richtung.'**
+  String get onboardingLocationWhy;
+
+  /// No description provided for @commonOr.
+  ///
+  /// In de, this message translates to:
+  /// **'oder'**
+  String get commonOr;
 }
 
 class _AppLocalizationsDelegate

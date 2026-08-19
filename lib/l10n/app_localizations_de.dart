@@ -403,4 +403,133 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get nowLabel => 'jetzt';
+
+  @override
+  String get onboardingLanguageSubtitle =>
+      'Du kannst das später jederzeit ändern';
+
+  @override
+  String get onboardingNameQuestion => 'Wie dürfen wir dich nennen?';
+
+  @override
+  String get onboardingNameSubtitle => 'Für deine persönliche Begrüßung.';
+
+  @override
+  String onboardingNamePreview(String name) {
+    return 'z. B. für „Assalamu alaikum, $name“';
+  }
+
+  @override
+  String get onboardingLocationDetect => 'Standort automatisch erkennen';
+
+  @override
+  String get onboardingLocationSearch => 'Stadt manuell suchen…';
+
+  @override
+  String get onboardingLocationSkip => 'Ohne Standort fortfahren';
+
+  @override
+  String get onboardingLocationPrivacy =>
+      'Gebetszeiten und Qibla werden auf deinem Gerät berechnet. Nur die Moschee-Suche überträgt deinen Standort — und fragt vorher.';
+
+  @override
+  String onboardingLocationDetected(String city) {
+    return 'Standort erkannt: $city';
+  }
+
+  @override
+  String get onboardingLocationNotFound => 'Ort nicht gefunden.';
+
+  @override
+  String get onboardingMethodHeading => 'Gebetszeiten anpassen';
+
+  @override
+  String get onboardingMethodSection => 'BERECHNUNGSMETHODE';
+
+  @override
+  String get onboardingMadhabSection => 'ASR-BERECHNUNG (MADHAB)';
+
+  @override
+  String get onboardingAdhanHeading => 'Adhan-Erinnerungen';
+
+  @override
+  String get onboardingAdhanBody =>
+      'Lass dich zu jeder Gebetszeit sanft erinnern.';
+
+  @override
+  String get onboardingAdhanEnable => 'Benachrichtigungen aktivieren';
+
+  @override
+  String get onboardingAdhanEnabled => 'Benachrichtigungen aktiviert.';
+
+  @override
+  String get onboardingAdhanDenied => 'Berechtigung wurde nicht erteilt.';
+
+  @override
+  String get onboardingMuezzinSection => 'MUEZZIN-STIMME';
+
+  @override
+  String get onboardingDoneHeading => 'Alles bereit';
+
+  @override
+  String onboardingDoneHeadingNamed(String name) {
+    return 'Alles bereit, $name';
+  }
+
+  @override
+  String get onboardingDoneCompanion =>
+      'Möge Munir dich durch deinen Tag begleiten.';
+
+  @override
+  String get onboardingOpenApp => 'App öffnen';
+
+  @override
+  String get onboardingAdhanOn => 'Adhan an';
+
+  @override
+  String get onboardingAdhanOff => 'Adhan aus';
+
+  @override
+  String get featurePrayerTitle => 'Verpasse kein Gebet mehr';
+
+  @override
+  String get featurePrayerBody =>
+      'Präzise Gebetszeiten für deinen Standort, mit Adhan-Erinnerung.';
+
+  @override
+  String get featureQiblaTitle => 'Finde die Qibla-Richtung';
+
+  @override
+  String get featureQiblaBody =>
+      'Ein präziser Kompass zeigt dir überall den Weg nach Makkah.';
+
+  @override
+  String get featureQuranTitle => 'Der Quran, immer bei dir';
+
+  @override
+  String get featureQuranBody =>
+      'Lies, höre und markiere deine Fortschritte — offline verfügbar.';
+
+  @override
+  String get commonSkip => 'Überspringen';
+
+  @override
+  String get commonNext => 'Weiter';
+
+  @override
+  String get onboardingLocationQuestion => 'Wo befindest du dich?';
+
+  @override
+  String get notificationChannelName => 'Gebetszeiten';
+
+  @override
+  String get notificationChannelDescription =>
+      'Erinnerungen zu den täglichen Gebetszeiten';
+
+  @override
+  String get onboardingLocationWhy =>
+      'Wir brauchen deinen Standort für exakte Gebetszeiten und die Qibla-Richtung.';
+
+  @override
+  String get commonOr => 'oder';
 }

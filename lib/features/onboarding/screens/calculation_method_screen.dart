@@ -1,5 +1,7 @@
 import 'package:adhan_dart/adhan_dart.dart' as adhan;
 import 'package:flutter/material.dart';
+
+import '../../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
@@ -42,14 +44,15 @@ class CalculationMethodScreen extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
+        final l10n = AppLocalizations.of(context);
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
-                  'Berechnungsmethode',
+                  l10n.onboardingMethodTitle,
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
                 ),
               ),
@@ -84,6 +87,7 @@ class CalculationMethodScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final data = ref.watch(onboardingProvider);
     final locationAsync = ref.watch(locationProvider);
     final fallbackLocation = switch (locationAsync) {
@@ -105,9 +109,9 @@ class CalculationMethodScreen extends ConsumerWidget {
       currentStep: stepIndex,
       onNext: onNext,
       children: [
-        const SizedBox(height: 12),
-        const Text(
-          'Gebetszeiten anpassen',
+        SizedBox(height: 12),
+        Text(
+          l10n.onboardingMethodHeading,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 24,
@@ -115,7 +119,7 @@ class CalculationMethodScreen extends ConsumerWidget {
             color: AppColors.textDark,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         const Text(
           'Wähle die Methode, die deine Gemeinde nutzt.',
           textAlign: TextAlign.center,
@@ -124,7 +128,7 @@ class CalculationMethodScreen extends ConsumerWidget {
         const SizedBox(height: 12),
         const OrnamentDivider(),
         const SizedBox(height: 24),
-        const _SectionLabel('BERECHNUNGSMETHODE'),
+        _SectionLabel(l10n.onboardingMethodSection),
         const SizedBox(height: 10),
         GestureDetector(
           onTap: () => _pickMethod(context, ref),
@@ -149,13 +153,13 @@ class CalculationMethodScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted),
+                Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted),
               ],
             ),
           ),
         ),
         const SizedBox(height: 24),
-        const _SectionLabel('ASR-BERECHNUNG (MADHAB)'),
+        _SectionLabel(l10n.onboardingMadhabSection),
         const SizedBox(height: 10),
         Row(
           children: [

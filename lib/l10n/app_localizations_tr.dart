@@ -402,4 +402,131 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get nowLabel => 'şimdi';
+
+  @override
+  String get onboardingLanguageSubtitle =>
+      'Bunu istediğin zaman değiştirebilirsin';
+
+  @override
+  String get onboardingNameQuestion => 'Sana nasıl hitap edelim?';
+
+  @override
+  String get onboardingNameSubtitle => 'Kişisel selamlaman için.';
+
+  @override
+  String onboardingNamePreview(String name) {
+    return 'örn. „Esselamü aleyküm, $name“ için';
+  }
+
+  @override
+  String get onboardingLocationDetect => 'Konumu otomatik algıla';
+
+  @override
+  String get onboardingLocationSearch => 'Şehri elle ara…';
+
+  @override
+  String get onboardingLocationSkip => 'Konumsuz devam et';
+
+  @override
+  String get onboardingLocationPrivacy =>
+      'Namaz vakitleri ve kıble cihazında hesaplanır. Yalnızca cami araması konumunu gönderir — ve önce sorar.';
+
+  @override
+  String onboardingLocationDetected(String city) {
+    return 'Konum algılandı: $city';
+  }
+
+  @override
+  String get onboardingLocationNotFound => 'Yer bulunamadı.';
+
+  @override
+  String get onboardingMethodHeading => 'Namaz vakitlerini ayarla';
+
+  @override
+  String get onboardingMethodSection => 'HESAPLAMA YÖNTEMİ';
+
+  @override
+  String get onboardingMadhabSection => 'İKİNDİ HESABI (MEZHEP)';
+
+  @override
+  String get onboardingAdhanHeading => 'Ezan hatırlatmaları';
+
+  @override
+  String get onboardingAdhanBody => 'Her namaz vaktinde nazikçe hatırlatalım.';
+
+  @override
+  String get onboardingAdhanEnable => 'Bildirimleri etkinleştir';
+
+  @override
+  String get onboardingAdhanEnabled => 'Bildirimler etkinleştirildi.';
+
+  @override
+  String get onboardingAdhanDenied => 'İzin verilmedi.';
+
+  @override
+  String get onboardingMuezzinSection => 'MÜEZZİN SESİ';
+
+  @override
+  String get onboardingDoneHeading => 'Her şey hazır';
+
+  @override
+  String onboardingDoneHeadingNamed(String name) {
+    return 'Her şey hazır, $name';
+  }
+
+  @override
+  String get onboardingDoneCompanion => 'Munir gününde sana eşlik etsin.';
+
+  @override
+  String get onboardingOpenApp => 'Uygulamayı aç';
+
+  @override
+  String get onboardingAdhanOn => 'Ezan açık';
+
+  @override
+  String get onboardingAdhanOff => 'Ezan kapalı';
+
+  @override
+  String get featurePrayerTitle => 'Bir daha namaz kaçırma';
+
+  @override
+  String get featurePrayerBody =>
+      'Konumuna göre kesin namaz vakitleri, ezan hatırlatmasıyla.';
+
+  @override
+  String get featureQiblaTitle => 'Kıble yönünü bul';
+
+  @override
+  String get featureQiblaBody =>
+      'Hassas bir pusula her yerde Mekke\'yi gösterir.';
+
+  @override
+  String get featureQuranTitle => 'Kur\'an hep yanında';
+
+  @override
+  String get featureQuranBody =>
+      'Oku, dinle ve ilerlemeni işaretle — çevrimdışı kullanılabilir.';
+
+  @override
+  String get commonSkip => 'Atla';
+
+  @override
+  String get commonNext => 'İleri';
+
+  @override
+  String get onboardingLocationQuestion => 'Neredesin?';
+
+  @override
+  String get notificationChannelName => 'Namaz vakitleri';
+
+  @override
+  String get notificationChannelDescription =>
+      'Günlük namaz vakitleri için hatırlatmalar';
+
+  @override
+  String get onboardingLocationWhy =>
+      'Doğru namaz vakitleri ve kıble yönü için konumuna ihtiyacımız var.';
+
+  @override
+  String get commonOr => 'veya';
 }

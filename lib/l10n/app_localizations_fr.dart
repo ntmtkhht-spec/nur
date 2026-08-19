@@ -402,4 +402,132 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get nowLabel => 'maintenant';
+
+  @override
+  String get onboardingLanguageSubtitle => 'Vous pourrez changer à tout moment';
+
+  @override
+  String get onboardingNameQuestion => 'Comment devons-nous vous appeler ?';
+
+  @override
+  String get onboardingNameSubtitle => 'Pour votre salutation personnelle.';
+
+  @override
+  String onboardingNamePreview(String name) {
+    return 'p. ex. pour « Assalamu alaikum, $name »';
+  }
+
+  @override
+  String get onboardingLocationDetect => 'Détecter la position automatiquement';
+
+  @override
+  String get onboardingLocationSearch => 'Rechercher une ville…';
+
+  @override
+  String get onboardingLocationSkip => 'Continuer sans position';
+
+  @override
+  String get onboardingLocationPrivacy =>
+      'Les horaires et la qibla sont calculés sur votre appareil. Seule la recherche de mosquées envoie votre position — après votre accord.';
+
+  @override
+  String onboardingLocationDetected(String city) {
+    return 'Position détectée : $city';
+  }
+
+  @override
+  String get onboardingLocationNotFound => 'Lieu introuvable.';
+
+  @override
+  String get onboardingMethodHeading => 'Ajuster les horaires';
+
+  @override
+  String get onboardingMethodSection => 'MÉTHODE DE CALCUL';
+
+  @override
+  String get onboardingMadhabSection => 'CALCUL DU ASR (MADHAB)';
+
+  @override
+  String get onboardingAdhanHeading => 'Rappels de l\'adhan';
+
+  @override
+  String get onboardingAdhanBody =>
+      'Recevez un rappel discret à chaque prière.';
+
+  @override
+  String get onboardingAdhanEnable => 'Activer les notifications';
+
+  @override
+  String get onboardingAdhanEnabled => 'Notifications activées.';
+
+  @override
+  String get onboardingAdhanDenied => 'Autorisation refusée.';
+
+  @override
+  String get onboardingMuezzinSection => 'VOIX DU MUEZZIN';
+
+  @override
+  String get onboardingDoneHeading => 'Tout est prêt';
+
+  @override
+  String onboardingDoneHeadingNamed(String name) {
+    return 'Tout est prêt, $name';
+  }
+
+  @override
+  String get onboardingDoneCompanion =>
+      'Que Munir vous accompagne tout au long de la journée.';
+
+  @override
+  String get onboardingOpenApp => 'Ouvrir l\'application';
+
+  @override
+  String get onboardingAdhanOn => 'Adhan activé';
+
+  @override
+  String get onboardingAdhanOff => 'Adhan désactivé';
+
+  @override
+  String get featurePrayerTitle => 'Ne manquez plus une prière';
+
+  @override
+  String get featurePrayerBody =>
+      'Des horaires précis pour votre position, avec rappel de l\'adhan.';
+
+  @override
+  String get featureQiblaTitle => 'Trouvez la direction de la qibla';
+
+  @override
+  String get featureQiblaBody =>
+      'Une boussole précise vous oriente vers La Mecque partout.';
+
+  @override
+  String get featureQuranTitle => 'Le Coran, toujours avec vous';
+
+  @override
+  String get featureQuranBody =>
+      'Lisez, écoutez et suivez vos progrès — hors ligne.';
+
+  @override
+  String get commonSkip => 'Passer';
+
+  @override
+  String get commonNext => 'Suivant';
+
+  @override
+  String get onboardingLocationQuestion => 'Où vous trouvez-vous ?';
+
+  @override
+  String get notificationChannelName => 'Heures de prière';
+
+  @override
+  String get notificationChannelDescription =>
+      'Rappels pour les horaires de prière quotidiens';
+
+  @override
+  String get onboardingLocationWhy =>
+      'Nous avons besoin de votre position pour des horaires précis et la direction de la qibla.';
+
+  @override
+  String get commonOr => 'ou';
 }

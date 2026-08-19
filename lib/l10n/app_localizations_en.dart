@@ -400,4 +400,132 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nowLabel => 'now';
+
+  @override
+  String get onboardingLanguageSubtitle => 'You can change this at any time';
+
+  @override
+  String get onboardingNameQuestion => 'What should we call you?';
+
+  @override
+  String get onboardingNameSubtitle => 'For your personal greeting.';
+
+  @override
+  String onboardingNamePreview(String name) {
+    return 'e.g. for “Assalamu alaikum, $name”';
+  }
+
+  @override
+  String get onboardingLocationDetect => 'Detect location automatically';
+
+  @override
+  String get onboardingLocationSearch => 'Search for a city…';
+
+  @override
+  String get onboardingLocationSkip => 'Continue without location';
+
+  @override
+  String get onboardingLocationPrivacy =>
+      'Prayer times and qibla are calculated on your device. Only the mosque search sends your location — and it asks first.';
+
+  @override
+  String onboardingLocationDetected(String city) {
+    return 'Location detected: $city';
+  }
+
+  @override
+  String get onboardingLocationNotFound => 'Place not found.';
+
+  @override
+  String get onboardingMethodHeading => 'Adjust prayer times';
+
+  @override
+  String get onboardingMethodSection => 'CALCULATION METHOD';
+
+  @override
+  String get onboardingMadhabSection => 'ASR CALCULATION (MADHAB)';
+
+  @override
+  String get onboardingAdhanHeading => 'Adhan reminders';
+
+  @override
+  String get onboardingAdhanBody =>
+      'Get a gentle reminder at every prayer time.';
+
+  @override
+  String get onboardingAdhanEnable => 'Enable notifications';
+
+  @override
+  String get onboardingAdhanEnabled => 'Notifications enabled.';
+
+  @override
+  String get onboardingAdhanDenied => 'Permission was not granted.';
+
+  @override
+  String get onboardingMuezzinSection => 'MUEZZIN VOICE';
+
+  @override
+  String get onboardingDoneHeading => 'All set';
+
+  @override
+  String onboardingDoneHeadingNamed(String name) {
+    return 'All set, $name';
+  }
+
+  @override
+  String get onboardingDoneCompanion =>
+      'May Munir accompany you through your day.';
+
+  @override
+  String get onboardingOpenApp => 'Open app';
+
+  @override
+  String get onboardingAdhanOn => 'Adhan on';
+
+  @override
+  String get onboardingAdhanOff => 'Adhan off';
+
+  @override
+  String get featurePrayerTitle => 'Never miss a prayer again';
+
+  @override
+  String get featurePrayerBody =>
+      'Accurate prayer times for your location, with adhan reminders.';
+
+  @override
+  String get featureQiblaTitle => 'Find the qibla direction';
+
+  @override
+  String get featureQiblaBody =>
+      'A precise compass points you towards Makkah anywhere.';
+
+  @override
+  String get featureQuranTitle => 'The Qur\'an, always with you';
+
+  @override
+  String get featureQuranBody =>
+      'Read, listen and mark your progress — available offline.';
+
+  @override
+  String get commonSkip => 'Skip';
+
+  @override
+  String get commonNext => 'Next';
+
+  @override
+  String get onboardingLocationQuestion => 'Where are you?';
+
+  @override
+  String get notificationChannelName => 'Prayer times';
+
+  @override
+  String get notificationChannelDescription =>
+      'Reminders for the daily prayer times';
+
+  @override
+  String get onboardingLocationWhy =>
+      'We need your location for accurate prayer times and the qibla direction.';
+
+  @override
+  String get commonOr => 'or';
 }

@@ -229,5 +229,64 @@
   "settingsNotSet": "nicht gesetzt",
   "qiblaAligned": "Ausgerichtet — Richtung Mekka",
   "settingsDataSources": "Datenquellen",
-  "nowLabel": "jetzt"
+  "nowLabel": "jetzt",
+  "onboardingLanguageSubtitle": "Du kannst das später jederzeit ändern",
+  "onboardingNameQuestion": "Wie dürfen wir dich nennen?",
+  "onboardingNameSubtitle": "Für deine persönliche Begrüßung.",
+  "onboardingNamePreview": "z. B. für „Assalamu alaikum, {name}“",
+  "@onboardingNamePreview": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingLocationDetect": "Standort automatisch erkennen",
+  "onboardingLocationSearch": "Stadt manuell suchen…",
+  "onboardingLocationSkip": "Ohne Standort fortfahren",
+  "onboardingLocationPrivacy": "Gebetszeiten und Qibla werden auf deinem Gerät berechnet. Nur die Moschee-Suche überträgt deinen Standort — und fragt vorher.",
+  "onboardingLocationDetected": "Standort erkannt: {city}",
+  "@onboardingLocationDetected": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingLocationNotFound": "Ort nicht gefunden.",
+  "onboardingMethodHeading": "Gebetszeiten anpassen",
+  "onboardingMethodSection": "BERECHNUNGSMETHODE",
+  "onboardingMadhabSection": "ASR-BERECHNUNG (MADHAB)",
+  "onboardingAdhanHeading": "Adhan-Erinnerungen",
+  "onboardingAdhanBody": "Lass dich zu jeder Gebetszeit sanft erinnern.",
+  "onboardingAdhanEnable": "Benachrichtigungen aktivieren",
+  "onboardingAdhanEnabled": "Benachrichtigungen aktiviert.",
+  "onboardingAdhanDenied": "Berechtigung wurde nicht erteilt.",
+  "onboardingMuezzinSection": "MUEZZIN-STIMME",
+  "onboardingDoneHeading": "Alles bereit",
+  "onboardingDoneHeadingNamed": "Alles bereit, {name}",
+  "@onboardingDoneHeadingNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingDoneCompanion": "Möge Munir dich durch deinen Tag begleiten.",
+  "onboardingOpenApp": "App öffnen",
+  "onboardingAdhanOn": "Adhan an",
+  "onboardingAdhanOff": "Adhan aus",
+  "featurePrayerTitle": "Verpasse kein Gebet mehr",
+  "featurePrayerBody": "Präzise Gebetszeiten für deinen Standort, mit Adhan-Erinnerung.",
+  "featureQiblaTitle": "Finde die Qibla-Richtung",
+  "featureQiblaBody": "Ein präziser Kompass zeigt dir überall den Weg nach Makkah.",
+  "featureQuranTitle": "Der Quran, immer bei dir",
+  "featureQuranBody": "Lies, höre und markiere deine Fortschritte — offline verfügbar.",
+  "commonSkip": "Überspringen",
+  "commonNext": "Weiter",
+  "onboardingLocationQuestion": "Wo befindest du dich?",
+  "notificationChannelName": "Gebetszeiten",
+  "notificationChannelDescription": "Erinnerungen zu den täglichen Gebetszeiten",
+  "onboardingLocationWhy": "Wir brauchen deinen Standort für exakte Gebetszeiten und die Qibla-Richtung.",
+  "commonOr": "oder"
 }

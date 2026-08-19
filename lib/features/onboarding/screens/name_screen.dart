@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -39,6 +41,7 @@ class _NameScreenState extends ConsumerState<NameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final canContinue = _controller.text.trim().isNotEmpty;
 
     return OnboardingScaffold(
@@ -49,11 +52,11 @@ class _NameScreenState extends ConsumerState<NameScreen> {
         widget.onNext();
       },
       children: [
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         _NameHeroIcon(),
         const SizedBox(height: 32),
-        const Text(
-          'Wie dürfen wir dich nennen?',
+        Text(
+          l10n.onboardingNameQuestion,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 26,
@@ -62,9 +65,9 @@ class _NameScreenState extends ConsumerState<NameScreen> {
             height: 1.2,
           ),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Für deine persönliche Begrüßung.',
+        SizedBox(height: 8),
+        Text(
+          l10n.onboardingNameSubtitle,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 14, color: AppColors.textMuted),
         ),
@@ -84,7 +87,7 @@ class _NameScreenState extends ConsumerState<NameScreen> {
           },
           style: const TextStyle(fontSize: 18, color: AppColors.textDark),
           decoration: InputDecoration(
-            hintText: 'Dein Name',
+            hintText: l10n.onboardingNameHint,
             suffixIcon: const Icon(Icons.person_outline, color: AppColors.primaryGreen),
             filled: true,
             fillColor: AppColors.cardBg,
@@ -95,9 +98,9 @@ class _NameScreenState extends ConsumerState<NameScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         Text(
-          'z. B. für „Assalamu alaikum, ${_controller.text.trim().isEmpty ? 'Dein Name' : _controller.text.trim()}"',
+          'z. B. für „Assalamu alaikum, ${_controller.text.trim().isEmpty ? l10n.onboardingNameHint : _controller.text.trim()}"',
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
         ),

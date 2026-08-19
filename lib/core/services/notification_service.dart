@@ -1,7 +1,10 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../../l10n/app_localizations.dart';
+import '../i18n/prayer_names.dart';
 import '../models/prayer.dart';
 
 class NotificationService {
@@ -50,19 +53,26 @@ class NotificationService {
     return true;
   }
 
-  static Future<void> scheduleTodaysPrayers(List<PrayerTime> prayers) async {
+  /// [languageCode] picks the texts; notifications are scheduled from
+  /// background code where no BuildContext exists, so localizations are
+  /// loaded directly instead of being read off the widget tree.
+  static Future<void> scheduleTodaysPrayers(
+    List<PrayerTime> prayers, {
+    String languageCode = 'de',
+  }) async {
     await _ensureInitialized();
+    final l10n = await AppLocalizations.delegate.load(Locale(languageCode));
     await _plugin.cancelAll();
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: AndroidNotificationDetails(
         'adhan_channel',
-        'Gebetszeiten',
-        channelDescription: 'Erinnerungen zu den täglichen Gebetszeiten',
+        l10n.notificationChannelName,
+        channelDescription: l10n.notificationChannelDescription,
         importance: Importance.high,
         priority: Priority.high,
       ),
-      iOS: DarwinNotificationDetails(),
+      iOS: const DarwinNotificationDetails(),
     );
 
     final now = DateTime.now();
@@ -76,8 +86,10 @@ class NotificationService {
       await _plugin.zonedSchedule(
         id: i,
         scheduledDate: scheduled,
-        title: '${prayer.name} Gebetszeit',
-        body: 'Es ist Zeit für das ${prayer.name}-Gebet.',
+        title: l10n.notificationPrayerTimeTitle(
+          localizedPrayerName(l10n, prayer.name),
+        ),
+        body: l10n.notificationPrayerTimeBody,
         notificationDetails: details,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       );

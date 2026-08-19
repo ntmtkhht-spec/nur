@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 
@@ -66,10 +68,11 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
       _errorText = null;
     });
 
+    final l10n = AppLocalizations.of(context);
     try {
       final results = await Geocoding().locationFromAddress(query);
       if (results.isEmpty) {
-        setState(() => _errorText = 'Ort nicht gefunden.');
+        setState(() => _errorText = l10n.onboardingLocationNotFound);
         return;
       }
       final result = results.first;
@@ -87,6 +90,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final data = ref.watch(onboardingProvider);
     final hasLocation = data.hasLocation;
 
@@ -94,13 +98,15 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
       currentStep: widget.stepIndex,
       onNext: widget.onNext,
       onSkip: widget.onSkip,
-      buttonLabel: hasLocation ? 'Weiter' : 'Ohne Standort fortfahren',
+      buttonLabel: hasLocation ? 'Weiter' : l10n.onboardingLocationSkip,
       children: [
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         const HeroBadge(icon: Icons.location_on_outlined, size: 170),
         const SizedBox(height: 28),
         Text(
-          hasLocation ? 'Standort erkannt: ${data.city}' : 'Wo befindest du dich?',
+          hasLocation
+              ? l10n.onboardingLocationDetected(data.city ?? '')
+              : l10n.onboardingLocationQuestion,
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 24,
@@ -109,10 +115,10 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Wir brauchen deinen Standort für exakte Gebetszeiten und die Qibla-Richtung.',
+        Text(
+          l10n.onboardingLocationWhy,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: AppColors.textMuted, height: 1.4),
+          style: const TextStyle(fontSize: 14, color: AppColors.textMuted, height: 1.4),
         ),
         const SizedBox(height: 12),
         const OrnamentDivider(),
@@ -123,7 +129,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
           child: ElevatedButton.icon(
             onPressed: _isDetecting ? null : _detectGps,
             icon: _isDetecting
-                ? const SizedBox(
+                ? SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
@@ -132,7 +138,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
                     ),
                   )
                 : const Icon(Icons.my_location, size: 20),
-            label: Text(_isDetecting ? 'Suche Standort…' : 'Standort automatisch erkennen'),
+            label: Text(_isDetecting ? 'Suche Standort…' : l10n.onboardingLocationDetect),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.darkGreen,
               foregroundColor: AppColors.white,
@@ -147,19 +153,20 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
         Row(
           children: [
             Expanded(child: Divider(color: AppColors.textMuted.withValues(alpha: 0.3))),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Text('oder', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text(l10n.commonOr,
+                  style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
             ),
             Expanded(child: Divider(color: AppColors.textMuted.withValues(alpha: 0.3))),
           ],
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         TextField(
           controller: _searchController,
           onSubmitted: (_) => _searchCity(),
           decoration: InputDecoration(
-            hintText: 'Stadt manuell suchen…',
+            hintText: l10n.onboardingLocationSearch,
             prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
             suffixIcon: _isSearching
                 ? const Padding(
@@ -194,21 +201,19 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
         // does send coordinates to OpenStreetMap, and it asks separately
         // before doing so. Promising more than the app delivers would be a lie
         // in exactly the place users check for one.
-        const Row(
+        Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
+            const Padding(
               padding: EdgeInsets.only(top: 2),
               child: Icon(Icons.lock_outline,
                   size: 14, color: AppColors.textMuted),
             ),
-            SizedBox(width: 6),
+            const SizedBox(width: 6),
             Expanded(
               child: Text(
-                'Gebetszeiten und Qibla werden auf deinem Gerät berechnet. '
-                'Nur die Moschee-Suche überträgt deinen Standort — und fragt '
-                'vorher.',
-                style: TextStyle(fontSize: 12, color: AppColors.textMuted, height: 1.4),
+                l10n.onboardingLocationPrivacy,
+                style: const TextStyle(fontSize: 12, color: AppColors.textMuted, height: 1.4),
               ),
             ),
           ],

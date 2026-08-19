@@ -1,5 +1,7 @@
 import 'package:adhan_dart/adhan_dart.dart' as adhan;
 import 'package:flutter/material.dart';
+
+import '../../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
@@ -41,11 +43,15 @@ class _CompletionScreenState extends ConsumerState<CompletionScreen> {
     final enabled = ref.read(notificationsEnabledProvider);
     if (!enabled) return;
     final prayers = ref.read(prayerTimesProvider);
-    await NotificationService.scheduleTodaysPrayers(prayers);
+    await NotificationService.scheduleTodaysPrayers(
+      prayers,
+      languageCode: ref.read(appLanguageProvider),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final name = ref.watch(userNameProvider);
     final locationAsync = ref.watch(locationProvider);
     final city = switch (locationAsync) {
@@ -71,7 +77,9 @@ class _CompletionScreenState extends ConsumerState<CompletionScreen> {
               ),
               const SizedBox(height: 28),
               Text(
-                'Alles bereit${name.isNotEmpty ? ', $name' : ''}',
+                name.isEmpty
+              ? l10n.onboardingDoneHeading
+              : l10n.onboardingDoneHeadingNamed(name),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 28,
@@ -80,8 +88,8 @@ class _CompletionScreenState extends ConsumerState<CompletionScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Möge Nûr dich durch deinen Tag begleiten.',
+              Text(
+                l10n.onboardingDoneCompanion,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 15, color: AppColors.textMuted),
               ),
@@ -93,7 +101,7 @@ class _CompletionScreenState extends ConsumerState<CompletionScreen> {
                   Expanded(
                     child: _SummaryChip(icon: Icons.location_on_outlined, label: city),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
                   Expanded(
                     child: _SummaryChip(icon: Icons.public, label: methodShort),
                   ),
@@ -101,7 +109,7 @@ class _CompletionScreenState extends ConsumerState<CompletionScreen> {
                   Expanded(
                     child: _SummaryChip(
                       icon: Icons.notifications_outlined,
-                      label: notificationsEnabled ? 'Adhan an' : 'Adhan aus',
+                      label: notificationsEnabled ? l10n.onboardingAdhanOn : l10n.onboardingAdhanOff,
                     ),
                   ),
                 ],
@@ -120,7 +128,7 @@ class _CompletionScreenState extends ConsumerState<CompletionScreen> {
                     ),
                     textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                   ),
-                  child: const Text('App öffnen'),
+                  child: Text(l10n.onboardingOpenApp),
                 ),
               ),
               const SizedBox(height: 16),
