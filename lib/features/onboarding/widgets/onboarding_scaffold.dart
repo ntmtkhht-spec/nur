@@ -9,6 +9,11 @@ class OnboardingScaffold extends StatelessWidget {
   final int totalSteps;
   /// Defaults to the localized "next" label when null.
   final String? buttonLabel;
+
+  /// Renders the primary button as a quiet text button. Used where advancing
+  /// means opting out (e.g. continuing without a location), so the button
+  /// does not compete with the action the screen actually offers.
+  final bool buttonIsSecondary;
   final VoidCallback onNext;
   final VoidCallback? onSkip;
   final bool buttonEnabled;
@@ -18,8 +23,9 @@ class OnboardingScaffold extends StatelessWidget {
   OnboardingScaffold({
     super.key,
     required this.currentStep,
-    this.totalSteps = 6,
+    this.totalSteps = 3,
     this.buttonLabel,
+    this.buttonIsSecondary = false,
     required this.onNext,
     this.onSkip,
     this.buttonEnabled = true,
@@ -38,24 +44,30 @@ class OnboardingScaffold extends StatelessWidget {
             // Top bar: dots + skip
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Row(
+              // Stack, not Row: with the skip label as a row child the dots
+              // would centre in the space left of it rather than on screen.
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  const Spacer(),
+                  // Forces the stack to full width; without it the stack is
+                  // only as wide as the dots and "skip" would sit on top of
+                  // them instead of at the right edge.
+                  const SizedBox(width: double.infinity, height: 24),
                   _PageDots(current: currentStep, total: totalSteps),
-                  const Spacer(),
                   if (onSkip != null)
-                    GestureDetector(
-                      onTap: onSkip,
-                      child: Text(
-                        l10n.commonSkip,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textMuted,
+                    Positioned(
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: onSkip,
+                        child: Text(
+                          l10n.commonSkip,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textMuted,
+                          ),
                         ),
                       ),
-                    )
-                  else
-                    const SizedBox(width: 80),
+                    ),
                 ],
               ),
             ),
@@ -75,7 +87,23 @@ class OnboardingScaffold extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(28, 8, 28, 16),
               child: customButton ??
-                  SizedBox(
+                  (buttonIsSecondary
+                      ? SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: TextButton(
+                            onPressed: buttonEnabled ? onNext : null,
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.textMuted,
+                              textStyle: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            child: Text(buttonLabel ?? l10n.commonNext),
+                          ),
+                        )
+                      : SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
@@ -95,7 +123,7 @@ class OnboardingScaffold extends StatelessWidget {
                       ),
                       child: Text(buttonLabel ?? l10n.commonNext),
                     ),
-                  ),
+                  )),
             ),
           ],
         ),

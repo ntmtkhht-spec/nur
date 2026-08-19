@@ -9,7 +9,6 @@ import '../../../core/theme/app_colors.dart';
 import '../onboarding_state.dart';
 import '../widgets/hero_badge.dart';
 import '../widgets/onboarding_scaffold.dart';
-import '../widgets/ornament_divider.dart';
 
 class LocationScreen extends ConsumerStatefulWidget {
   final int stepIndex;
@@ -51,6 +50,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
             city: data.city,
             lat: data.lat,
             lng: data.lng,
+            isoCountryCode: data.isoCountryCode,
           );
     } catch (e) {
       setState(() => _errorText = e.toString().replaceFirst('Exception: ', ''));
@@ -98,10 +98,12 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
       currentStep: widget.stepIndex,
       onNext: widget.onNext,
       onSkip: widget.onSkip,
-      buttonLabel: hasLocation ? 'Weiter' : l10n.onboardingLocationSkip,
+      buttonLabel: hasLocation ? l10n.commonNext : l10n.onboardingLocationSkip,
+      // Skipping is the way out, not the recommended path.
+      buttonIsSecondary: !hasLocation,
       children: [
         SizedBox(height: 12),
-        const HeroBadge(icon: Icons.location_on_outlined, size: 170),
+        const HeroBadge(icon: Icons.location_on_outlined, size: 96),
         const SizedBox(height: 28),
         Text(
           hasLocation
@@ -121,7 +123,6 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
           style: const TextStyle(fontSize: 14, color: AppColors.textMuted, height: 1.4),
         ),
         const SizedBox(height: 12),
-        const OrnamentDivider(),
         const SizedBox(height: 20),
         SizedBox(
           width: double.infinity,

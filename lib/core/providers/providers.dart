@@ -115,10 +115,15 @@ class LocationData {
   final double lng;
   final String city;
 
+  /// ISO 3166-1 alpha-2, used to pick the prayer calculation method.
+  /// Null when reverse geocoding was unavailable.
+  final String? isoCountryCode;
+
   const LocationData({
     required this.lat,
     required this.lng,
     this.city = 'Standort',
+    this.isoCountryCode,
   });
 
   static const fallback = LocationData(
@@ -193,10 +198,12 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
       );
     }
 
+    final place = await _resolvePlace(position.latitude, position.longitude);
     final data = LocationData(
       lat: position.latitude,
       lng: position.longitude,
-      city: await _resolveCityName(position.latitude, position.longitude),
+      city: place.city,
+      isoCountryCode: place.isoCountryCode,
     );
 
     await _persist(data);
@@ -204,10 +211,13 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
     return data;
   }
 
-  /// Reverse-geocodes coordinates into a human readable city label.
+  /// Reverse-geocodes coordinates into a city label and a country code.
   /// Falls back to formatted coordinates when no geocoder result is available
   /// (offline, emulator without Google Play services, unnamed area).
-  Future<String> _resolveCityName(double lat, double lng) async {
+  Future<({String city, String? isoCountryCode})> _resolvePlace(
+    double lat,
+    double lng,
+  ) async {
     try {
       final placemarks = await Geocoding()
           .placemarkFromCoordinates(lat, lng)
@@ -224,15 +234,19 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
         if (city == null) continue;
 
         final country = p.country?.trim();
-        return country != null && country.isNotEmpty
-            ? '$city, $country'
-            : city;
+        return (
+          city: country != null && country.isNotEmpty ? '$city, $country' : city,
+          isoCountryCode: p.isoCountryCode,
+        );
       }
     } catch (_) {
       // Geocoding unavailable — fall through to coordinate label.
     }
 
-    return '${lat.toStringAsFixed(3)}, ${lng.toStringAsFixed(3)}';
+    return (
+      city: '${lat.toStringAsFixed(3)}, ${lng.toStringAsFixed(3)}',
+      isoCountryCode: null,
+    );
   }
 
   /// Sets location explicitly, e.g. from manual city search.

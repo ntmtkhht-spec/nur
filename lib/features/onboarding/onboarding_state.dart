@@ -1,7 +1,10 @@
 import 'package:adhan_dart/adhan_dart.dart' as adhan;
+
+import '../../core/services/calculation_method_by_country.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/providers.dart';
+import '../../core/services/notification_service.dart';
 
 /// Transient wizard state for the onboarding flow. Nothing here is persisted
 /// until [OnboardingNotifier.commit] writes it into the real app providers.
@@ -67,8 +70,16 @@ class OnboardingNotifier extends Notifier<OnboardingData> {
     required String city,
     required double lat,
     required double lng,
+    String? isoCountryCode,
   }) {
-    state = state.copyWith(city: city, lat: lat, lng: lng);
+    state = state.copyWith(
+      city: city,
+      lat: lat,
+      lng: lng,
+      // The calculation method is no longer asked for; it follows from the
+      // country and stays changeable in Settings.
+      calculationMethod: calculationMethodForCountry(isoCountryCode),
+    );
   }
 
   void setCalculationMethod(adhan.CalculationMethod method) {
@@ -94,7 +105,7 @@ class OnboardingNotifier extends Notifier<OnboardingData> {
   /// Persists the collected wizard data into the real app providers.
   /// Does not yet flip the onboarding-complete gate — call
   /// [finishOnboarding] for that once the completion screen is dismissed.
-  void saveSettings() {
+  Future<void> saveSettings() async {
     final data = state;
 
     ref.read(appLanguageProvider.notifier).update(data.language);
@@ -118,6 +129,15 @@ class OnboardingNotifier extends Notifier<OnboardingData> {
 
     if (data.name.trim().isNotEmpty) {
       ref.read(userNameProvider.notifier).update(data.name.trim());
+    }
+
+    // Used to live on the completion screen that no longer exists; without
+    // this no reminder would ever be scheduled.
+    if (data.notificationsEnabled) {
+      await NotificationService.scheduleTodaysPrayers(
+        ref.read(prayerTimesProvider),
+        languageCode: data.language,
+      );
     }
   }
 

@@ -9,7 +9,6 @@ import '../../../core/theme/app_colors.dart';
 import '../onboarding_state.dart';
 import '../widgets/hero_badge.dart';
 import '../widgets/onboarding_scaffold.dart';
-import '../widgets/ornament_divider.dart';
 
 /// Reciter names stay as they are; only the silent option is translated.
 Map<MuezzinVoice, String> _voiceLabelsFor(AppLocalizations l10n) => {
@@ -59,15 +58,7 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
     }
   }
 
-  void _previewVoice(String label) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Vorschau für „$label" folgt bald.'),
-        duration: const Duration(seconds: 1),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +113,7 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
       ),
       children: [
         SizedBox(height: 8),
-        const HeroBadge(icon: Icons.notifications_none_rounded, size: 170),
+        const HeroBadge(icon: Icons.notifications_none_rounded, size: 96),
         const SizedBox(height: 24),
         Text(
           l10n.onboardingAdhanHeading,
@@ -140,7 +131,6 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
           style: TextStyle(fontSize: 14, color: AppColors.textMuted),
         ),
         SizedBox(height: 12),
-        const OrnamentDivider(),
         const SizedBox(height: 20),
         Align(
           alignment: Alignment.centerLeft,
@@ -161,7 +151,6 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
             isSelected: selectedVoice == voice,
             onTap: () =>
                 ref.read(onboardingProvider.notifier).setMuezzinVoice(voice),
-            onPlay: () => _previewVoice(_voiceLabelsFor(l10n)[voice]!),
           ),
           const SizedBox(height: 12),
         ],
@@ -174,13 +163,11 @@ class _VoiceTile extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
-  final VoidCallback onPlay;
 
   const _VoiceTile({
     required this.label,
     required this.isSelected,
     required this.onTap,
-    required this.onPlay,
   });
 
   @override
@@ -199,23 +186,6 @@ class _VoiceTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            GestureDetector(
-              onTap: onPlay,
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.goldLight,
-                ),
-                child: const Icon(
-                  Icons.play_arrow_rounded,
-                  size: 20,
-                  color: AppColors.darkGreen,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 label,

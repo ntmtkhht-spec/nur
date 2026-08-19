@@ -7,7 +7,6 @@ import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../onboarding_state.dart';
 import '../widgets/onboarding_scaffold.dart';
-import '../widgets/ornament_divider.dart';
 
 /// Flags per locale code; the labels come from [languageDisplayNames] so the
 /// picker and the settings screen can never drift apart.
@@ -39,7 +38,6 @@ class LanguageScreen extends ConsumerWidget {
       onNext: onNext,
       children: [
         SizedBox(height: 24),
-        const OrnamentDivider(),
         const SizedBox(height: 20),
         Text(
           l10n.onboardingLanguageTitle,
