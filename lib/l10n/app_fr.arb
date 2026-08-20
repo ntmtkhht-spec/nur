@@ -163,6 +163,7 @@
   "commonOr": "ou",
   "settingsSectionAccount": "Compte",
   "settingsSignInGoogle": "Se connecter avec Google",
+  "settingsSignInApple": "Se connecter avec Apple",
   "settingsSignInWhy": "Sauvegarde votre historique de prières et le synchronise entre vos appareils",
   "settingsSignOut": "Se déconnecter",
   "settingsDeleteAccount": "Supprimer le compte",

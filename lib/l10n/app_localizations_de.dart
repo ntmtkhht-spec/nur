@@ -556,6 +556,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsSignInGoogle => 'Mit Google anmelden';
 
   @override
+  String get settingsSignInApple => 'Mit Apple anmelden';
+
+  @override
   String get settingsSignInWhy =>
       'Sichert deinen Gebets-Verlauf und synchronisiert ihn auf deinen Geräten';
 

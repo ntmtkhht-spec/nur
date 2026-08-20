@@ -554,6 +554,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsSignInGoogle => 'Se connecter avec Google';
 
   @override
+  String get settingsSignInApple => 'Se connecter avec Apple';
+
+  @override
   String get settingsSignInWhy =>
       'Sauvegarde votre historique de prières et le synchronise entre vos appareils';
 

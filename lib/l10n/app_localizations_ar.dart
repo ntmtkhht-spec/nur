@@ -541,6 +541,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsSignInGoogle => 'تسجيل الدخول عبر Google';
 
   @override
+  String get settingsSignInApple => 'تسجيل الدخول عبر Apple';
+
+  @override
   String get settingsSignInWhy => 'يحفظ سجل صلاتك ويزامنه بين أجهزتك';
 
   @override

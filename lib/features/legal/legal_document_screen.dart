@@ -356,12 +356,10 @@ class _LegalDocument {
           'Lokale Daten bleiben gespeichert, bis du sie in der App zuruecksetzt, '
               'Berechtigungen widerrufst, App-Daten loeschst oder die App deinstallierst.',
           'Wenn du angemeldet bist, kannst du dein Konto in der App unter '
-              'Einstellungen > Konto > Konto loeschen entfernen. Dabei werden die '
-              'Firestore-Synchronisierungsdaten geloescht und anschliessend das '
-              'Firebase-Konto entfernt.',
-          'Fuer Google Play muss zusaetzlich eine oeffentlich erreichbare '
-              'Webseite zur Konto- und Datenloeschung bereitstehen: '
-              '${LegalProfile.accountDeletionUrl}',
+              'Einstellungen > Konto > Konto loeschen entfernen. Dein Konto und '
+              'alle zugehoerigen Daten werden dabei dauerhaft geloescht.',
+          'Du kannst dein Konto und deine Daten auch loeschen lassen, ohne die '
+              'App zu installieren: ${LegalProfile.accountDeletionUrl}',
         ],
       ),
       _LegalSection(

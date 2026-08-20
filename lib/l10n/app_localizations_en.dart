@@ -552,6 +552,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSignInGoogle => 'Sign in with Google';
 
   @override
+  String get settingsSignInApple => 'Sign in with Apple';
+
+  @override
   String get settingsSignInWhy =>
       'Backs up your prayer history and syncs it across your devices';
 

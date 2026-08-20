@@ -295,6 +295,7 @@
   "commonOr": "oder",
   "settingsSectionAccount": "Konto",
   "settingsSignInGoogle": "Mit Google anmelden",
+  "settingsSignInApple": "Mit Apple anmelden",
   "settingsSignInWhy": "Sichert deinen Gebets-Verlauf und synchronisiert ihn auf deinen Geräten",
   "settingsSignOut": "Abmelden",
   "settingsDeleteAccount": "Konto löschen",
