@@ -551,6 +551,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsSignInGoogle => 'Google ile giriş yap';
 
   @override
+  String get settingsSignInApple => 'Apple ile giriş yap';
+
+  @override
   String get settingsSignInWhy =>
       'Namaz geçmişini yedekler ve cihazların arasında eşitler';
 

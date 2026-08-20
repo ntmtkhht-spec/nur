@@ -163,6 +163,7 @@
   "commonOr": "or",
   "settingsSectionAccount": "Account",
   "settingsSignInGoogle": "Sign in with Google",
+  "settingsSignInApple": "Sign in with Apple",
   "settingsSignInWhy": "Backs up your prayer history and syncs it across your devices",
   "settingsSignOut": "Sign out",
   "settingsDeleteAccount": "Delete account",

@@ -1,6 +1,10 @@
+import 'dart:io';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/feature_flags.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/sync_service.dart';
 import '../../../core/theme/app_colors.dart';
@@ -31,10 +35,10 @@ class AccountScreen extends ConsumerStatefulWidget {
 class _AccountScreenState extends ConsumerState<AccountScreen> {
   bool _busy = false;
 
-  Future<void> _signIn() async {
+  Future<void> _signIn(Future<User?> Function() signIn) async {
     setState(() => _busy = true);
     try {
-      final user = await ref.read(authServiceProvider).signInWithGoogle();
+      final user = await signIn();
       if (user == null) return; // dismissed the picker
       // A returning user gets their history back before anything local is
       // pushed over it.
@@ -93,7 +97,11 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
           width: double.infinity,
           height: 56,
           child: ElevatedButton.icon(
-            onPressed: _busy ? null : _signIn,
+            onPressed: _busy
+                ? null
+                : () => _signIn(
+                    () => ref.read(authServiceProvider).signInWithGoogle(),
+                  ),
             icon: _busy
                 ? const SizedBox(
                     width: 18,
@@ -118,6 +126,35 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
             ),
           ),
         ),
+        // Apple only: App Store guideline 4.8 requires this as an equal
+        // option next to Google, not an Android-only afterthought.
+        if (Platform.isIOS && FeatureFlags.appleSignInEnabled) ...[
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton.icon(
+              onPressed: _busy
+                  ? null
+                  : () => _signIn(
+                      () => ref.read(authServiceProvider).signInWithApple(),
+                    ),
+              icon: const Icon(Icons.apple, size: 22),
+              label: Text(l10n.settingsSignInApple),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: AppColors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

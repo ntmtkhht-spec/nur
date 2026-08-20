@@ -163,6 +163,7 @@
   "commonOr": "أو",
   "settingsSectionAccount": "الحساب",
   "settingsSignInGoogle": "تسجيل الدخول عبر Google",
+  "settingsSignInApple": "تسجيل الدخول عبر Apple",
   "settingsSignInWhy": "يحفظ سجل صلاتك ويزامنه بين أجهزتك",
   "settingsSignOut": "تسجيل الخروج",
   "settingsDeleteAccount": "حذف الحساب",

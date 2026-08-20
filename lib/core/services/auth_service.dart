@@ -1,6 +1,11 @@
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 /// Sign-in is optional throughout the app.
 ///
@@ -55,6 +60,64 @@ class AuthService {
     return result.user;
   }
 
+  /// Signs in with Apple and links the result to Firebase.
+  ///
+  /// App Store guideline 4.8 requires this as an equal option next to
+  /// Google, not just a formality: it's an actual sign-in path, not
+  /// hidden behind extra taps.
+  ///
+  /// Returns null when the user cancelled the Apple sheet, which is a
+  /// normal outcome and not an error.
+  Future<User?> signInWithApple() async {
+    final rawNonce = _generateNonce();
+    final hashedNonce = sha256.convert(utf8.encode(rawNonce)).toString();
+
+    final AuthorizationCredentialAppleID appleCredential;
+    try {
+      appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: hashedNonce,
+      );
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) return null;
+      rethrow;
+    }
+
+    final credential = OAuthProvider('apple.com').credential(
+      idToken: appleCredential.identityToken,
+      rawNonce: rawNonce,
+      accessToken: appleCredential.authorizationCode,
+    );
+    final result = await _auth.signInWithCredential(credential);
+
+    // Apple only ever sends the name on the very first authorization; the
+    // Firebase user has none of it unless it's copied over here.
+    final fullName = [
+      appleCredential.givenName,
+      appleCredential.familyName,
+    ].whereType<String>().where((s) => s.isNotEmpty).join(' ');
+    if (fullName.isNotEmpty && result.user?.displayName == null) {
+      await result.user?.updateDisplayName(fullName);
+    }
+
+    return result.user;
+  }
+
+  /// Cryptographically random nonce, verified end-to-end by Sign in with
+  /// Apple so the ID token can't be replayed from a different sign-in.
+  String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
+  }
+
   Future<void> signOut() async {
     await GoogleSignIn.instance.signOut();
     await _auth.signOut();
@@ -76,9 +139,15 @@ class AuthService {
       await user.delete();
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
-        // Firebase refuses to delete on a stale session; sign in again and
-        // retry rather than leaving a half-deleted account behind.
-        final refreshed = await signInWithGoogle();
+        // Firebase refuses to delete on a stale session; sign in again with
+        // whichever provider this account actually used and retry, rather
+        // than leaving a half-deleted account behind.
+        final usedApple = user.providerData.any(
+          (p) => p.providerId == 'apple.com',
+        );
+        final refreshed = usedApple
+            ? await signInWithApple()
+            : await signInWithGoogle();
         if (refreshed == null) rethrow;
         await refreshed.delete();
       } else {

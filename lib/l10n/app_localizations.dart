@@ -1082,6 +1082,12 @@ abstract class AppLocalizations {
   /// **'Mit Google anmelden'**
   String get settingsSignInGoogle;
 
+  /// No description provided for @settingsSignInApple.
+  ///
+  /// In de, this message translates to:
+  /// **'Mit Apple anmelden'**
+  String get settingsSignInApple;
+
   /// No description provided for @settingsSignInWhy.
   ///
   /// In de, this message translates to:

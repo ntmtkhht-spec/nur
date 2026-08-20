@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:adhan_dart/adhan_dart.dart' as adhan;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/config/feature_flags.dart';
 import '../../core/i18n/prayer_names.dart';
 import '../../core/providers/providers.dart';
 import '../../core/services/notification_service.dart';
@@ -142,9 +144,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   icon: Icons.login,
                   label: l10n.settingsSignInGoogle,
                   subtitle: l10n.settingsSignInWhy,
-                  showDivider: false,
-                  onTap: _signIn,
+                  showDivider: Platform.isIOS && FeatureFlags.appleSignInEnabled,
+                  onTap: () => _signIn(
+                    () => ref.read(authServiceProvider).signInWithGoogle(),
+                  ),
                 ),
+                // Guideline 4.8: an equal option next to Google, iOS-only
+                // since that's the only platform the review applies to.
+                // Parked behind a flag until iOS is back in scope — see
+                // FeatureFlags.appleSignInEnabled.
+                if (Platform.isIOS && FeatureFlags.appleSignInEnabled)
+                  SettingsTile(
+                    icon: Icons.apple,
+                    label: l10n.settingsSignInApple,
+                    subtitle: l10n.settingsSignInWhy,
+                    showDivider: false,
+                    onTap: () => _signIn(
+                      () => ref.read(authServiceProvider).signInWithApple(),
+                    ),
+                  ),
               ]
             : [
                 SettingsTile(
@@ -175,9 +193,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Future<void> _signIn() async {
+  Future<void> _signIn(Future<User?> Function() signIn) async {
     try {
-      final user = await ref.read(authServiceProvider).signInWithGoogle();
+      final user = await signIn();
       if (user == null) return; // dismissed, not an error
       // Pull first so a fresh device inherits what is already stored, then
       // push so the server learns about anything recorded offline.
@@ -186,9 +204,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (mounted) _toast(l10n.settingsSyncDone);
     } catch (e, stack) {
       // Surfaced in debug builds: a silent failure here is impossible to
-      // diagnose otherwise (missing Google account on the device, wrong
-      // SHA-1 in the Firebase project, provider not enabled).
-      debugPrint('Google sign-in failed: $e');
+      // diagnose otherwise (missing account on the device, wrong SHA-1 in
+      // the Firebase project, provider not enabled).
+      debugPrint('Sign-in failed: $e');
       debugPrintStack(stackTrace: stack);
       if (mounted) _toast(l10n.settingsSignInFailed);
     }
