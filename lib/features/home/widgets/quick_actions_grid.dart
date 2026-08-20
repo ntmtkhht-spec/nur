@@ -33,7 +33,7 @@ class QuickActionsGrid extends StatelessWidget {
                   const SizedBox(height: AppSpacing.sm),
                   Expanded(
                     child: _QuickActionTile(
-                      icon: Icons.front_hand_outlined,
+                      assetPath: 'assets/images/icon_duas_generated.png',
                       label: AppLocalizations.of(context).quickDuas,
                       destination: (_) => const DuasScreen(),
                     ),
@@ -71,21 +71,26 @@ class QuickActionsGrid extends StatelessWidget {
 }
 
 class _QuickActionTile extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final String? assetPath;
   final String label;
 
   /// Screen to push when tapped. Null keeps the "kommt bald" placeholder.
   final WidgetBuilder? destination;
 
   const _QuickActionTile({
-    required this.icon,
+    this.icon,
+    this.assetPath,
     required this.label,
     this.destination,
-  });
+  }) : assert(icon != null || assetPath != null);
 
   @override
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
+    final iconWidget = assetPath == null
+        ? Icon(icon!, size: 32, color: colors.darkGreen)
+        : Image.asset(assetPath!, width: 36, height: 36, fit: BoxFit.contain);
 
     return Container(
       decoration: BoxDecoration(
@@ -109,15 +114,15 @@ class _QuickActionTile extends StatelessWidget {
               );
               return;
             }
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: destination!),
-            );
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: destination!));
           },
           child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 32, color: colors.darkGreen),
+                iconWidget,
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   label,
