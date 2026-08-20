@@ -47,7 +47,7 @@ class QuickActionsGrid extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _QuickActionTile(
-                      assetPath: 'assets/images/icon_qibla_generated.png',
+                      icon: Icons.explore_outlined,
                       label: AppLocalizations.of(context).quickQibla,
                       destination: (_) => const QiblaScreen(),
                     ),
