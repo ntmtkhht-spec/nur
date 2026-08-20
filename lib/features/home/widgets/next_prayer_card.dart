@@ -46,18 +46,29 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
     final minutes = (remaining.inMinutes % 60).abs();
     final seconds = (remaining.inSeconds % 60).abs();
 
+    final secondsLabel = switch (Localizations.localeOf(context).languageCode) {
+      'ar' => 'ث',
+      'en' => 'sec',
+      'fr' => 's',
+      'tr' => 'sn',
+      _ => 'Sek',
+    };
+
     String countdownText;
     if (remaining.isNegative) {
       countdownText = l10n.nowLabel;
     } else if (hours > 0) {
-      countdownText = l10n.inHoursMinutes(hours, minutes);
+      countdownText =
+          '${l10n.inHoursMinutes(hours, minutes)} $seconds $secondsLabel';
     } else {
       countdownText = l10n.inMinutesSeconds(minutes, seconds);
     }
 
     double progress = 0.0;
     if (currentPrayer != null) {
-      final totalDuration = prayer.time.difference(currentPrayer.time).inSeconds;
+      final totalDuration = prayer.time
+          .difference(currentPrayer.time)
+          .inSeconds;
       final elapsed = DateTime.now().difference(currentPrayer.time).inSeconds;
       if (totalDuration > 0) {
         progress = (elapsed / totalDuration).clamp(0.0, 1.0);
@@ -115,72 +126,81 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
             Padding(
               padding: const EdgeInsets.all(AppSpacing.xl),
               child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      l10n.nextPrayer.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white.withValues(alpha: 0.7),
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    // Redundant once the heading itself is Arabic.
-                    if (Localizations.localeOf(context).languageCode != 'ar')
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       Text(
-                        prayer.arabicName,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
+                        l10n.nextPrayer.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(alpha: 0.7),
+                          letterSpacing: 1.5,
                         ),
                       ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  localizedPrayerName(l10n, prayer.name),
-                  style: const TextStyle(
-                    fontSize: 42,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    height: 1.0,
+                      // Redundant once the heading itself is Arabic.
+                      if (Localizations.localeOf(context).languageCode != 'ar')
+                        Text(
+                          prayer.arabicName,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  countdownText,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    height: 1.2,
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    localizedPrayerName(l10n, prayer.name),
+                    style: const TextStyle(
+                      fontSize: 42,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      height: 1.0,
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  prayer.formattedTime,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: colors.accentGold,
+                  const SizedBox(height: AppSpacing.xxs),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FittedBox(
+                      alignment: Alignment.centerLeft,
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        countdownText,
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          height: 1.2,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                ClipRRect(
-                  borderRadius: AppRadius.circularSm,
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: Colors.white.withValues(alpha: 0.1),
-                    valueColor: AlwaysStoppedAnimation<Color>(colors.accentGold),
-                    minHeight: 6,
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    prayer.formattedTime,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: colors.accentGold,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: AppSpacing.xl),
+                  ClipRRect(
+                    borderRadius: AppRadius.circularSm,
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        colors.accentGold,
+                      ),
+                      minHeight: 6,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

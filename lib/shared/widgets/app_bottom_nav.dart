@@ -55,13 +55,13 @@ class AppBottomNav extends StatelessWidget {
           ),
 
           _NavItem(
-            assetPath: 'assets/images/icon_tasbih_generated.png',
+            icon: Icons.track_changes_rounded,
             label: l10n.navTasbih,
             isActive: currentIndex == 3,
             onTap: () => onTap(3),
           ),
           _NavItem(
-            assetPath: 'assets/images/icon_qibla_generated.png',
+            icon: Icons.explore_rounded,
             label: l10n.navQibla,
             isActive: currentIndex == 4,
             onTap: () => onTap(4),
@@ -113,12 +113,11 @@ class _CenterNavItem extends StatelessWidget {
                 ),
               ],
             ),
-            child: Center(
-              child: Image.asset(
-                'assets/images/icon_quran_generated.png',
-                width: 64,
-                height: 64,
-                fit: BoxFit.contain,
+            child: const Center(
+              child: Icon(
+                Icons.menu_book_rounded,
+                color: Colors.white,
+                size: 30,
               ),
             ),
           ),
