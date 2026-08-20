@@ -11,12 +11,14 @@ final audioPlayerProvider = Provider<AudioPlayer>((ref) {
 
 class AudioPlayerState {
   final int? currentAyahIndex;
-  
-  AudioPlayerState({this.currentAyahIndex});
-  
-  AudioPlayerState copyWith({int? currentAyahIndex}) {
+  final double speed;
+
+  AudioPlayerState({this.currentAyahIndex, this.speed = 1.0});
+
+  AudioPlayerState copyWith({int? currentAyahIndex, double? speed}) {
     return AudioPlayerState(
       currentAyahIndex: currentAyahIndex ?? this.currentAyahIndex,
+      speed: speed ?? this.speed,
     );
   }
 }
@@ -48,6 +50,11 @@ class AudioPlayerNotifier extends Notifier<AudioPlayerState> {
   Future<void> seekToNext() => _player.seekToNext();
   Future<void> seekToPrevious() => _player.seekToPrevious();
   Future<void> seek(Duration position) => _player.seek(position);
+
+  Future<void> setSpeed(double speed) async {
+    await _player.setSpeed(speed);
+    state = state.copyWith(speed: speed);
+  }
 }
 
 final audioPlayerNotifierProvider = NotifierProvider<AudioPlayerNotifier, AudioPlayerState>(() {

@@ -1,15 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/ayah_model.dart';
+import '../providers/reading_prefs_provider.dart';
 
-class VerseCard extends StatelessWidget {
+class VerseCard extends ConsumerWidget {
+  final int surahNumber;
   final Ayah ayah;
   final bool isPlaying;
 
-  const VerseCard({super.key, required this.ayah, this.isPlaying = false});
+  const VerseCard({
+    super.key,
+    required this.surahNumber,
+    required this.ayah,
+    this.isPlaying = false,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final prefs = ref.watch(quranReadingPrefsProvider);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(24),
@@ -30,24 +40,23 @@ class VerseCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Ayah Number Badge
+          // Aya reference (Sure:Vers), not just the bare number — easier to
+          // place while scrolling a long surah.
           Align(
             alignment: Alignment.topRight,
             child: Container(
-              width: 40,
-              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: AppColors.accentGold, width: 1.5),
               ),
-              child: Center(
-                child: Text(
-                  '${ayah.numberInSurah}',
-                  style: const TextStyle(
-                    color: AppColors.accentGold,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+              child: Text(
+                '$surahNumber:${ayah.numberInSurah}',
+                style: const TextStyle(
+                  color: AppColors.accentGold,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
                 ),
               ),
             ),
@@ -58,34 +67,36 @@ class VerseCard extends StatelessWidget {
             ayah.arabicText,
             textAlign: TextAlign.center,
             textDirection: TextDirection.rtl,
-            style: const TextStyle(
-              fontSize: 32,
+            style: TextStyle(
+              fontSize: 32 * prefs.arabicFontScale,
               height: 1.6,
               color: AppColors.textDark,
             ),
           ),
-          const SizedBox(height: 24),
-          // Transliteration
-          Text(
-            ayah.transliteration,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 15,
-              fontStyle: FontStyle.italic,
-              color: AppColors.textMuted,
+          if (prefs.showTransliteration) ...[
+            const SizedBox(height: 24),
+            Text(
+              ayah.transliteration,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 15,
+                fontStyle: FontStyle.italic,
+                color: AppColors.textMuted,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          // Translation
-          Text(
-            ayah.translation,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppColors.darkGreen,
+          ],
+          if (prefs.showTranslation) ...[
+            const SizedBox(height: 12),
+            Text(
+              ayah.translation,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.darkGreen,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
