@@ -12,8 +12,17 @@ class MosqueCard extends StatelessWidget {
 
   const MosqueCard({super.key, required this.mosque});
 
+  Uri get _directionsUri => Uri.https('www.google.com', '/maps/dir/', {
+    'api': '1',
+    'destination': '${mosque.lat},${mosque.lng}',
+    'travelmode': 'walking',
+  });
+
   Future<void> _open(BuildContext context, Uri uri) async {
-    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final ok = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    ).catchError((_) => false);
     if (!ok && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -97,13 +106,7 @@ class MosqueCard extends StatelessWidget {
               _ActionButton(
                 icon: Icons.directions_outlined,
                 label: AppLocalizations.of(context).mosquesRoute,
-                onTap: () => _open(
-                  context,
-                  Uri.parse(
-                    'geo:${mosque.lat},${mosque.lng}?q=${mosque.lat},${mosque.lng}'
-                    '(${Uri.encodeComponent(mosque.name)})',
-                  ),
-                ),
+                onTap: () => _open(context, _directionsUri),
               ),
               if (mosque.website != null)
                 _ActionButton(
