@@ -374,11 +374,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String notificationPrayerTimeTitle(String prayer) {
-    return '$prayer is now';
+    return 'Time for $prayer';
   }
 
   @override
-  String get notificationPrayerTimeBody => 'Time for prayer.';
+  String get notificationBodyFajr =>
+      'The day begins in stillness — a quiet moment for you.';
+
+  @override
+  String get notificationBodyDhuhr =>
+      'A short pause from the day. Time to breathe.';
+
+  @override
+  String get notificationBodyAsr =>
+      'The light turns golden. Time for your Asr prayer.';
+
+  @override
+  String get notificationBodyMaghrib =>
+      'The sun is setting — a moment of gratitude.';
+
+  @override
+  String get notificationBodyIsha => 'Let the day settle into rest.';
 
   @override
   String get settingsMadhabShafiHint => 'Also Maliki and Hanbali — earlier Asr';

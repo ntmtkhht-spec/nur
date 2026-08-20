@@ -11,6 +11,7 @@ import 'features/home/home_screen.dart';
 import 'features/onboarding/onboarding_flow.dart';
 import 'features/prayers/prayers_screen.dart';
 import 'features/qibla/qibla_screen.dart';
+import 'features/splash/splash_screen.dart';
 import 'features/surah/screens/surah_list_screen.dart';
 import 'features/tasbih/tasbih_screen.dart';
 import 'shared/widgets/app_bottom_nav.dart';
@@ -37,7 +38,7 @@ class MunirApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const _RootGate(),
+      home: const SplashScreen(next: _RootGate()),
     );
   }
 }
@@ -80,6 +81,11 @@ class _MainShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = AppColors.of(context);
     final currentIndex = ref.watch(mainTabIndexProvider);
+
+    // Side-effect watch: keeps prayer notifications armed for the next
+    // several days, re-running whenever location/method/madhab/language or
+    // the notification toggle changes. See notificationSchedulerProvider.
+    ref.watch(notificationSchedulerProvider);
 
     return Scaffold(
       backgroundColor: colors.background,

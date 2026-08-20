@@ -214,7 +214,7 @@
   "onboardingDoneTitle": "Alles bereit",
   "onboardingDoneBody": "Möge dir die App bei deinen Gebeten helfen.",
   "onboardingStart": "Los geht's",
-  "notificationPrayerTimeTitle": "{prayer} ist jetzt",
+  "notificationPrayerTimeTitle": "Zeit für {prayer}",
   "@notificationPrayerTimeTitle": {
     "placeholders": {
       "prayer": {
@@ -222,7 +222,11 @@
       }
     }
   },
-  "notificationPrayerTimeBody": "Zeit für das Gebet.",
+  "notificationBodyFajr": "Der Tag beginnt in Stille — ein ruhiger Moment für dich.",
+  "notificationBodyDhuhr": "Eine kurze Pause vom Tag. Zeit, innezuhalten.",
+  "notificationBodyAsr": "Das Licht wird golden. Zeit für dein Asr-Gebet.",
+  "notificationBodyMaghrib": "Die Sonne geht unter — ein Moment der Dankbarkeit.",
+  "notificationBodyIsha": "Lass den Tag ruhig ausklingen.",
   "settingsMadhabShafiHint": "Auch Maliki und Hanbali — früheres Asr",
   "settingsMadhabHanafiHint": "Späteres Asr",
   "muezzinSilent": "Nur Vibration / stumm",

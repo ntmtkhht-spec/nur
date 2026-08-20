@@ -767,14 +767,38 @@ abstract class AppLocalizations {
   /// No description provided for @notificationPrayerTimeTitle.
   ///
   /// In de, this message translates to:
-  /// **'{prayer} ist jetzt'**
+  /// **'Zeit für {prayer}'**
   String notificationPrayerTimeTitle(String prayer);
 
-  /// No description provided for @notificationPrayerTimeBody.
+  /// No description provided for @notificationBodyFajr.
   ///
   /// In de, this message translates to:
-  /// **'Zeit für das Gebet.'**
-  String get notificationPrayerTimeBody;
+  /// **'Der Tag beginnt in Stille — ein ruhiger Moment für dich.'**
+  String get notificationBodyFajr;
+
+  /// No description provided for @notificationBodyDhuhr.
+  ///
+  /// In de, this message translates to:
+  /// **'Eine kurze Pause vom Tag. Zeit, innezuhalten.'**
+  String get notificationBodyDhuhr;
+
+  /// No description provided for @notificationBodyAsr.
+  ///
+  /// In de, this message translates to:
+  /// **'Das Licht wird golden. Zeit für dein Asr-Gebet.'**
+  String get notificationBodyAsr;
+
+  /// No description provided for @notificationBodyMaghrib.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Sonne geht unter — ein Moment der Dankbarkeit.'**
+  String get notificationBodyMaghrib;
+
+  /// No description provided for @notificationBodyIsha.
+  ///
+  /// In de, this message translates to:
+  /// **'Lass den Tag ruhig ausklingen.'**
+  String get notificationBodyIsha;
 
   /// No description provided for @settingsMadhabShafiHint.
   ///

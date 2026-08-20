@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:adhan_dart/adhan_dart.dart' as adhan;
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -8,6 +9,7 @@ import 'package:hijri/hijri_calendar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/prayer.dart';
+import '../services/notification_service.dart';
 
 // ---------------------------------------------------------------------------
 // Storage
@@ -491,6 +493,60 @@ final prayerTimesProvider = Provider<List<PrayerTime>>((ref) {
     includeSunrise: true,
   );
 });
+
+/// Keeps prayer-time notifications armed by re-scheduling a rolling week
+/// whenever anything that changes prayer times changes, and on every app
+/// launch. Previously this only ran once, at onboarding, for that single
+/// day — so reminders silently stopped for good the first day the app
+/// wasn't opened, and any later change to location/method/madhab kept
+/// notifying stale times. Watching this provider (see `_MainShell` in
+/// app.dart) is the only wiring needed; it's a no-op via [cancelAll] when
+/// notifications are off.
+const _notificationScheduleWindowDays = 7;
+
+final notificationSchedulerProvider = FutureProvider<void>((ref) async {
+  try {
+    await _runNotificationScheduler(ref);
+  } catch (e, st) {
+    debugPrint('notificationSchedulerProvider failed: $e\n$st');
+    rethrow;
+  }
+});
+
+Future<void> _runNotificationScheduler(Ref ref) async {
+  final enabled = ref.watch(notificationsEnabledProvider);
+  if (!enabled) {
+    await NotificationService.cancelAll();
+    return;
+  }
+
+  final locationAsync = ref.watch(locationProvider);
+  final location = switch (locationAsync) {
+    AsyncData(:final value) => value,
+    _ => LocationData.fallback,
+  };
+  final method = ref.watch(calculationMethodProvider);
+  final madhab = ref.watch(madhabProvider);
+  final languageCode = ref.watch(appLanguageProvider);
+  final enabledPrayers = ref.watch(prayerNotificationsProvider);
+
+  final today = DateTime.now();
+  final upcoming = <PrayerTime>[
+    for (var offset = 0; offset < _notificationScheduleWindowDays; offset++)
+      ...computePrayerTimes(
+        location: location,
+        method: method,
+        madhab: madhab,
+        date: DateTime(today.year, today.month, today.day + offset, 12),
+      ),
+  ];
+
+  await NotificationService.scheduleMany(
+    upcoming,
+    languageCode: languageCode,
+    enabledPrayers: enabledPrayers,
+  );
+}
 
 /// Returns prayer times for [date] (day-precision) including sunrise.
 /// Used by the prayers screen where the user browses per day.

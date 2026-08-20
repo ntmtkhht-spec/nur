@@ -7,6 +7,11 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Exact prayer-time delivery: without this, Doze can push scheduled
+         notifications minutes to hours late. Auto-granted on API 31-32; on
+         33+ the user grants it via Settings, requested from
+         NotificationService.requestExactAlarmPermission(). -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     <application
         android:label="Munir"
         android:name="${applicationName}"

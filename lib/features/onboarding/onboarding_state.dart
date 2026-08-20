@@ -4,7 +4,6 @@ import '../../core/services/calculation_method_by_country.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/providers.dart';
-import '../../core/services/notification_service.dart';
 
 /// Transient wizard state for the onboarding flow. Nothing here is persisted
 /// until [OnboardingNotifier.commit] writes it into the real app providers.
@@ -131,14 +130,10 @@ class OnboardingNotifier extends Notifier<OnboardingData> {
       ref.read(userNameProvider.notifier).update(data.name.trim());
     }
 
-    // Used to live on the completion screen that no longer exists; without
-    // this no reminder would ever be scheduled.
-    if (data.notificationsEnabled) {
-      await NotificationService.scheduleTodaysPrayers(
-        ref.read(prayerTimesProvider),
-        languageCode: data.language,
-      );
-    }
+    // Scheduling itself now happens reactively once `_MainShell` mounts
+    // (see notificationSchedulerProvider) — it watches notificationsEnabled
+    // and every input that can change prayer times, so it picks this up
+    // automatically without a one-off call here.
   }
 
   /// Flips the onboarding-complete gate, swapping the app into [MainShell].

@@ -53,16 +53,54 @@ class NotificationService {
     return true;
   }
 
+  /// Requests Android's "exact alarms" access (Settings > Alarms &
+  /// reminders on API 33+). Prayer reminders are time-sensitive — scheduled
+  /// without this, Doze can push them minutes to hours late, which is why
+  /// notifications felt unreliable. A no-op once granted, and on iOS /
+  /// older Android where it isn't needed. Best called right after
+  /// [requestPermission] succeeds, while the user is already in a
+  /// "set up notifications" moment.
+  static Future<void> requestExactAlarmPermission() async {
+    await _ensureInitialized();
+    final androidImpl = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (androidImpl == null) return;
+    final can = await androidImpl.canScheduleExactNotifications();
+    if (can != true) {
+      await androidImpl.requestExactAlarmsPermission();
+    }
+  }
+
+  /// Schedules every entry in [prayers] that is still ahead of now, across
+  /// however many days it spans. Callers pass a multi-day window (see
+  /// `notificationSchedulerProvider`) rather than just today: with only a
+  /// single day scheduled, reminders went silent for good the first day the
+  /// app wasn't opened, since nothing ever re-armed tomorrow's alarms.
+  ///
   /// [languageCode] picks the texts; notifications are scheduled from
   /// background code where no BuildContext exists, so localizations are
   /// loaded directly instead of being read off the widget tree.
-  static Future<void> scheduleTodaysPrayers(
+  static Future<void> scheduleMany(
     List<PrayerTime> prayers, {
     String languageCode = 'de',
+    // Null means "all prayers" — the per-prayer settings toggle was never
+    // wired to scheduling before, so it silently did nothing.
+    Set<String>? enabledPrayers,
   }) async {
     await _ensureInitialized();
     final l10n = await AppLocalizations.delegate.load(Locale(languageCode));
     await _plugin.cancelAll();
+
+    final androidImpl = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    final canExact = androidImpl == null
+        ? true
+        : (await androidImpl.canScheduleExactNotifications() ?? false);
+    // Falls back to inexact rather than failing outright when the user
+    // hasn't granted exact-alarm access — late reminders still beat none.
+    final scheduleMode = canExact
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.inexactAllowWhileIdle;
 
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
@@ -76,24 +114,37 @@ class NotificationService {
     );
 
     final now = DateTime.now();
+    var id = 0;
 
-    for (var i = 0; i < prayers.length; i++) {
-      final prayer = prayers[i];
+    for (final prayer in prayers) {
+      if (!prayer.isPrayer) continue;
       if (prayer.time.isBefore(now)) continue;
-
-      final scheduled = tz.TZDateTime.from(prayer.time, tz.local);
+      if (enabledPrayers != null && !enabledPrayers.contains(prayer.name)) {
+        continue;
+      }
 
       await _plugin.zonedSchedule(
-        id: i,
-        scheduledDate: scheduled,
+        id: id++,
+        scheduledDate: tz.TZDateTime.from(prayer.time, tz.local),
         title: l10n.notificationPrayerTimeTitle(
           localizedPrayerName(l10n, prayer.name),
         ),
-        body: l10n.notificationPrayerTimeBody,
+        body: _bodyFor(l10n, prayer.name),
         notificationDetails: details,
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: scheduleMode,
       );
     }
+  }
+
+  static String _bodyFor(AppLocalizations l10n, String prayerKey) {
+    return switch (prayerKey) {
+      'Fajr' => l10n.notificationBodyFajr,
+      'Dhuhr' => l10n.notificationBodyDhuhr,
+      'Asr' => l10n.notificationBodyAsr,
+      'Maghrib' => l10n.notificationBodyMaghrib,
+      'Isha' => l10n.notificationBodyIsha,
+      _ => l10n.notificationBodyFajr,
+    };
   }
 
   static Future<void> cancelAll() async {

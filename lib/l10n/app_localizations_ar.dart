@@ -376,7 +376,20 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get notificationPrayerTimeBody => 'حان وقت الصلاة.';
+  String get notificationBodyFajr => 'يبدأ اليوم بسكينة — لحظة هدوء لك.';
+
+  @override
+  String get notificationBodyDhuhr => 'استراحة قصيرة من يومك. حان وقت التوقف.';
+
+  @override
+  String get notificationBodyAsr =>
+      'يتحول الضوء إلى الذهبي. حان وقت صلاة العصر.';
+
+  @override
+  String get notificationBodyMaghrib => 'تغرب الشمس — لحظة شكر.';
+
+  @override
+  String get notificationBodyIsha => 'دع يومك يهدأ في سكينة.';
 
   @override
   String get settingsMadhabShafiHint => 'وكذلك المالكي والحنبلي — العصر مبكراً';

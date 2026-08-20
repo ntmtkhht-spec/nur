@@ -379,7 +379,23 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get notificationPrayerTimeBody => 'L\'heure de la prière.';
+  String get notificationBodyFajr =>
+      'Le jour commence dans le silence — un instant de calme pour toi.';
+
+  @override
+  String get notificationBodyDhuhr =>
+      'Une courte pause dans la journée. Le moment de souffler.';
+
+  @override
+  String get notificationBodyAsr =>
+      'La lumière devient dorée. L\'heure de la prière d\'Asr.';
+
+  @override
+  String get notificationBodyMaghrib =>
+      'Le soleil se couche — un instant de gratitude.';
+
+  @override
+  String get notificationBodyIsha => 'Laisse la journée s\'apaiser.';
 
   @override
   String get settingsMadhabShafiHint =>

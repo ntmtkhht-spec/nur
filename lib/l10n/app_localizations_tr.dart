@@ -379,7 +379,21 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get notificationPrayerTimeBody => 'Namaz vakti.';
+  String get notificationBodyFajr =>
+      'Gün sessizlikle başlıyor — senin için sakin bir an.';
+
+  @override
+  String get notificationBodyDhuhr =>
+      'Günden kısa bir mola. Durup nefes alma vakti.';
+
+  @override
+  String get notificationBodyAsr => 'Işık altın rengine dönüyor. Asr vakti.';
+
+  @override
+  String get notificationBodyMaghrib => 'Güneş batıyor — bir şükür anı.';
+
+  @override
+  String get notificationBodyIsha => 'Günü huzurla kapat.';
 
   @override
   String get settingsMadhabShafiHint =>

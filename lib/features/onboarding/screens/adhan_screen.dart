@@ -41,6 +41,12 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
 
     final granted = await NotificationService.requestPermission();
     ref.read(onboardingProvider.notifier).setNotificationsEnabled(granted);
+    // Same "setting up notifications" moment, so one more system prompt
+    // here doesn't feel out of place. Without this, reminders fall back to
+    // inexact delivery and can arrive minutes to hours late.
+    if (granted) {
+      await NotificationService.requestExactAlarmPermission();
+    }
 
     if (mounted) {
       setState(() => _requesting = false);

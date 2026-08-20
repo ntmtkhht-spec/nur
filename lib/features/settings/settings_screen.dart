@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/i18n/prayer_names.dart';
 import '../../core/providers/providers.dart';
+import '../../core/services/notification_service.dart';
 import '../../core/services/sync_service.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
@@ -311,8 +312,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           showDivider: false,
           trailing: Switch(
             value: enabled,
-            onChanged: (v) =>
-                ref.read(notificationsEnabledProvider.notifier).set(v),
+            onChanged: (v) {
+              ref.read(notificationsEnabledProvider.notifier).set(v);
+              // Same opt-in moment as the onboarding screen: ask for exact
+              // delivery right when the user turns reminders on.
+              if (v) NotificationService.requestExactAlarmPermission();
+            },
           ),
         ),
         // Per-prayer switches only matter while the master switch is on.
