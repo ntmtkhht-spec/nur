@@ -42,7 +42,7 @@ class AppBottomNav extends StatelessWidget {
             onTap: () => onTap(0),
           ),
           _NavItem(
-            icon: Icons.mosque_rounded,
+            assetPath: 'assets/images/icon_prayer_ruku_generated.png',
             label: l10n.navPrayers,
             isActive: currentIndex == 1,
             onTap: () => onTap(1),
@@ -55,13 +55,13 @@ class AppBottomNav extends StatelessWidget {
           ),
 
           _NavItem(
-            icon: Icons.track_changes_rounded,
+            assetPath: 'assets/images/icon_tasbih_generated.png',
             label: l10n.navTasbih,
             isActive: currentIndex == 3,
             onTap: () => onTap(3),
           ),
           _NavItem(
-            icon: Icons.explore_rounded, // Compass
+            assetPath: 'assets/images/icon_qibla_generated.png',
             label: l10n.navQibla,
             isActive: currentIndex == 4,
             onTap: () => onTap(4),
@@ -113,11 +113,12 @@ class _CenterNavItem extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Center(
-              child: Icon(
-                Icons.menu_book_rounded,
-                color: Colors.white,
-                size: 30,
+            child: Center(
+              child: Image.asset(
+                'assets/images/icon_quran_generated.png',
+                width: 64,
+                height: 64,
+                fit: BoxFit.contain,
               ),
             ),
           ),
@@ -139,17 +140,19 @@ class _CenterNavItem extends StatelessWidget {
 }
 
 class _NavItem extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final String? assetPath;
   final String label;
   final bool isActive;
   final VoidCallback onTap;
 
   const _NavItem({
-    required this.icon,
+    this.icon,
+    this.assetPath,
     required this.label,
     required this.isActive,
     required this.onTap,
-  });
+  }) : assert(icon != null || assetPath != null);
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +160,9 @@ class _NavItem extends StatelessWidget {
         ? AppColors.darkGreen
         : AppColors.textMuted.withValues(alpha: 0.8);
 
-    final iconWidget = Icon(icon, color: color, size: 28);
+    final iconWidget = assetPath == null
+        ? Icon(icon!, color: color, size: 28)
+        : ImageIcon(AssetImage(assetPath!), color: color, size: 28);
 
     return GestureDetector(
       onTap: onTap,
