@@ -15,6 +15,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/prayer_icons.dart';
 import '../../core/theme/app_tokens.dart';
+import '../legal/legal_document_screen.dart';
 import '../mosques/providers/mosques_provider.dart';
 import 'widgets/option_picker.dart';
 import 'widgets/settings_tile.dart';
@@ -299,8 +300,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final enabled = ref.watch(notificationsEnabledProvider);
     final perPrayer = ref.watch(prayerNotificationsProvider);
     final voice = ref.watch(muezzinVoiceProvider);
-    final prayers =
-        ref.watch(prayerTimesProvider).where((p) => p.isPrayer).toList();
+    final prayers = ref
+        .watch(prayerTimesProvider)
+        .where((p) => p.isPrayer)
+        .toList();
 
     return SettingsSection(
       title: l10n.settingsNotifications,
@@ -416,8 +419,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Text(l10n.commonCancel),
           ),
           TextButton(
-            onPressed: () =>
-                Navigator.of(context).pop(controller.text.trim()),
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
             child: Text(l10n.commonSave),
           ),
         ],
@@ -529,14 +531,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           icon: Icons.privacy_tip_outlined,
           label: l10n.settingsPrivacy,
           showDivider: false,
-          // Both stores require this before release; the URL does not exist
-          // yet, so say so rather than opening a dead link.
-          onTap: () => _toast(l10n.settingsNotConfigured),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const LegalDocumentScreen.privacy(),
+            ),
+          ),
         ),
         SettingsTile(
           icon: Icons.info_outline,
           label: l10n.settingsImprint,
-          onTap: () => _toast(l10n.settingsNotConfigured),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const LegalDocumentScreen.imprint(),
+            ),
+          ),
         ),
         SettingsTile(
           icon: Icons.source_outlined,

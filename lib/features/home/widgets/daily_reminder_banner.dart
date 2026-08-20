@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/providers/navigation_provider.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../duas/duas_screen.dart';
 
 class DailyReminderBanner extends ConsumerWidget {
   const DailyReminderBanner({super.key});
@@ -16,7 +18,10 @@ class DailyReminderBanner extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 14),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: 14,
+        ),
         decoration: BoxDecoration(
           color: colors.cardBg,
           borderRadius: AppRadius.circularLg,
@@ -26,7 +31,7 @@ class DailyReminderBanner extends ConsumerWidget {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: AppRadius.circularLg,
-            onTap: () {},
+            onTap: () => _openReminderTarget(context, ref, reminder),
             child: Row(
               children: [
                 Container(
@@ -56,10 +61,7 @@ class DailyReminderBanner extends ConsumerWidget {
                       const SizedBox(height: 2),
                       Text(
                         reminder.subtitle,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: colors.textMuted,
-                        ),
+                        style: TextStyle(fontSize: 12, color: colors.textMuted),
                       ),
                     ],
                   ),
@@ -75,5 +77,34 @@ class DailyReminderBanner extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  void _openReminderTarget(
+    BuildContext context,
+    WidgetRef ref,
+    ({String title, String subtitle}) reminder,
+  ) {
+    switch (reminder.title) {
+      case 'Mache Dua':
+      case 'Stehe in der Nacht auf':
+        Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const DuasScreen()));
+      case 'Lies den Quran':
+        ref.read(mainTabIndexProvider.notifier).select(2);
+      case 'Bete mit Hingabe':
+        ref.read(mainTabIndexProvider.notifier).select(prayersTabIndex);
+      case 'Dhikr beruhigt das Herz':
+      case 'Erinnere dich an Allah':
+        ref.read(mainTabIndexProvider.notifier).select(3);
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(reminder.subtitle),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+    }
   }
 }
