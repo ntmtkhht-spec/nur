@@ -3,12 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
-import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../core/providers/providers.dart';
 import '../../core/theme/app_colors.dart';
+import 'qibla_compass.dart';
 
 class QiblaScreen extends ConsumerStatefulWidget {
   const QiblaScreen({super.key});
@@ -21,8 +21,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final qiblaBearing = ref.watch(qiblaBearingProvider);
-    final distanceKm = ref.watch(distanceToKaabaProvider);
+    final locationAsync = ref.watch(locationProvider);
 
     final colors = AppColors.of(context);
 
@@ -49,58 +48,24 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: StreamBuilder<CompassEvent?>(
-                stream: FlutterCompass.events,
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return _CompassUnavailable(
-                      message: 'Kompass nicht verfügbar auf diesem Gerät.',
-                    );
-                  }
-                  if (FlutterCompass.events == null) {
-                    return _CompassUnavailable(
-                      message: 'Kompass wird nicht unterstützt.',
-                    );
-                  }
-
-                  final heading = snapshot.data?.heading;
-                  if (heading == null && !snapshot.hasData) {
-                    return Center(
-                      child: CircularProgressIndicator(
-                        color: colors.primaryGreen,
-                      ),
-                    );
-                  }
-
-                  final currentHeading = heading ?? 0;
-                  final relative = _relativeAngle(
-                    qiblaBearing - currentHeading,
-                  );
-                  final aligned = relative.abs() <= 5;
-
-                  return _QiblaBody(
-                    qiblaBearing: qiblaBearing,
-                    deviceHeading: currentHeading,
-                    distanceKm: distanceKm,
-                    aligned: aligned,
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+        child: switch (locationAsync) {
+          AsyncData(:final value) when !value.isFallback => _QiblaCompassView(
+            location: value,
+          ),
+          AsyncData() => _CompassUnavailable(
+            message:
+                'Für eine genaue Qibla benötigst du deinen aktuellen Standort.',
+          ),
+          AsyncError() => _CompassUnavailable(
+            message:
+                'Der Standort ist nicht verfügbar. Bitte aktiviere ihn in den Einstellungen.',
+          ),
+          _ => Center(
+            child: CircularProgressIndicator(color: colors.primaryGreen),
+          ),
+        },
       ),
     );
-  }
-
-  static double _relativeAngle(double raw) {
-    var a = raw % 360;
-    if (a > 180) a -= 360;
-    if (a < -180) a += 360;
-    return a;
   }
 
   void _showCalibrateHint() {
@@ -114,6 +79,62 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
       ),
     );
   }
+}
+
+class _QiblaCompassView extends StatelessWidget {
+  final LocationData location;
+
+  const _QiblaCompassView({required this.location});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final qiblaBearing = calculateQiblaBearing(location);
+    final distanceKm = calculateDistanceToKaabaKm(location);
+
+    return StreamBuilder<QiblaCompassReading>(
+      stream: QiblaCompass.trueNorthEvents(location),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const _CompassUnavailable(
+            message: 'Kompass nicht verfügbar auf diesem Gerät.',
+          );
+        }
+        final reading = snapshot.data;
+        if (reading == null) {
+          return Center(
+            child: CircularProgressIndicator(color: colors.primaryGreen),
+          );
+        }
+        if (!reading.isUsable) {
+          return _CompassUnavailable(
+            message:
+                reading.unavailableReason ??
+                'Kompass wird kalibriert. Bewege dein Gerät in einer Acht (∞) und halte es flach.',
+          );
+        }
+
+        final deviceHeading = reading.trueHeading!;
+        final relative = _normalizeRelative(qiblaBearing - deviceHeading);
+        // A sensor uncertainty is part of the alignment decision: an
+        // uncertain heading must never produce a false "aligned" result.
+        final aligned = relative.abs() + reading.accuracyDegrees! <= 5;
+        return _QiblaBody(
+          qiblaBearing: qiblaBearing,
+          deviceHeading: deviceHeading,
+          distanceKm: distanceKm,
+          aligned: aligned,
+        );
+      },
+    );
+  }
+}
+
+double _normalizeRelative(double raw) {
+  var a = raw % 360;
+  if (a > 180) a -= 360;
+  if (a < -180) a += 360;
+  return a;
 }
 
 // ---------------------------------------------------------------------------
@@ -159,13 +180,6 @@ class _QiblaBody extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  double _normalizeRelative(double raw) {
-    var a = raw % 360;
-    if (a > 180) a -= 360;
-    if (a < -180) a += 360;
-    return a;
   }
 
   String _formatKm(double km) {
@@ -473,7 +487,6 @@ class _CompassUnavailable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final distanceKm = 0.0;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -489,11 +502,6 @@ class _CompassUnavailable extends StatelessWidget {
             message,
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 15, color: AppColors.textMuted),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Distanz: $distanceKm km',
-            style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
           ),
         ],
       ),

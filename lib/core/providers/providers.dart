@@ -119,6 +119,10 @@ class LocationData {
   final double lng;
   final String city;
 
+  /// True only for the temporary Berlin value used while no user location is
+  /// available. Qibla must never present this as the user's actual position.
+  final bool isFallback;
+
   /// ISO 3166-1 alpha-2, used to pick the prayer calculation method.
   /// Null when reverse geocoding was unavailable.
   final String? isoCountryCode;
@@ -128,9 +132,15 @@ class LocationData {
     required this.lng,
     this.city = 'Standort',
     this.isoCountryCode,
+    this.isFallback = false,
   });
 
-  static const fallback = LocationData(lat: 52.52, lng: 13.405, city: 'Berlin');
+  static const fallback = LocationData(
+    lat: 52.52,
+    lng: 13.405,
+    city: 'Berlin',
+    isFallback: true,
+  );
 }
 
 class LocationNotifier extends AsyncNotifier<LocationData> {
@@ -773,13 +783,16 @@ final prayerNotificationsProvider =
 // ---------------------------------------------------------------------------
 
 /// Bearing from user's location to the Kaaba, in degrees clockwise from north.
-final qiblaBearingProvider = Provider<double>((ref) {
+///
+/// Null means that no real location has been established yet. A fallback city
+/// is allowed for non-directional app content, but never for Qibla.
+final qiblaBearingProvider = Provider<double?>((ref) {
   final locationAsync = ref.watch(locationProvider);
   final location = switch (locationAsync) {
-    AsyncData(:final value) => value,
-    _ => LocationData.fallback,
+    AsyncData(:final value) when !value.isFallback => value,
+    _ => null,
   };
-  return calculateQiblaBearing(location);
+  return location == null ? null : calculateQiblaBearing(location);
 });
 
 double calculateQiblaBearing(LocationData location) {
@@ -790,13 +803,13 @@ double calculateQiblaBearing(LocationData location) {
 }
 
 /// Great-circle distance from user to the Kaaba, in km. Haversine.
-final distanceToKaabaProvider = Provider<double>((ref) {
+final distanceToKaabaProvider = Provider<double?>((ref) {
   final locationAsync = ref.watch(locationProvider);
   final location = switch (locationAsync) {
-    AsyncData(:final value) => value,
-    _ => LocationData.fallback,
+    AsyncData(:final value) when !value.isFallback => value,
+    _ => null,
   };
-  return calculateDistanceToKaabaKm(location);
+  return location == null ? null : calculateDistanceToKaabaKm(location);
 });
 
 double calculateDistanceToKaabaKm(LocationData location) {
@@ -882,7 +895,6 @@ class PrayerTrackerNotifier extends Notifier<Map<String, bool>> {
     }
     state = {};
   }
-
 }
 
 final prayerTrackerProvider =
