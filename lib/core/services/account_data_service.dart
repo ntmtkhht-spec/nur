@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/surah/providers/quran_progress_provider.dart';
 import '../../features/tasbih/providers/tasbih_provider.dart';
 import '../providers/providers.dart';
 
@@ -36,6 +37,7 @@ class AccountDataService {
   Future<void> clearPersonalData() async {
     await _ref.read(prayerTrackerProvider.notifier).resetAll();
     await _ref.read(tasbihProvider.notifier).clear();
+    await _ref.read(quranReadingProgressProvider.notifier).clear();
     _ref.read(userNameProvider.notifier).update('');
     await _ref
         .read(sharedPreferencesProvider)
@@ -59,7 +61,8 @@ class AccountDataService {
   /// prayers ticked off, beads counted — is worth a question.
   bool get hasUnclaimedActivity {
     if (loggedPrayerCount > 0) return true;
-    return _ref.read(tasbihProvider).lifetimeCount > 0;
+    if (_ref.read(tasbihProvider).lifetimeCount > 0) return true;
+    return _ref.read(quranReadingProgressProvider).hasActivity;
   }
 }
 

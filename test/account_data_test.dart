@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:munir/core/providers/providers.dart';
 import 'package:munir/core/services/account_data_service.dart';
+import 'package:munir/features/surah/providers/quran_progress_provider.dart';
 import 'package:munir/features/tasbih/providers/tasbih_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -69,6 +70,17 @@ void main() {
 
       expect(container.read(userNameProvider), '');
       expect(prefs.getString(PrayerCelebrationNotifier.prefsKey), isNull);
+    });
+
+    test('removes Quran progress and the resume marker', () async {
+      final (container, _) = await setUpWith({});
+      await container
+          .read(quranReadingProgressProvider.notifier)
+          .markRead(surahNumber: 2, ayahNumber: 255);
+
+      await container.read(accountDataServiceProvider).clearPersonalData();
+
+      expect(container.read(quranReadingProgressProvider).hasActivity, isFalse);
     });
 
     test('leaves device settings alone', () async {
@@ -157,6 +169,18 @@ void main() {
 
       expect(data.hasUnclaimedActivity, isTrue);
       expect(data.loggedPrayerCount, 0);
+    });
+
+    test('Quran reading counts as activity on its own', () async {
+      final (container, _) = await setUpWith({});
+      await container
+          .read(quranReadingProgressProvider.notifier)
+          .markRead(surahNumber: 1, ayahNumber: 1);
+
+      expect(
+        container.read(accountDataServiceProvider).hasUnclaimedActivity,
+        isTrue,
+      );
     });
 
     test('a name entered during onboarding does not', () async {

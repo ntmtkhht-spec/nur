@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/surah/providers/quran_progress_provider.dart';
 import '../../features/tasbih/providers/tasbih_provider.dart';
 import '../providers/providers.dart';
 
@@ -33,6 +34,7 @@ class SyncService {
       'tracker': tracker,
       'preferences': prefs,
       'tasbihLifetime': _ref.read(tasbihProvider).lifetimeCount,
+      'quranProgress': _ref.read(quranReadingProgressProvider).toJson(),
     }, SetOptions(merge: true));
   }
 
@@ -48,14 +50,21 @@ class SyncService {
 
     final remoteTracker = (data['tracker'] as Map<String, dynamic>?) ?? {};
     if (remoteTracker.isNotEmpty) {
-      _ref.read(prayerTrackerProvider.notifier).mergeRemote(
-            remoteTracker.map((k, v) => MapEntry(k, v == true)),
-          );
+      _ref
+          .read(prayerTrackerProvider.notifier)
+          .mergeRemote(remoteTracker.map((k, v) => MapEntry(k, v == true)));
     }
 
     final remoteLifetime = data['tasbihLifetime'];
     if (remoteLifetime is int) {
       _ref.read(tasbihProvider.notifier).mergeRemoteLifetime(remoteLifetime);
+    }
+
+    final remoteQuranProgress = data['quranProgress'];
+    if (remoteQuranProgress is Map) {
+      await _ref
+          .read(quranReadingProgressProvider.notifier)
+          .mergeRemote(Map<String, dynamic>.from(remoteQuranProgress));
     }
 
     final prefs = (data['preferences'] as Map<String, dynamic>?) ?? {};

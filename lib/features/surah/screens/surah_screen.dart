@@ -5,15 +5,18 @@ import '../models/ayah_model.dart';
 import '../providers/surah_provider.dart';
 import '../providers/audio_player_provider.dart';
 import '../providers/reading_prefs_provider.dart';
+import '../providers/quran_progress_provider.dart';
 import '../widgets/verse_card.dart';
 import '../widgets/audio_player_bottom_bar.dart';
 
 class SurahScreen extends ConsumerStatefulWidget {
   final int surahNumber;
+  final int? initialAyahNumber;
 
   const SurahScreen({
     super.key,
     this.surahNumber = 1, // Default to Al-Fatiha
+    this.initialAyahNumber,
   });
 
   @override
@@ -23,7 +26,10 @@ class SurahScreen extends ConsumerStatefulWidget {
 class _SurahScreenState extends ConsumerState<SurahScreen> {
   bool _playlistInitialized = false;
   final ScrollController _scrollController = ScrollController();
+  final Map<int, GlobalKey> _ayahKeys = {};
   bool _showBackToTopButton = false;
+  bool _didRestorePosition = false;
+  int? _lastRecordedAyah;
 
   @override
   void initState() {
@@ -55,6 +61,59 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
     );
   }
 
+  GlobalKey _keyForAyah(int ayahNumber) =>
+      _ayahKeys.putIfAbsent(ayahNumber, GlobalKey.new);
+
+  void _restorePosition(Surah surah, int? ayahNumber) {
+    if (_didRestorePosition || ayahNumber == null || ayahNumber < 1) return;
+    _didRestorePosition = true;
+    final targetIndex = (ayahNumber - 1).clamp(0, surah.ayahs.length - 1);
+    final targetAyahNumber = surah.ayahs[targetIndex].numberInSurah;
+    // ListView builds lazily. An approximate jump builds the target item, and
+    // ensureVisible then places the exact ayah at the reading position.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      final approximate = (targetIndex * 280.0).clamp(
+        0.0,
+        _scrollController.position.maxScrollExtent,
+      );
+      _scrollController.jumpTo(approximate);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final target = _keyForAyah(targetAyahNumber).currentContext;
+        if (target != null) {
+          Scrollable.ensureVisible(
+            target,
+            alignment: 0.12,
+            duration: const Duration(milliseconds: 220),
+          );
+        }
+      });
+    });
+  }
+
+  void _recordVisibleAyah(Surah surah) {
+    if (!_scrollController.hasClients) return;
+    const readingLine = 160.0;
+    int? closestAyah;
+    var closestDistance = double.infinity;
+    for (final ayah in surah.ayahs) {
+      final context = _ayahKeys[ayah.numberInSurah]?.currentContext;
+      final renderBox = context?.findRenderObject() as RenderBox?;
+      if (renderBox == null || !renderBox.attached) continue;
+      final top = renderBox.localToGlobal(Offset.zero).dy;
+      final distance = (top - readingLine).abs();
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestAyah = ayah.numberInSurah;
+      }
+    }
+    if (closestAyah == null || closestAyah == _lastRecordedAyah) return;
+    _lastRecordedAyah = closestAyah;
+    ref
+        .read(quranReadingProgressProvider.notifier)
+        .markRead(surahNumber: widget.surahNumber, ayahNumber: closestAyah);
+  }
+
   // Jumping between suras used to mean: back to the list, scroll, find it,
   // tap. This lets you switch straight from the reading screen.
   void _openSurahPicker(BuildContext context) {
@@ -70,9 +129,7 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
         onSelect: (number) {
           Navigator.of(sheetContext).pop();
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => SurahScreen(surahNumber: number),
-            ),
+            MaterialPageRoute(builder: (_) => SurahScreen(surahNumber: number)),
           );
         },
       ),
@@ -96,6 +153,7 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
   Widget build(BuildContext context) {
     final surahAsyncValue = ref.watch(surahProvider(widget.surahNumber));
     final audioState = ref.watch(audioPlayerNotifierProvider);
+    final quranProgress = ref.watch(quranReadingProgressProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -151,6 +209,15 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
       ),
       body: surahAsyncValue.when(
         data: (surah) {
+          final resumeAyah =
+              widget.initialAyahNumber ??
+              (quranProgress.lastPosition?.surahNumber == widget.surahNumber
+                  ? quranProgress.lastPosition?.ayahNumber
+                  : null);
+          _restorePosition(surah, resumeAyah);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _recordVisibleAyah(surah);
+          });
           if (!_playlistInitialized) {
             _playlistInitialized = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -160,52 +227,61 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
             });
           }
 
-          return Stack(
-            children: [
-              ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.only(
-                  top: 16,
-                  bottom: 120,
-                ), // extra space for bottom bar
-                itemCount: surah.ayahs.length,
-                itemBuilder: (context, index) {
-                  final ayah = surah.ayahs[index];
-                  final isPlaying = audioState.currentAyahIndex == index;
-                  return VerseCard(
-                    surahNumber: widget.surahNumber,
-                    ayah: ayah,
-                    isPlaying: isPlaying,
-                  );
-                },
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: AudioPlayerBottomBar(
-                  surahName: surah.englishName,
-                  ayahs: surah.ayahs,
+          return NotificationListener<ScrollEndNotification>(
+            onNotification: (_) {
+              _recordVisibleAyah(surah);
+              return false;
+            },
+            child: Stack(
+              children: [
+                ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.only(
+                    top: 16,
+                    bottom: 120,
+                  ), // extra space for bottom bar
+                  itemCount: surah.ayahs.length,
+                  itemBuilder: (context, index) {
+                    final ayah = surah.ayahs[index];
+                    final isPlaying = audioState.currentAyahIndex == index;
+                    return KeyedSubtree(
+                      key: _keyForAyah(ayah.numberInSurah),
+                      child: VerseCard(
+                        surahNumber: widget.surahNumber,
+                        ayah: ayah,
+                        isPlaying: isPlaying,
+                      ),
+                    );
+                  },
                 ),
-              ),
-              if (_showBackToTopButton)
                 Positioned(
-                  right: 16,
-                  // Above the (now single-row) audio bar: its own height —
-                  // padding + play button + margin — runs to about 84 from
-                  // the screen bottom.
-                  bottom: 110,
-                  child: FloatingActionButton(
-                    onPressed: _scrollToTop,
-                    backgroundColor: AppColors.primaryGreen,
-                    mini: true,
-                    child: const Icon(
-                      Icons.arrow_upward,
-                      color: AppColors.white,
-                    ),
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: AudioPlayerBottomBar(
+                    surahName: surah.englishName,
+                    ayahs: surah.ayahs,
                   ),
                 ),
-            ],
+                if (_showBackToTopButton)
+                  Positioned(
+                    right: 16,
+                    // Above the (now single-row) audio bar: its own height —
+                    // padding + play button + margin — runs to about 84 from
+                    // the screen bottom.
+                    bottom: 110,
+                    child: FloatingActionButton(
+                      onPressed: _scrollToTop,
+                      backgroundColor: AppColors.primaryGreen,
+                      mini: true,
+                      child: const Icon(
+                        Icons.arrow_upward,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           );
         },
         loading: () => const Center(

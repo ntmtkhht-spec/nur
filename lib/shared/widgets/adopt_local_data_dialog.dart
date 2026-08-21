@@ -10,10 +10,7 @@ import '../../l10n/app_localizations.dart';
 /// so the question is worded the same wherever it appears.
 ///
 /// Returns true to adopt the entries, false to throw them away.
-Future<bool> showAdoptLocalDataDialog(
-  BuildContext context,
-  int prayerCount,
-) async {
+Future<bool> showAdoptLocalDataDialog(BuildContext context, int _) async {
   final l10n = AppLocalizations.of(context);
   final colors = AppColors.of(context);
 
@@ -25,11 +22,7 @@ Future<bool> showAdoptLocalDataDialog(
     builder: (context) => AlertDialog(
       backgroundColor: colors.background,
       title: Text(l10n.adoptLocalDataTitle),
-      content: Text(
-        prayerCount > 0
-            ? l10n.adoptLocalDataBodyCounted(prayerCount)
-            : l10n.adoptLocalDataBody,
-      ),
+      content: Text(l10n.adoptLocalDataBody),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
