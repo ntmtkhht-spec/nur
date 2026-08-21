@@ -62,6 +62,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get prayerNotYetDue => 'This prayer is still ahead.';
 
   @override
+  String get statsTitle => 'Statistics';
+
+  @override
+  String get statsStreakLabel => 'Days in a row';
+
+  @override
+  String get statsBestLabel => 'Best ever';
+
+  @override
+  String get statsWeekLabel => 'Last 7 days';
+
+  @override
+  String get statsTotalLabel => 'Prayers logged';
+
+  @override
+  String statsWeekValue(int done) {
+    return '$done/7';
+  }
+
+  @override
+  String statsWeakest(String prayer) {
+    return 'Missed most lately: $prayer';
+  }
+
+  @override
+  String get statsEmpty =>
+      'Tick off your first prayer — your numbers appear here.';
+
+  @override
   String get streakTitle => 'Your prayer streak';
 
   @override
@@ -424,22 +453,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationBodyFajr =>
-      'The day begins in stillness — a quiet moment for you.';
+      'الصلاة خير من النوم\nPrayer is better than sleep.';
 
   @override
   String get notificationBodyDhuhr =>
-      'A short pause from the day. Time to breathe.';
+      'The day has grown loud. Dhuhr is the moment it goes quiet — take it before it passes.';
 
   @override
   String get notificationBodyAsr =>
-      'The light turns golden. Time for your Asr prayer.';
+      'The light turns golden. Take this moment and pray your Asr.';
 
   @override
   String get notificationBodyMaghrib =>
-      'The sun is setting — a moment of gratitude.';
+      'The sun has set. A moment of gratitude.';
 
   @override
-  String get notificationBodyIsha => 'Let the day settle into rest.';
+  String get notificationBodyIsha =>
+      'The day is over, the last prayer is not. Pray Isha before you sleep.';
+
+  @override
+  String notificationCatchUpTitle(String prayer) {
+    return '$prayer is ending soon';
+  }
+
+  @override
+  String notificationCatchUpBody(String next) {
+    return 'Use the time you have left before $next begins.';
+  }
+
+  @override
+  String get notificationCatchUpChannelName => 'Open prayers';
+
+  @override
+  String get notificationCatchUpChannelDescription =>
+      'Reminder when a prayer has not been logged yet';
+
+  @override
+  String get settingsCatchUpReminders => 'Remind me about open prayers';
+
+  @override
+  String get settingsCatchUpRemindersHint =>
+      '30 minutes before the next prayer, if nothing is logged yet';
 
   @override
   String get settingsMadhabShafiHint => 'Also Maliki and Hanbali — earlier Asr';
@@ -619,7 +673,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsDeleteAccountConfirm =>
-      'Really delete your account? Your history on the servers will be permanently deleted. The data on this device stays.';
+      'Really delete your account? Your history will be permanently deleted — from the account and from this device. This cannot be undone.';
+
+  @override
+  String get onboardingPrivacyLink => 'Read the privacy policy';
+
+  @override
+  String get adoptLocalDataTitle => 'Add existing entries?';
+
+  @override
+  String get adoptLocalDataBody =>
+      'This device holds entries that do not belong to any account yet. Add them to your account? If you got this device from someone else, discard them.';
+
+  @override
+  String adoptLocalDataBodyCounted(int count) {
+    return 'This device holds $count recorded prayers that do not belong to any account yet. Add them to your account? If you got this device from someone else, discard them.';
+  }
+
+  @override
+  String get adoptLocalDataKeep => 'Add';
+
+  @override
+  String get adoptLocalDataDiscard => 'Discard';
+
+  @override
+  String get settingsSignOutConfirm =>
+      'Sign out? Your entries are saved to your account first, then removed from this device. They come back next time you sign in. This needs an internet connection.';
+
+  @override
+  String get settingsSignOutNeedsConnection =>
+      'Signing out needs a connection — your entries are saved to your account first. Please try again later.';
 
   @override
   String settingsSignedInAs(String email) {

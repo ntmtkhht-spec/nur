@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:adhan_dart/adhan_dart.dart' as adhan;
@@ -552,10 +553,21 @@ Future<void> _runNotificationScheduler(Ref ref) async {
       ),
   ];
 
+  // Read, not watch: ticking a prayer off must not tear down and rebuild
+  // every scheduled alarm. The one reminder that becomes obsolete is
+  // withdrawn directly by the tracker.
+  final catchUpEnabled = ref.watch(catchUpRemindersProvider);
+  final tracker = ref.read(prayerTrackerProvider);
+
   await NotificationService.scheduleMany(
     upcoming,
     languageCode: languageCode,
     enabledPrayers: enabledPrayers,
+    catchUpEnabled: catchUpEnabled,
+    isPrayerLogged: (day, prayerName) =>
+        tracker['prayer_tracker_${day.year}_${day.month}_${day.day}_'
+            '$prayerName'] ==
+        true,
   );
 }
 
@@ -703,6 +715,29 @@ final notificationsEnabledProvider =
       NotificationsEnabledNotifier.new,
     );
 
+/// Whether to follow up on a prayer that has not been ticked off.
+///
+/// Sits under the prayer reminders rather than beside them: it only ever
+/// fires for prayers whose reminder is already switched on.
+class CatchUpRemindersNotifier extends Notifier<bool> {
+  static const _key = 'catchup_reminders_enabled';
+
+  @override
+  bool build() {
+    return ref.read(sharedPreferencesProvider).getBool(_key) ?? true;
+  }
+
+  void set(bool enabled) {
+    ref.read(sharedPreferencesProvider).setBool(_key, enabled);
+    state = enabled;
+  }
+}
+
+final catchUpRemindersProvider =
+    NotifierProvider<CatchUpRemindersNotifier, bool>(
+      CatchUpRemindersNotifier.new,
+    );
+
 /// Which individual prayers should trigger an Adhan notification.
 /// Default: all five prayers enabled.
 class PrayerNotificationsNotifier extends Notifier<Set<String>> {
@@ -812,6 +847,12 @@ class PrayerTrackerNotifier extends Notifier<Map<String, bool>> {
     final current = state[key] ?? false;
     ref.read(sharedPreferencesProvider).setBool(key, !current);
     state = {...state, key: !current};
+
+    if (!current) {
+      // Now ticked off. The catch-up reminder was scheduled in advance and
+      // cannot notice that by itself when it fires, so it is withdrawn here.
+      unawaited(NotificationService.cancelCatchUp(date, prayerName));
+    }
   }
 
   /// Folds entries coming from another device into the local state.
@@ -869,19 +910,17 @@ DateTime _previousDay(DateTime day) =>
 
 DateTime _nextDay(DateTime day) => DateTime(day.year, day.month, day.day + 1);
 
-/// Days on which all five obligatory prayers were ticked off.
+/// Which obligatory prayers were ticked off, grouped by day.
 ///
-/// Derived from the flat tracker keys rather than counted up in a separate
-/// field, so it stays correct after a sync merge, a reset, or a prayer being
-/// un-ticked — none of which a stored counter would survive.
-Set<DateTime> completedDaysFrom(Map<String, bool> tracker) {
+/// The single place the flat `prayer_tracker_<y>_<m>_<d>_<name>` keys are
+/// parsed; streaks and statistics both read this rather than re-deriving it.
+Map<DateTime, Set<String>> trackedPrayersByDay(Map<String, bool> tracker) {
   final perDay = <DateTime, Set<String>>{};
 
   for (final entry in tracker.entries) {
     if (entry.value != true) continue;
     if (!entry.key.startsWith(_trackerKeyPrefix)) continue;
 
-    // prayer_tracker_<year>_<month>_<day>_<name>
     final parts = entry.key.substring(_trackerKeyPrefix.length).split('_');
     if (parts.length != 4) continue;
     if (!obligatoryPrayerNames.contains(parts[3])) continue;
@@ -896,7 +935,17 @@ Set<DateTime> completedDaysFrom(Map<String, bool> tracker) {
         .add(parts[3]);
   }
 
-  return perDay.entries
+  return perDay;
+}
+
+/// Days on which all five obligatory prayers were ticked off.
+///
+/// Derived from the tracker rather than counted up in a separate field, so it
+/// stays correct after a sync merge, a reset, or a prayer being un-ticked —
+/// none of which a stored counter would survive.
+Set<DateTime> completedDaysFrom(Map<String, bool> tracker) {
+  return trackedPrayersByDay(tracker)
+      .entries
       .where((e) => e.value.length == obligatoryPrayerNames.length)
       .map((e) => e.key)
       .toSet();
@@ -960,6 +1009,121 @@ int? milestoneReachedAt(int streak) {
   return streakMilestones.contains(streak) ? streak : null;
 }
 
+// ---------------------------------------------------------------------------
+// Statistics
+// ---------------------------------------------------------------------------
+
+/// How far back the per-prayer reliability figure looks.
+const _statsWindowDays = 30;
+
+/// Days of history needed before the weakest-prayer hint means anything.
+const _statsMinDaysForHint = 7;
+
+/// Everything the statistics card shows, all measured from the tracker.
+class PrayerStats {
+  final int currentStreak;
+  final int longestStreak;
+
+  /// Fully completed days among the last seven, today included.
+  final int completeDaysLastWeek;
+
+  /// Every obligatory prayer ever ticked off.
+  final int totalPrayersLogged;
+
+  /// Days with at least one prayer recorded.
+  final int daysTracked;
+
+  /// The prayer slipping most often lately, or null while there is too
+  /// little history for the answer to mean anything.
+  final String? weakestPrayer;
+
+  const PrayerStats({
+    required this.currentStreak,
+    required this.longestStreak,
+    required this.completeDaysLastWeek,
+    required this.totalPrayersLogged,
+    required this.daysTracked,
+    required this.weakestPrayer,
+  });
+
+  bool get hasHistory => daysTracked > 0;
+}
+
+/// Measures the statistics card's figures from the raw tracker.
+PrayerStats computePrayerStats({
+  required Map<String, bool> tracker,
+  required DateTime logicalDate,
+}) {
+  final perDay = trackedPrayersByDay(tracker);
+  final completedDays = perDay.entries
+      .where((e) => e.value.length == obligatoryPrayerNames.length)
+      .map((e) => e.key)
+      .toSet();
+
+  final today = DateTime(logicalDate.year, logicalDate.month, logicalDate.day);
+
+  var completeLastWeek = 0;
+  for (var back = 0; back < 7; back++) {
+    final day = DateTime(today.year, today.month, today.day - back);
+    if (completedDays.contains(day)) completeLastWeek++;
+  }
+
+  var totalLogged = 0;
+  for (final prayers in perDay.values) {
+    totalLogged += prayers.length;
+  }
+
+  return PrayerStats(
+    currentStreak: currentStreakFrom(completedDays, logicalDate),
+    longestStreak: longestStreakFrom(completedDays),
+    completeDaysLastWeek: completeLastWeek,
+    totalPrayersLogged: totalLogged,
+    daysTracked: perDay.length,
+    weakestPrayer: _weakestPrayer(perDay, today),
+  );
+}
+
+/// The prayer missed most often over the recent window.
+///
+/// Only days the user actually recorded something on are counted. Days the
+/// app went untouched would add a miss to every prayer alike, which says
+/// nothing about which one is slipping — and today is left out because it is
+/// still in progress.
+String? _weakestPrayer(Map<DateTime, Set<String>> perDay, DateTime today) {
+  final windowStart = DateTime(
+    today.year,
+    today.month,
+    today.day - _statsWindowDays,
+  );
+
+  final misses = {for (final prayer in obligatoryPrayerNames) prayer: 0};
+  var daysConsidered = 0;
+
+  for (final entry in perDay.entries) {
+    final day = entry.key;
+    if (!day.isAfter(windowStart)) continue;
+    if (!day.isBefore(today)) continue;
+
+    daysConsidered++;
+    for (final prayer in obligatoryPrayerNames) {
+      if (!entry.value.contains(prayer)) misses[prayer] = misses[prayer]! + 1;
+    }
+  }
+
+  if (daysConsidered < _statsMinDaysForHint) return null;
+
+  final worst = misses.entries.reduce((a, b) => b.value > a.value ? b : a);
+  // Nothing missed at all is worth saying nothing about.
+  return worst.value == 0 ? null : worst.key;
+}
+
+final prayerStatsProvider = Provider<PrayerStats>((ref) {
+  return computePrayerStats(
+    tracker: ref.watch(prayerTrackerProvider),
+    logicalDate: ref.watch(logicalDateProvider),
+  );
+});
+
 /// A finished day that has not been acknowledged with a celebration yet.
 class PrayerDayCelebration {
   final String dateKey;
@@ -990,7 +1154,7 @@ class PrayerDayCelebration {
 /// transition: a transition only exists in the widget that happened to be
 /// mounted, and would fire a second time on the next launch.
 class PrayerCelebrationNotifier extends Notifier<PrayerDayCelebration?> {
-  static const _prefsKey = 'celebrated_day';
+  static const prefsKey = 'celebrated_day';
 
   @override
   PrayerDayCelebration? build() {
@@ -1005,7 +1169,7 @@ class PrayerCelebrationNotifier extends Notifier<PrayerDayCelebration?> {
     if (!completedDays.contains(today)) return null;
 
     final dateKey = '${today.year}_${today.month}_${today.day}';
-    if (ref.read(sharedPreferencesProvider).getString(_prefsKey) == dateKey) {
+    if (ref.read(sharedPreferencesProvider).getString(prefsKey) == dateKey) {
       return null;
     }
 
@@ -1024,7 +1188,7 @@ class PrayerCelebrationNotifier extends Notifier<PrayerDayCelebration?> {
   void acknowledge() {
     final pending = state;
     if (pending == null) return;
-    ref.read(sharedPreferencesProvider).setString(_prefsKey, pending.dateKey);
+    ref.read(sharedPreferencesProvider).setString(prefsKey, pending.dateKey);
     state = null;
   }
 }

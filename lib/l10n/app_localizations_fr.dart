@@ -62,6 +62,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get prayerNotYetDue => 'Cette prière n\'est pas encore venue.';
 
   @override
+  String get statsTitle => 'Statistiques';
+
+  @override
+  String get statsStreakLabel => 'Jours d\'affilée';
+
+  @override
+  String get statsBestLabel => 'Record';
+
+  @override
+  String get statsWeekLabel => '7 derniers jours';
+
+  @override
+  String get statsTotalLabel => 'Prières notées';
+
+  @override
+  String statsWeekValue(int done) {
+    return '$done/7';
+  }
+
+  @override
+  String statsWeakest(String prayer) {
+    return 'La plus manquée récemment : $prayer';
+  }
+
+  @override
+  String get statsEmpty =>
+      'Note ta première prière — tes chiffres apparaîtront ici.';
+
+  @override
   String get streakTitle => 'Ta série de prières';
 
   @override
@@ -426,22 +455,47 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get notificationBodyFajr =>
-      'Le jour commence dans le silence — un instant de calme pour toi.';
+      'الصلاة خير من النوم\nLa prière vaut mieux que le sommeil.';
 
   @override
   String get notificationBodyDhuhr =>
-      'Une courte pause dans la journée. Le moment de souffler.';
+      'La journée est devenue bruyante. Dhuhr est l\'instant où elle se tait — prends-le avant qu\'il passe.';
 
   @override
   String get notificationBodyAsr =>
-      'La lumière devient dorée. L\'heure de la prière d\'Asr.';
+      'La lumière devient dorée. Prends cet instant et accomplis ta prière d\'Asr.';
 
   @override
   String get notificationBodyMaghrib =>
-      'Le soleil se couche — un instant de gratitude.';
+      'Le soleil s\'est couché. Un instant de gratitude.';
 
   @override
-  String get notificationBodyIsha => 'Laisse la journée s\'apaiser.';
+  String get notificationBodyIsha =>
+      'La journée est finie, la dernière prière ne l\'est pas. Accomplis Isha avant de dormir.';
+
+  @override
+  String notificationCatchUpTitle(String prayer) {
+    return '$prayer se termine bientôt';
+  }
+
+  @override
+  String notificationCatchUpBody(String next) {
+    return 'Profite du temps qu\'il reste avant que $next commence.';
+  }
+
+  @override
+  String get notificationCatchUpChannelName => 'Prières en attente';
+
+  @override
+  String get notificationCatchUpChannelDescription =>
+      'Rappel lorsqu\'une prière n\'a pas encore été notée';
+
+  @override
+  String get settingsCatchUpReminders => 'Rappeler les prières en attente';
+
+  @override
+  String get settingsCatchUpRemindersHint =>
+      '30 minutes avant la prière suivante, si rien n\'est encore noté';
 
   @override
   String get settingsMadhabShafiHint =>
@@ -622,7 +676,36 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsDeleteAccountConfirm =>
-      'Vraiment supprimer votre compte ? Votre historique sur les serveurs sera définitivement supprimé. Les données de cet appareil sont conservées.';
+      'Vraiment supprimer votre compte ? Votre historique sera définitivement supprimé — du compte et de cet appareil. C\'est irréversible.';
+
+  @override
+  String get onboardingPrivacyLink => 'Lire la politique de confidentialité';
+
+  @override
+  String get adoptLocalDataTitle => 'Ajouter les entrées existantes ?';
+
+  @override
+  String get adoptLocalDataBody =>
+      'Cet appareil contient des entrées qui n\'appartiennent encore à aucun compte. Les ajouter à ton compte ? Si tu as récupéré cet appareil de quelqu\'un d\'autre, supprime-les.';
+
+  @override
+  String adoptLocalDataBodyCounted(int count) {
+    return 'Cet appareil contient $count prières enregistrées qui n\'appartiennent encore à aucun compte. Les ajouter à ton compte ? Si tu as récupéré cet appareil de quelqu\'un d\'autre, supprime-les.';
+  }
+
+  @override
+  String get adoptLocalDataKeep => 'Ajouter';
+
+  @override
+  String get adoptLocalDataDiscard => 'Supprimer';
+
+  @override
+  String get settingsSignOutConfirm =>
+      'Se déconnecter ? Tes entrées sont d\'abord sauvegardées dans ton compte, puis retirées de cet appareil. Elles reviennent à la prochaine connexion. Une connexion internet est nécessaire.';
+
+  @override
+  String get settingsSignOutNeedsConnection =>
+      'La déconnexion nécessite une connexion — tes entrées sont d\'abord sauvegardées dans ton compte. Réessaie plus tard.';
 
   @override
   String settingsSignedInAs(String email) {

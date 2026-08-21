@@ -62,6 +62,35 @@ class AppLocalizationsDe extends AppLocalizations {
   String get prayerNotYetDue => 'Dieses Gebet liegt noch vor dir.';
 
   @override
+  String get statsTitle => 'Statistiken';
+
+  @override
+  String get statsStreakLabel => 'Tage in Folge';
+
+  @override
+  String get statsBestLabel => 'Bestwert';
+
+  @override
+  String get statsWeekLabel => 'Letzte 7 Tage';
+
+  @override
+  String get statsTotalLabel => 'Gebete erfasst';
+
+  @override
+  String statsWeekValue(int done) {
+    return '$done/7';
+  }
+
+  @override
+  String statsWeakest(String prayer) {
+    return 'Fällt zuletzt am häufigsten aus: $prayer';
+  }
+
+  @override
+  String get statsEmpty =>
+      'Hake dein erstes Gebet ab – hier erscheinen dann deine Zahlen.';
+
+  @override
   String get streakTitle => 'Dein Gebets-Streak';
 
   @override
@@ -426,22 +455,47 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get notificationBodyFajr =>
-      'Der Tag beginnt in Stille — ein ruhiger Moment für dich.';
+      'الصلاة خير من النوم\nDas Gebet ist besser als der Schlaf.';
 
   @override
   String get notificationBodyDhuhr =>
-      'Eine kurze Pause vom Tag. Zeit, innezuhalten.';
+      'Der Tag ist laut geworden. Dhuhr ist der Moment, in dem es still wird — nimm ihn dir, bevor er vergeht.';
 
   @override
   String get notificationBodyAsr =>
-      'Das Licht wird golden. Zeit für dein Asr-Gebet.';
+      'Das Licht wird golden. Nimm dir diesen Moment und verrichte dein Asr-Gebet.';
 
   @override
   String get notificationBodyMaghrib =>
-      'Die Sonne geht unter — ein Moment der Dankbarkeit.';
+      'Die Sonne ist untergegangen. Ein Moment der Dankbarkeit.';
 
   @override
-  String get notificationBodyIsha => 'Lass den Tag ruhig ausklingen.';
+  String get notificationBodyIsha =>
+      'Der Tag ist zu Ende, das letzte Gebet noch nicht. Verrichte Isha, bevor du schlafen gehst.';
+
+  @override
+  String notificationCatchUpTitle(String prayer) {
+    return '$prayer geht bald zu Ende';
+  }
+
+  @override
+  String notificationCatchUpBody(String next) {
+    return 'Nutze die verbleibende Zeit, bevor $next beginnt.';
+  }
+
+  @override
+  String get notificationCatchUpChannelName => 'Offene Gebete';
+
+  @override
+  String get notificationCatchUpChannelDescription =>
+      'Erinnerung, wenn ein Gebet noch nicht eingetragen ist';
+
+  @override
+  String get settingsCatchUpReminders => 'Erinnerung an offene Gebete';
+
+  @override
+  String get settingsCatchUpRemindersHint =>
+      '30 Minuten vor dem nächsten Gebet, wenn noch nichts eingetragen ist';
 
   @override
   String get settingsMadhabShafiHint =>
@@ -623,7 +677,36 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsDeleteAccountConfirm =>
-      'Konto wirklich löschen? Dein Verlauf auf den Servern wird endgültig gelöscht. Die Daten auf diesem Gerät bleiben erhalten.';
+      'Konto wirklich löschen? Dein Verlauf wird endgültig gelöscht – im Konto und auf diesem Gerät. Das lässt sich nicht rückgängig machen.';
+
+  @override
+  String get onboardingPrivacyLink => 'Datenschutzerklärung lesen';
+
+  @override
+  String get adoptLocalDataTitle => 'Bisherige Einträge übernehmen?';
+
+  @override
+  String get adoptLocalDataBody =>
+      'Auf diesem Gerät sind Einträge gespeichert, die noch zu keinem Konto gehören. Sollen sie zu deinem Konto hinzugefügt werden? Wenn du dieses Gerät von jemand anderem hast, verwirf sie.';
+
+  @override
+  String adoptLocalDataBodyCounted(int count) {
+    return 'Auf diesem Gerät sind $count erfasste Gebete gespeichert, die noch zu keinem Konto gehören. Sollen sie zu deinem Konto hinzugefügt werden? Wenn du dieses Gerät von jemand anderem hast, verwirf sie.';
+  }
+
+  @override
+  String get adoptLocalDataKeep => 'Übernehmen';
+
+  @override
+  String get adoptLocalDataDiscard => 'Verwerfen';
+
+  @override
+  String get settingsSignOutConfirm =>
+      'Abmelden? Deine Einträge werden zuerst in deinem Konto gesichert und dann von diesem Gerät entfernt. Bei der nächsten Anmeldung sind sie wieder da. Dafür ist eine Internetverbindung nötig.';
+
+  @override
+  String get settingsSignOutNeedsConnection =>
+      'Zum Abmelden brauchst du eine Verbindung – deine Einträge werden vorher in deinem Konto gesichert. Bitte versuch es später noch einmal.';
 
   @override
   String settingsSignedInAs(String email) {

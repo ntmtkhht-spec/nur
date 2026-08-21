@@ -49,6 +49,28 @@
     }
   },
   "prayerNotYetDue": "Dieses Gebet liegt noch vor dir.",
+  "statsTitle": "Statistiken",
+  "statsStreakLabel": "Tage in Folge",
+  "statsBestLabel": "Bestwert",
+  "statsWeekLabel": "Letzte 7 Tage",
+  "statsTotalLabel": "Gebete erfasst",
+  "statsWeekValue": "{done}/7",
+  "@statsWeekValue": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      }
+    }
+  },
+  "statsWeakest": "Fällt zuletzt am häufigsten aus: {prayer}",
+  "@statsWeakest": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "statsEmpty": "Hake dein erstes Gebet ab – hier erscheinen dann deine Zahlen.",
   "streakTitle": "Dein Gebets-Streak",
   "streakDays": "{count, plural, =1{1 Tag in Folge} other{{count} Tage in Folge}}",
   "@streakDays": {
@@ -268,11 +290,31 @@
       }
     }
   },
-  "notificationBodyFajr": "Der Tag beginnt in Stille — ein ruhiger Moment für dich.",
-  "notificationBodyDhuhr": "Eine kurze Pause vom Tag. Zeit, innezuhalten.",
-  "notificationBodyAsr": "Das Licht wird golden. Zeit für dein Asr-Gebet.",
-  "notificationBodyMaghrib": "Die Sonne geht unter — ein Moment der Dankbarkeit.",
-  "notificationBodyIsha": "Lass den Tag ruhig ausklingen.",
+  "notificationBodyFajr": "الصلاة خير من النوم\nDas Gebet ist besser als der Schlaf.",
+  "notificationBodyDhuhr": "Der Tag ist laut geworden. Dhuhr ist der Moment, in dem es still wird — nimm ihn dir, bevor er vergeht.",
+  "notificationBodyAsr": "Das Licht wird golden. Nimm dir diesen Moment und verrichte dein Asr-Gebet.",
+  "notificationBodyMaghrib": "Die Sonne ist untergegangen. Ein Moment der Dankbarkeit.",
+  "notificationBodyIsha": "Der Tag ist zu Ende, das letzte Gebet noch nicht. Verrichte Isha, bevor du schlafen gehst.",
+  "notificationCatchUpTitle": "{prayer} geht bald zu Ende",
+  "@notificationCatchUpTitle": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationCatchUpBody": "Nutze die verbleibende Zeit, bevor {next} beginnt.",
+  "@notificationCatchUpBody": {
+    "placeholders": {
+      "next": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationCatchUpChannelName": "Offene Gebete",
+  "notificationCatchUpChannelDescription": "Erinnerung, wenn ein Gebet noch nicht eingetragen ist",
+  "settingsCatchUpReminders": "Erinnerung an offene Gebete",
+  "settingsCatchUpRemindersHint": "30 Minuten vor dem nächsten Gebet, wenn noch nichts eingetragen ist",
   "settingsMadhabShafiHint": "Auch Maliki und Hanbali — früheres Asr",
   "settingsMadhabHanafiHint": "Späteres Asr",
   "muezzinSilent": "Nur Vibration / stumm",
@@ -347,7 +389,22 @@
   "settingsSignOut": "Abmelden",
   "settingsDeleteAccount": "Konto löschen",
   "settingsDeleteAccountHint": "Löscht dein Konto und alle gespeicherten Daten endgültig",
-  "settingsDeleteAccountConfirm": "Konto wirklich löschen? Dein Verlauf auf den Servern wird endgültig gelöscht. Die Daten auf diesem Gerät bleiben erhalten.",
+  "settingsDeleteAccountConfirm": "Konto wirklich löschen? Dein Verlauf wird endgültig gelöscht – im Konto und auf diesem Gerät. Das lässt sich nicht rückgängig machen.",
+  "onboardingPrivacyLink": "Datenschutzerklärung lesen",
+  "adoptLocalDataTitle": "Bisherige Einträge übernehmen?",
+  "adoptLocalDataBody": "Auf diesem Gerät sind Einträge gespeichert, die noch zu keinem Konto gehören. Sollen sie zu deinem Konto hinzugefügt werden? Wenn du dieses Gerät von jemand anderem hast, verwirf sie.",
+  "adoptLocalDataBodyCounted": "Auf diesem Gerät sind {count} erfasste Gebete gespeichert, die noch zu keinem Konto gehören. Sollen sie zu deinem Konto hinzugefügt werden? Wenn du dieses Gerät von jemand anderem hast, verwirf sie.",
+  "@adoptLocalDataBodyCounted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adoptLocalDataKeep": "Übernehmen",
+  "adoptLocalDataDiscard": "Verwerfen",
+  "settingsSignOutConfirm": "Abmelden? Deine Einträge werden zuerst in deinem Konto gesichert und dann von diesem Gerät entfernt. Bei der nächsten Anmeldung sind sie wieder da. Dafür ist eine Internetverbindung nötig.",
+  "settingsSignOutNeedsConnection": "Zum Abmelden brauchst du eine Verbindung – deine Einträge werden vorher in deinem Konto gesichert. Bitte versuch es später noch einmal.",
   "settingsSignedInAs": "Angemeldet als {email}",
   "settingsSignInFailed": "Anmeldung fehlgeschlagen.",
   "settingsSyncNow": "Jetzt synchronisieren",

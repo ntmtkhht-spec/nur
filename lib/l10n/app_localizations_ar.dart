@@ -62,6 +62,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get prayerNotYetDue => 'لم يحن وقت هذه الصلاة بعد.';
 
   @override
+  String get statsTitle => 'الإحصائيات';
+
+  @override
+  String get statsStreakLabel => 'يوم متتالٍ';
+
+  @override
+  String get statsBestLabel => 'الأفضل';
+
+  @override
+  String get statsWeekLabel => 'آخر ٧ أيام';
+
+  @override
+  String get statsTotalLabel => 'صلوات مسجلة';
+
+  @override
+  String statsWeekValue(int done) {
+    return '$done/7';
+  }
+
+  @override
+  String statsWeakest(String prayer) {
+    return 'الأكثر فواتًا مؤخرًا: $prayer';
+  }
+
+  @override
+  String get statsEmpty => 'سجّل أول صلاة لك — ستظهر أرقامك هنا.';
+
+  @override
   String get streakTitle => 'سلسلة صلواتك';
 
   @override
@@ -430,20 +458,46 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get notificationBodyFajr => 'يبدأ اليوم بسكينة — لحظة هدوء لك.';
+  String get notificationBodyFajr => 'الصلاة خير من النوم';
 
   @override
-  String get notificationBodyDhuhr => 'استراحة قصيرة من يومك. حان وقت التوقف.';
+  String get notificationBodyDhuhr =>
+      'صخب اليوم يعلو. الظهر هو اللحظة التي يهدأ فيها — اغتنمها قبل أن تمضي.';
 
   @override
   String get notificationBodyAsr =>
-      'يتحول الضوء إلى الذهبي. حان وقت صلاة العصر.';
+      'يتحول الضوء إلى الذهبي. اغتنم هذه اللحظة وصلِّ العصر.';
 
   @override
-  String get notificationBodyMaghrib => 'تغرب الشمس — لحظة شكر.';
+  String get notificationBodyMaghrib => 'غربت الشمس. لحظة شكر.';
 
   @override
-  String get notificationBodyIsha => 'دع يومك يهدأ في سكينة.';
+  String get notificationBodyIsha =>
+      'انتهى اليوم، ولم تنتهِ الصلاة الأخيرة. صلِّ العشاء قبل أن تنام.';
+
+  @override
+  String notificationCatchUpTitle(String prayer) {
+    return '$prayer على وشك الانتهاء';
+  }
+
+  @override
+  String notificationCatchUpBody(String next) {
+    return 'اغتنم الوقت المتبقي قبل أن يبدأ $next.';
+  }
+
+  @override
+  String get notificationCatchUpChannelName => 'صلوات لم تُسجَّل';
+
+  @override
+  String get notificationCatchUpChannelDescription =>
+      'تذكير عندما لا تكون الصلاة مسجَّلة بعد';
+
+  @override
+  String get settingsCatchUpReminders => 'تذكيري بالصلوات غير المسجَّلة';
+
+  @override
+  String get settingsCatchUpRemindersHint =>
+      'قبل الصلاة التالية بثلاثين دقيقة، إذا لم يُسجَّل شيء بعد';
 
   @override
   String get settingsMadhabShafiHint => 'وكذلك المالكي والحنبلي — العصر مبكراً';
@@ -615,7 +669,36 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settingsDeleteAccountConfirm =>
-      'هل تريد حذف حسابك فعلاً؟ سيُحذف سجلك على الخوادم نهائياً. تبقى البيانات على هذا الجهاز.';
+      'هل تريد حذف حسابك فعلاً؟ سيُحذف سجلك نهائياً من الحساب ومن هذا الجهاز. لا يمكن التراجع عن ذلك.';
+
+  @override
+  String get onboardingPrivacyLink => 'اقرأ سياسة الخصوصية';
+
+  @override
+  String get adoptLocalDataTitle => 'إضافة السجلات الموجودة؟';
+
+  @override
+  String get adoptLocalDataBody =>
+      'يحتوي هذا الجهاز على سجلات لا تنتمي بعد إلى أي حساب. هل تريد إضافتها إلى حسابك؟ إذا حصلت على هذا الجهاز من شخص آخر، فاحذفها.';
+
+  @override
+  String adoptLocalDataBodyCounted(int count) {
+    return 'يحتوي هذا الجهاز على $count صلاة مسجلة لا تنتمي بعد إلى أي حساب. هل تريد إضافتها إلى حسابك؟ إذا حصلت على هذا الجهاز من شخص آخر، فاحذفها.';
+  }
+
+  @override
+  String get adoptLocalDataKeep => 'إضافة';
+
+  @override
+  String get adoptLocalDataDiscard => 'حذف';
+
+  @override
+  String get settingsSignOutConfirm =>
+      'تسجيل الخروج؟ ستُحفظ سجلاتك في حسابك أولاً ثم تُزال من هذا الجهاز. ستعود عند تسجيل الدخول مرة أخرى. يتطلب ذلك اتصالاً بالإنترنت.';
+
+  @override
+  String get settingsSignOutNeedsConnection =>
+      'يتطلب تسجيل الخروج اتصالاً – تُحفظ سجلاتك في حسابك أولاً. يرجى المحاولة لاحقاً.';
 
   @override
   String settingsSignedInAs(String email) {

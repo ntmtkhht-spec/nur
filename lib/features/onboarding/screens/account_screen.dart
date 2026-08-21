@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/feature_flags.dart';
+import '../../../core/services/account_service.dart';
 import '../../../core/services/auth_service.dart';
-import '../../../core/services/sync_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../shared/widgets/adopt_local_data_dialog.dart';
+import '../../legal/legal_document_screen.dart';
 import '../widgets/hero_badge.dart';
 import '../widgets/onboarding_scaffold.dart';
 
@@ -38,12 +40,17 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
   Future<void> _signIn(Future<User?> Function() signIn) async {
     setState(() => _busy = true);
     try {
-      final user = await signIn();
+      // AccountService pulls the returning user's history back, pushes
+      // anything tracked before signing in, and clears the device first if
+      // it still holds someone else's entries.
+      final user = await ref
+          .read(accountServiceProvider)
+          .signIn(
+            signIn,
+            onUnclaimedActivity: (count) =>
+                showAdoptLocalDataDialog(context, count),
+          );
       if (user == null) return; // dismissed the picker
-      // A returning user gets their history back before anything local is
-      // pushed over it.
-      await ref.read(syncServiceProvider).pull(user.uid);
-      await ref.read(syncServiceProvider).push(user.uid);
       if (mounted) widget.onNext();
     } catch (e) {
       debugPrint('Onboarding sign-in failed: $e');
@@ -155,6 +162,27 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
             ),
           ),
         ],
+        // The privacy policy has to be reachable before anyone decides
+        // whether to hand over an account, not only afterwards from the
+        // settings screen.
+        const SizedBox(height: 20),
+        Center(
+          child: TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const LegalDocumentScreen.privacy(),
+              ),
+            ),
+            child: Text(
+              l10n.onboardingPrivacyLink,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textMuted,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
