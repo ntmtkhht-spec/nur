@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/tasbih/providers/tasbih_provider.dart';
 import '../providers/providers.dart';
 
 /// Mirrors the prayer tracker and a few preferences into Firestore so they
@@ -31,6 +32,7 @@ class SyncService {
     await _doc(uid).set({
       'tracker': tracker,
       'preferences': prefs,
+      'tasbihLifetime': _ref.read(tasbihProvider).lifetimeCount,
     }, SetOptions(merge: true));
   }
 
@@ -49,6 +51,11 @@ class SyncService {
       _ref.read(prayerTrackerProvider.notifier).mergeRemote(
             remoteTracker.map((k, v) => MapEntry(k, v == true)),
           );
+    }
+
+    final remoteLifetime = data['tasbihLifetime'];
+    if (remoteLifetime is int) {
+      _ref.read(tasbihProvider.notifier).mergeRemoteLifetime(remoteLifetime);
     }
 
     final prefs = (data['preferences'] as Map<String, dynamic>?) ?? {};

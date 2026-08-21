@@ -289,6 +289,7 @@ class _LegalDocument {
           'Standortkoordinaten und Stadtname fuer Gebetszeiten, Qibla und Anzeige in der App.',
           'Berechnungsmethode, Madhhab, Erinnerungs- und Adhan-Einstellungen.',
           'Gebets-Tracker, Streaks und erledigte Gebete.',
+          'Tasbih-Zaehler, aktuelle Runde und Gesamtzahl.',
           'Moschee-Suchzustimmung und zwischengespeicherte Moschee-/Kartendaten.',
         ],
       ),
@@ -330,8 +331,9 @@ class _LegalDocument {
               'erkennen. Dabei werden insbesondere technische Konto-IDs sowie je '
               'nach Google-Konto E-Mail-Adresse und Profilinformationen verarbeitet.',
           'Zur Synchronisierung speichert Munir in Firebase Cloud Firestore deinen '
-              'Gebets-Tracker, deinen Namen, die App-Sprache und einen Aktualisierungs-'
-              'Zeitpunkt. Ohne Anmeldung bleiben diese Daten lokal auf deinem Geraet.',
+              'Gebets-Tracker, deine Tasbih-Gesamtzahl, deinen Namen, die App-Sprache '
+              'und einen Aktualisierungs-Zeitpunkt. Ohne Anmeldung bleiben diese Daten '
+              'lokal auf deinem Geraet.',
         ],
       ),
       _LegalSection(

@@ -960,6 +960,80 @@ int? milestoneReachedAt(int streak) {
   return streakMilestones.contains(streak) ? streak : null;
 }
 
+/// A finished day that has not been acknowledged with a celebration yet.
+class PrayerDayCelebration {
+  final String dateKey;
+  final int completed;
+  final int total;
+  final int streak;
+
+  /// Set when this day also closed a streak milestone.
+  final int? milestone;
+
+  const PrayerDayCelebration({
+    required this.dateKey,
+    required this.completed,
+    required this.total,
+    required this.streak,
+    required this.milestone,
+  });
+}
+
+/// Raises the daily and milestone celebrations for the whole app.
+///
+/// Prayers can be ticked off from the home card and from the prayers tab, so
+/// a celebration owned by either screen is missed whenever the user finishes
+/// the day on the other one. Milestones are reached once and never again, so
+/// missing one is not recoverable.
+///
+/// Which day was last celebrated is persisted rather than tracked as a state
+/// transition: a transition only exists in the widget that happened to be
+/// mounted, and would fire a second time on the next launch.
+class PrayerCelebrationNotifier extends Notifier<PrayerDayCelebration?> {
+  static const _prefsKey = 'celebrated_day';
+
+  @override
+  PrayerDayCelebration? build() {
+    final completedDays = ref.watch(completedPrayerDaysProvider);
+    final logicalDate = ref.watch(logicalDateProvider);
+
+    final today = DateTime(
+      logicalDate.year,
+      logicalDate.month,
+      logicalDate.day,
+    );
+    if (!completedDays.contains(today)) return null;
+
+    final dateKey = '${today.year}_${today.month}_${today.day}';
+    if (ref.read(sharedPreferencesProvider).getString(_prefsKey) == dateKey) {
+      return null;
+    }
+
+    final streak = currentStreakFrom(completedDays, logicalDate);
+    return PrayerDayCelebration(
+      dateKey: dateKey,
+      // A day only counts as complete once every obligatory prayer is in.
+      completed: obligatoryPrayerNames.length,
+      total: obligatoryPrayerNames.length,
+      streak: streak,
+      milestone: milestoneReachedAt(streak),
+    );
+  }
+
+  /// Records the pending celebration as shown so it does not return.
+  void acknowledge() {
+    final pending = state;
+    if (pending == null) return;
+    ref.read(sharedPreferencesProvider).setString(_prefsKey, pending.dateKey);
+    state = null;
+  }
+}
+
+final prayerCelebrationProvider =
+    NotifierProvider<PrayerCelebrationNotifier, PrayerDayCelebration?>(
+      PrayerCelebrationNotifier.new,
+    );
+
 // ---------------------------------------------------------------------------
 // Daily Reminder (rotating)
 // ---------------------------------------------------------------------------

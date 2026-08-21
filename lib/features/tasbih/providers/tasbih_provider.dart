@@ -138,6 +138,19 @@ class TasbihNotifier extends Notifier<TasbihState> {
     state = next;
     _persist(next);
   }
+
+  /// Folds a lifetime total coming from another device into the local one.
+  ///
+  /// The higher number wins rather than the newer one: a device that has
+  /// been offline for a while still holds a real count, and letting it
+  /// overwrite a larger total would silently discard recitations. The
+  /// prayer tracker merges for the same reason.
+  void mergeRemoteLifetime(int remoteLifetime) {
+    if (remoteLifetime <= state.lifetimeCount) return;
+    final next = state.copyWith(lifetimeCount: remoteLifetime);
+    state = next;
+    _persist(next);
+  }
 }
 
 final tasbihProvider = NotifierProvider<TasbihNotifier, TasbihState>(() {
