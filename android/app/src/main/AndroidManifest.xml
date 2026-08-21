@@ -43,6 +43,15 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- The notification icon is named from Dart as a string, which the
+             release build's resource shrinker cannot follow: it reported
+             "drawable:ic_notification is not reachable", dropped it from the
+             APK, and every scheduled reminder then failed with invalid_icon.
+             This entry is a reference the shrinker does see, and doubles as
+             the plugin's documented default icon. -->
+        <meta-data
+            android:name="com.dexterous.flutterlocalnotifications.DEFAULT_ICON"
+            android:resource="@drawable/ic_notification" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
             <intent-filter>
