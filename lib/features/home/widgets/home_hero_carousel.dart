@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -19,13 +21,69 @@ class HomeHeroCarousel extends StatefulWidget {
 }
 
 class _HomeHeroCarouselState extends State<HomeHeroCarousel> {
+  static const _pageCount = 2;
+
+  /// How long a page stays before the carousel moves on by itself.
+  static const _dwell = Duration(seconds: 10);
+
+  static const _slide = Duration(milliseconds: 420);
+
   final _controller = PageController();
   int _page = 0;
+  Timer? _advance;
+
+  /// False while the system asks for reduced motion, which is exactly the
+  /// setting a carousel that moves on its own is meant to respect.
+  bool _autoPlay = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final shouldPlay = !reduceMotion;
+    if (shouldPlay == _autoPlay && _advance != null) return;
+
+    _autoPlay = shouldPlay;
+    _autoPlay ? _restartDwell() : _advance?.cancel();
+  }
 
   @override
   void dispose() {
+    _advance?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  /// Starts the wait before the next page.
+  ///
+  /// A one-shot timer restarted after every page change, rather than a
+  /// periodic one: swiping by hand should buy a full dwell on the page just
+  /// opened, not whatever is left of a tick that has been running since.
+  void _restartDwell() {
+    _advance?.cancel();
+    if (!_autoPlay) return;
+
+    _advance = Timer(_dwell, () {
+      if (!mounted || !_controller.hasClients) return;
+      // Wraps: after the last page the first comes back round.
+      _controller.animateToPage(
+        (_page + 1) % _pageCount,
+        duration: _slide,
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  /// Keeps the timer from firing mid-drag, which would fight the finger on
+  /// the screen.
+  bool _onScroll(ScrollNotification notification) {
+    if (notification is ScrollStartNotification) {
+      _advance?.cancel();
+    } else if (notification is ScrollEndNotification) {
+      _restartDwell();
+    }
+    return false;
   }
 
   @override
@@ -42,15 +100,21 @@ class _HomeHeroCarouselState extends State<HomeHeroCarousel> {
       children: [
         SizedBox(
           height: height,
-          child: PageView(
-            controller: _controller,
-            onPageChanged: (index) => setState(() => _page = index),
-            children: const [NextPrayerCard(), PrayerStatsCard()],
+          child: NotificationListener<ScrollNotification>(
+            onNotification: _onScroll,
+            child: PageView(
+              controller: _controller,
+              onPageChanged: (index) {
+                setState(() => _page = index);
+                _restartDwell();
+              },
+              children: const [NextPrayerCard(), PrayerStatsCard()],
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
         _Dots(
-          count: 2,
+          count: _pageCount,
           active: _page,
           onTap: (index) => _controller.animateToPage(
             index,
