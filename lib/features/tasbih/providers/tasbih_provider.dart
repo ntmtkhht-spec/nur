@@ -139,6 +139,19 @@ class TasbihNotifier extends Notifier<TasbihState> {
     _persist(next);
   }
 
+  /// Drops everything, lifetime total included.
+  ///
+  /// Used when the device stops belonging to an account — signing out or
+  /// deleting it — not by the in-app reset button, which keeps the total.
+  Future<void> clear() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.remove(_countKey);
+    await prefs.remove(_roundKey);
+    await prefs.remove(_lifetimeKey);
+    await prefs.remove(_dhikrKey);
+    state = TasbihState(selectedDhikr: defaultDhikrs.first);
+  }
+
   /// Folds a lifetime total coming from another device into the local one.
   ///
   /// The higher number wins rather than the newer one: a device that has
