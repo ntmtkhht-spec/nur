@@ -1,0 +1,21 @@
+<!--
+  Notification icon: the mihrab arch from the app icon, as a silhouette.
+
+  Android draws the small notification icon from the alpha channel alone and
+  paints the result in a single colour, so a full-colour launcher icon comes
+  out as a solid blob. This has to be white-on-transparent, and simple enough
+  to stay legible at 24dp — the rug's perspective and fringe do not survive
+  that size, the arch does.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFFFF">
+
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M5,21 L5,13 C5,9 7.5,6 12,2.5 C16.5,6 19,9 19,13 L19,21 Z M8,21 L8,13.2 C8,10.2 9.6,8 12,5.8 C14.4,8 16,10.2 16,13.2 L16,21 Z" />
+</vector>
