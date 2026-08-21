@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../models/ayah_model.dart';
 import '../providers/surah_provider.dart';
 import '../providers/audio_player_provider.dart';
+import '../providers/quran_audio_voice_provider.dart';
 import '../providers/reading_prefs_provider.dart';
 import '../providers/quran_progress_provider.dart';
 import '../widgets/verse_card.dart';
@@ -30,6 +32,7 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
   bool _showBackToTopButton = false;
   bool _didRestorePosition = false;
   int? _lastRecordedAyah;
+  Surah? _activeSurah;
 
   @override
   void initState() {
@@ -64,6 +67,43 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
   GlobalKey _keyForAyah(int ayahNumber) =>
       _ayahKeys.putIfAbsent(ayahNumber, GlobalKey.new);
 
+  void _scrollToAudioAyah(Surah? surah, int? index) {
+    if (!mounted || surah == null || index == null) return;
+    if (index < 0 || index >= surah.ayahs.length) return;
+
+    final ayahNumber = surah.ayahs[index].numberInSurah;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      final target = _keyForAyah(ayahNumber).currentContext;
+      if (target == null) {
+        // ListView.builder may not have built a distant ayah yet. Jump close
+        // to it first, then use the exact keyed context on the next frame.
+        final approximate = (index * 280.0).clamp(
+          0.0,
+          _scrollController.position.maxScrollExtent,
+        );
+        _scrollController.jumpTo(approximate);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _ensureAudioAyahVisible(ayahNumber);
+        });
+        return;
+      }
+      _ensureAudioAyahVisible(ayahNumber);
+    });
+  }
+
+  void _ensureAudioAyahVisible(int ayahNumber) {
+    final target = _keyForAyah(ayahNumber).currentContext;
+    if (target == null) return;
+    Scrollable.ensureVisible(
+      target,
+      alignment: 0.18,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOut,
+    );
+  }
+
   void _restorePosition(Surah surah, int? ayahNumber) {
     if (_didRestorePosition || ayahNumber == null || ayahNumber < 1) return;
     _didRestorePosition = true;
@@ -92,19 +132,30 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
   }
 
   void _recordVisibleAyah(Surah surah) {
-    if (!_scrollController.hasClients) return;
+    if (!_scrollController.hasClients || surah.ayahs.isEmpty) return;
     const readingLine = 160.0;
     int? closestAyah;
+
+    // The bottom audio bar and its safe-area padding can leave the final
+    // ayah below the reading line. Reaching the actual end means the reader
+    // has passed the complete surah, so the last ayah must count as read.
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 24) {
+      closestAyah = surah.ayahs.last.numberInSurah;
+    }
+
     var closestDistance = double.infinity;
-    for (final ayah in surah.ayahs) {
-      final context = _ayahKeys[ayah.numberInSurah]?.currentContext;
-      final renderBox = context?.findRenderObject() as RenderBox?;
-      if (renderBox == null || !renderBox.attached) continue;
-      final top = renderBox.localToGlobal(Offset.zero).dy;
-      final distance = (top - readingLine).abs();
-      if (distance < closestDistance) {
-        closestDistance = distance;
-        closestAyah = ayah.numberInSurah;
+    if (closestAyah == null) {
+      for (final ayah in surah.ayahs) {
+        final context = _ayahKeys[ayah.numberInSurah]?.currentContext;
+        final renderBox = context?.findRenderObject() as RenderBox?;
+        if (renderBox == null || !renderBox.attached) continue;
+        final top = renderBox.localToGlobal(Offset.zero).dy;
+        final distance = (top - readingLine).abs();
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestAyah = ayah.numberInSurah;
+        }
       }
     }
     if (closestAyah == null || closestAyah == _lastRecordedAyah) return;
@@ -138,20 +189,31 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
 
   // The gear icon had no handler; it now opens the reading preferences that
   // VerseCard reads (transliteration, translation, Arabic text size).
-  void _openReadingSettings(BuildContext context, {String? translationSource}) {
+  void _openReadingSettings(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.background,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) =>
-          _ReadingSettingsSheet(translationSource: translationSource),
+      builder: (_) => const _ReadingSettingsSheet(),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AudioPlayerState>(audioPlayerNotifierProvider, (previous, next) {
+      if (next.surahNumber != widget.surahNumber) return;
+      if (previous?.currentAyahIndex == next.currentAyahIndex) return;
+      _scrollToAudioAyah(_activeSurah, next.currentAyahIndex);
+    });
+    ref.listen<QuranAudioVoice>(quranAudioVoiceProvider, (previous, next) {
+      if (previous?.identifier == next.identifier) return;
+      // The surah provider reloads with the new audio edition. Rebuild the
+      // playlist once that fresh data arrives instead of mixing voices.
+      _playlistInitialized = false;
+    });
+
     final surahAsyncValue = ref.watch(surahProvider(widget.surahNumber));
     final quranProgress = ref.watch(quranReadingProgressProvider);
 
@@ -201,11 +263,7 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
               Icons.settings_outlined,
               color: AppColors.darkGreen,
             ),
-            onPressed: () => _openReadingSettings(
-              context,
-              translationSource:
-                  surahAsyncValue.asData?.value.translationSource,
-            ),
+            onPressed: () => _openReadingSettings(context),
           ),
         ],
         backgroundColor: AppColors.background,
@@ -213,6 +271,10 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
       ),
       body: surahAsyncValue.when(
         data: (surah) {
+          _activeSurah = surah;
+          final audioState = ref.watch(audioPlayerNotifierProvider);
+          final audioBelongsToThisSurah =
+              audioState.surahNumber == widget.surahNumber;
           final resumeAyah =
               widget.initialAyahNumber ??
               (quranProgress.lastPosition?.surahNumber == widget.surahNumber
@@ -227,7 +289,10 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ref
                   .read(audioPlayerNotifierProvider.notifier)
-                  .initPlaylist(surah.ayahs);
+                  .initPlaylist(
+                    surahNumber: widget.surahNumber,
+                    ayahs: surah.ayahs,
+                  );
             });
           }
 
@@ -250,7 +315,13 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
                       final ayah = surah.ayahs[index];
                       return KeyedSubtree(
                         key: _keyForAyah(ayah.numberInSurah),
-                        child: VerseCard(ayah: ayah),
+                        child: VerseCard(
+                          ayah: ayah,
+                          isAudioActive:
+                              audioBelongsToThisSurah &&
+                              audioState.isPlaying &&
+                              audioState.currentAyahIndex == index,
+                        ),
                       );
                     },
                   ),
@@ -446,14 +517,14 @@ class _SurahPickerSheetState extends ConsumerState<_SurahPickerSheet> {
 }
 
 class _ReadingSettingsSheet extends ConsumerWidget {
-  final String? translationSource;
-
-  const _ReadingSettingsSheet({this.translationSource});
+  const _ReadingSettingsSheet();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final prefs = ref.watch(quranReadingPrefsProvider);
     final notifier = ref.read(quranReadingPrefsProvider.notifier);
+    final audioVoice = ref.watch(quranAudioVoiceProvider);
+    final audioVoiceNotifier = ref.read(quranAudioVoiceProvider.notifier);
 
     return SafeArea(
       child: Padding(
@@ -481,16 +552,45 @@ class _ReadingSettingsSheet extends ConsumerWidget {
                 color: AppColors.darkGreen,
               ),
             ),
-            if (translationSource != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Übersetzung: $translationSource',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textMuted,
+            const SizedBox(height: 12),
+            const Text(
+              'Rezitationsstimme',
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.cardBg),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<QuranAudioVoice>(
+                  value: audioVoice,
+                  isExpanded: true,
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down,
+                    color: AppColors.darkGreen,
+                  ),
+                  style: const TextStyle(
+                    color: AppColors.textDark,
+                    fontSize: 14,
+                  ),
+                  items: [
+                    for (final voice in QuranAudioVoice.available)
+                      DropdownMenuItem(value: voice, child: Text(voice.name)),
+                  ],
+                  onChanged: (voice) {
+                    if (voice != null) audioVoiceNotifier.setVoice(voice);
+                  },
                 ),
               ),
-            ],
+            ),
             const SizedBox(height: 8),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,

@@ -50,7 +50,10 @@ class GreetingHeader extends ConsumerWidget {
                   userName.trim().isEmpty
                       ? l10n.greetingNoName
                       : l10n.greeting(userName.trim()),
-                  maxLines: 1,
+                  // A single line truncated the user's name too aggressively
+                  // on narrow phones. Two lines preserve the greeting and
+                  // keep the settings button in its own fixed column.
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 25,

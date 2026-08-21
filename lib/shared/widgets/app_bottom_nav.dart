@@ -33,38 +33,45 @@ class AppBottomNav extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 24, top: 12, left: 16, right: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _NavItem(
-            icon: Icons.home_rounded,
-            label: l10n.navHome,
-            isActive: currentIndex == 0,
-            onTap: () => onTap(0),
+          Expanded(
+            child: _NavItem(
+              icon: Icons.home_rounded,
+              label: l10n.navHome,
+              isActive: currentIndex == 0,
+              onTap: () => onTap(0),
+            ),
           ),
-          _NavItem(
-            assetPath: 'assets/images/icon_prayer_ruku_generated.png',
-            label: l10n.navPrayers,
-            isActive: currentIndex == 1,
-            onTap: () => onTap(1),
+          Expanded(
+            child: _NavItem(
+              assetPath: 'assets/images/icon_prayer_ruku_generated.png',
+              label: l10n.navPrayers,
+              isActive: currentIndex == 1,
+              onTap: () => onTap(1),
+            ),
           ),
-
-          _CenterNavItem(
-            label: l10n.navQuran,
-            isActive: currentIndex == 2,
-            onTap: () => onTap(2),
+          Expanded(
+            child: _CenterNavItem(
+              label: l10n.navQuran,
+              isActive: currentIndex == 2,
+              onTap: () => onTap(2),
+            ),
           ),
-
-          _NavItem(
-            icon: Icons.track_changes_rounded,
-            label: l10n.navTasbih,
-            isActive: currentIndex == 3,
-            onTap: () => onTap(3),
+          Expanded(
+            child: _NavItem(
+              icon: Icons.track_changes_rounded,
+              label: l10n.navTasbih,
+              isActive: currentIndex == 3,
+              onTap: () => onTap(3),
+            ),
           ),
-          _NavItem(
-            icon: Icons.explore_rounded,
-            label: l10n.navQibla,
-            isActive: currentIndex == 4,
-            onTap: () => onTap(4),
+          Expanded(
+            child: _NavItem(
+              icon: Icons.explore_rounded,
+              label: l10n.navQibla,
+              isActive: currentIndex == 4,
+              onTap: () => onTap(4),
+            ),
           ),
         ],
       ),
@@ -166,32 +173,42 @@ class _NavItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(
-          horizontal: isActive ? 16 : 8,
-          vertical: isActive ? 12 : 8,
-        ),
-        decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.primaryGreen.withValues(alpha: 0.12)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            iconWidget,
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: color,
+      child: SizedBox(
+        width: double.infinity,
+        height: 64,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: double.infinity,
+              height: 62,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              decoration: BoxDecoration(
+                color: isActive
+                    ? AppColors.primaryGreen.withValues(alpha: 0.12)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  iconWidget,
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                      color: color,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

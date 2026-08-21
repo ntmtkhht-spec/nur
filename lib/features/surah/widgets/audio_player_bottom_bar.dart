@@ -4,6 +4,7 @@ import 'package:just_audio/just_audio.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/ayah_model.dart';
 import '../providers/audio_player_provider.dart';
+import '../providers/quran_audio_voice_provider.dart';
 
 class AudioPlayerBottomBar extends ConsumerWidget {
   final String surahName;
@@ -31,8 +32,9 @@ class AudioPlayerBottomBar extends ConsumerWidget {
       ),
       builder: (sheetContext) => Consumer(
         builder: (sheetContext, sheetRef, _) {
-          final currentSpeed =
-              sheetRef.watch(audioPlayerNotifierProvider).speed;
+          final currentSpeed = sheetRef
+              .watch(audioPlayerNotifierProvider)
+              .speed;
           return SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -78,6 +80,7 @@ class AudioPlayerBottomBar extends ConsumerWidget {
     final player = ref.watch(audioPlayerProvider);
     final notifier = ref.read(audioPlayerNotifierProvider.notifier);
     final audioState = ref.watch(audioPlayerNotifierProvider);
+    final audioVoice = ref.watch(quranAudioVoiceProvider);
 
     final index = audioState.currentAyahIndex;
     final ayahNumber = (index != null && index < ayahs.length)
@@ -148,8 +151,8 @@ class AudioPlayerBottomBar extends ConsumerWidget {
                     fontSize: 14,
                   ),
                 ),
-                const Text(
-                  'Mishary Alafasy',
+                Text(
+                  audioVoice.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -200,7 +203,11 @@ class AudioPlayerBottomBar extends ConsumerWidget {
     );
   }
 
-  Widget _playPauseButton({IconData? icon, VoidCallback? onPressed, Widget? child}) {
+  Widget _playPauseButton({
+    IconData? icon,
+    VoidCallback? onPressed,
+    Widget? child,
+  }) {
     return GestureDetector(
       onTap: onPressed,
       child: Container(

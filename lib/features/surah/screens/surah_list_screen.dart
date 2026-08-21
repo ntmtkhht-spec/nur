@@ -7,6 +7,17 @@ import '../providers/quran_progress_provider.dart';
 import '../providers/surah_provider.dart';
 import 'surah_screen.dart';
 
+int _completedAyahsFor(QuranReadingProgress progress, SurahInfo surah) {
+  final prefix = '${surah.number}:';
+  return progress.readAyahIds.where((id) {
+    if (!id.startsWith(prefix)) return false;
+    final ayahNumber = int.tryParse(id.substring(prefix.length));
+    return ayahNumber != null &&
+        ayahNumber >= 1 &&
+        ayahNumber <= surah.numberOfAyahs;
+  }).length;
+}
+
 class SurahListScreen extends ConsumerStatefulWidget {
   const SurahListScreen({super.key});
 
@@ -283,9 +294,19 @@ class _ReadingList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final startedSurahs = surahs.where((surah) {
+      final completed = _completedAyahsFor(progress, surah);
+      final hasPosition = progress.lastPosition?.surahNumber == surah.number;
+      return completed < surah.numberOfAyahs && (completed > 0 || hasPosition);
+    }).toList();
+
     final items = <Widget>[
-      if (progress.lastPosition != null)
-        _ContinueReadingCard(position: progress.lastPosition!, onOpen: onOpen),
+      if (startedSurahs.isNotEmpty)
+        _StartedReadingGrid(
+          surahs: startedSurahs,
+          progress: progress,
+          onOpen: onOpen,
+        ),
       if (surahs.isEmpty)
         const _NoSurahResults()
       else
@@ -310,115 +331,135 @@ class _ReadingList extends StatelessWidget {
   }
 }
 
-class _ContinueReadingCard extends ConsumerWidget {
-  final QuranReadingPosition position;
+class _StartedReadingGrid extends StatelessWidget {
+  final List<SurahInfo> surahs;
+  final QuranReadingProgress progress;
   final void Function(int number, {int? resumeAtAyah}) onOpen;
 
-  const _ContinueReadingCard({required this.position, required this.onOpen});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final surahAsync = ref.watch(surahProvider(position.surahNumber));
-    return Material(
-      color: AppColors.white,
-      borderRadius: AppRadius.circularLg,
-      child: InkWell(
-        borderRadius: AppRadius.circularLg,
-        onTap: () =>
-            onOpen(position.surahNumber, resumeAtAyah: position.ayahNumber),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: surahAsync.when(
-            loading: () => const SizedBox(
-              height: 54,
-              child: Center(
-                child: CircularProgressIndicator(color: AppColors.primaryGreen),
-              ),
-            ),
-            error: (_, _) => _ContinueReadingText(
-              title: 'Weiterlesen',
-              subtitle:
-                  'Sura ${position.surahNumber} · Vers ${position.ayahNumber}',
-              onTap: () => onOpen(
-                position.surahNumber,
-                resumeAtAyah: position.ayahNumber,
-              ),
-            ),
-            data: (surah) {
-              final ayah = position.ayahNumber <= surah.ayahs.length
-                  ? surah.ayahs[position.ayahNumber - 1]
-                  : null;
-              return _ContinueReadingText(
-                title: 'Weiterlesen · ${surah.englishName}',
-                subtitle: ayah?.arabicText ?? 'Vers ${position.ayahNumber}',
-                onTap: () => onOpen(
-                  position.surahNumber,
-                  resumeAtAyah: position.ayahNumber,
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ContinueReadingText extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  const _ContinueReadingText({
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
+  const _StartedReadingGrid({
+    required this.surahs,
+    required this.progress,
+    required this.onOpen,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final gap = AppSpacing.sm;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: AppColors.cardBg,
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-          ),
-          child: const Icon(
-            Icons.menu_book_outlined,
-            color: AppColors.darkGreen,
+        Text(
+          'Begonnene Suren',
+          style: TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
           ),
         ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
+        const SizedBox(height: AppSpacing.xs),
+        const Divider(height: 1, thickness: 1, color: AppColors.cardBg),
+        const SizedBox(height: AppSpacing.sm),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final width = (constraints.maxWidth - gap) / 2;
+            final tiles = surahs
+                .map(
+                  (surah) => SizedBox(
+                    width: width,
+                    child: _StartedSurahCard(
+                      surah: surah,
+                      progress: progress,
+                      onOpen: onOpen,
+                    ),
+                  ),
+                )
+                .toList();
+
+            return Wrap(spacing: gap, runSpacing: gap, children: tiles);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _StartedSurahCard extends StatelessWidget {
+  final SurahInfo surah;
+  final QuranReadingProgress progress;
+  final void Function(int number, {int? resumeAtAyah}) onOpen;
+
+  const _StartedSurahCard({
+    required this.surah,
+    required this.progress,
+    required this.onOpen,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final completed = _completedAyahsFor(progress, surah);
+    final lastPosition = progress.lastPosition;
+    final resumeAtAyah = lastPosition?.surahNumber == surah.number
+        ? lastPosition?.ayahNumber
+        : null;
+
+    return Material(
+      color: AppColors.white,
+      borderRadius: AppRadius.circularMd,
+      child: InkWell(
+        borderRadius: AppRadius.circularMd,
+        onTap: () => onOpen(surah.number, resumeAtAyah: resumeAtAyah),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.sm),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${surah.number}',
+                    style: const TextStyle(
+                      fontFamily: 'serif',
+                      color: AppColors.darkGreen,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  const Icon(
+                    Icons.arrow_forward,
+                    size: 18,
+                    color: AppColors.primaryGreen,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
               Text(
-                title,
+                surah.englishName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontWeight: FontWeight.w800,
                   color: AppColors.textDark,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 2),
               Text(
-                subtitle,
+                '$completed/${surah.numberOfAyahs} Verse gelesen',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                textDirection: TextDirection.rtl,
-                style: const TextStyle(color: AppColors.textMuted),
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(width: AppSpacing.xs),
-        const Icon(Icons.arrow_forward, color: AppColors.primaryGreen),
-      ],
+      ),
     );
   }
 }
@@ -557,8 +598,7 @@ class _ProgressTab extends StatelessWidget {
       1,
     );
     final readSurahs = surahs.where((surah) {
-      final prefix = '${surah.number}:';
-      return progress.readAyahIds.any((id) => id.startsWith(prefix));
+      return _completedAyahsFor(progress, surah) > 0;
     }).toList();
 
     return ListView(
@@ -596,9 +636,9 @@ class _ProgressTab extends StatelessWidget {
           for (final surah in readSurahs) ...[
             _SurahProgressRow(
               surah: surah,
-              completed: progress.readAyahIds
-                  .where((id) => id.startsWith('${surah.number}:'))
-                  .length,
+              completed: _completedAyahsFor(progress, surah),
+              isCompleted:
+                  _completedAyahsFor(progress, surah) >= surah.numberOfAyahs,
               onTap: () => onOpen(surah.number),
             ),
             const SizedBox(height: AppSpacing.xs),
@@ -665,11 +705,13 @@ class _ProgressSummaryCard extends StatelessWidget {
 class _SurahProgressRow extends StatelessWidget {
   final SurahInfo surah;
   final int completed;
+  final bool isCompleted;
   final VoidCallback onTap;
 
   const _SurahProgressRow({
     required this.surah,
     required this.completed,
+    required this.isCompleted,
     required this.onTap,
   });
 
@@ -697,9 +739,23 @@ class _SurahProgressRow extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                '$completed / ${surah.numberOfAyahs}',
-                style: const TextStyle(color: AppColors.textMuted),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '$completed / ${surah.numberOfAyahs}',
+                    style: const TextStyle(color: AppColors.textMuted),
+                  ),
+                  if (isCompleted)
+                    const Text(
+                      'Abgeschlossen',
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                ],
               ),
             ],
           ),

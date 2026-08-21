@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
 import '../models/ayah_model.dart';
+import 'quran_cache_store.dart';
 
 class QuranTranslationSource {
   final String edition;
@@ -13,6 +15,12 @@ class QuranTranslationSource {
 
 class SurahService {
   static const String _baseUrl = 'https://api.alquran.cloud/v1';
+  static const _networkTimeout = Duration(seconds: 8);
+
+  final QuranCacheStore _cache;
+  final Set<String> _refreshesInFlight = <String>{};
+
+  SurahService({QuranCacheStore? cache}) : _cache = cache ?? QuranCacheStore();
 
   /// Published translation editions exposed by Al Quran Cloud.
   static const Map<String, QuranTranslationSource> translationSources = {
@@ -40,13 +48,26 @@ class SurahService {
   }
 
   Future<List<SurahInfo>> getAllSurahs() async {
-    final response = await http.get(Uri.parse('$_baseUrl/surah'));
+    final cached = await _cache.readSurahList();
+    if (cached != null) {
+      _refreshListInBackground();
+      return cached;
+    }
+    return _fetchAndCacheList();
+  }
+
+  Future<List<SurahInfo>> _fetchAndCacheList() async {
+    final response = await http
+        .get(Uri.parse('$_baseUrl/surah'))
+        .timeout(_networkTimeout);
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
-      final List<dynamic> data = json['data'];
-
-      return data
+      final data = json['data'];
+      if (data is! List || data.length != 114) {
+        throw Exception('Invalid Quran API response: surah list');
+      }
+      final surahs = data
           .map(
             (surah) => SurahInfo(
               number: surah['number'],
@@ -58,12 +79,52 @@ class SurahService {
             ),
           )
           .toList();
+      if (surahs.asMap().entries.any(
+        (entry) => entry.value.number != entry.key + 1,
+      )) {
+        throw Exception('Invalid Quran API response: surah order');
+      }
+      try {
+        await _cache.writeSurahList(surahs);
+      } catch (_) {
+        // A cache write must never make valid network data unusable.
+      }
+      return surahs;
     } else {
       throw Exception('Failed to load Surahs list');
     }
   }
 
-  Future<Surah> getSurah(int surahNumber, {String languageCode = 'de'}) async {
+  Future<Surah> getSurah(
+    int surahNumber, {
+    String languageCode = 'de',
+    String audioEdition = 'ar.alafasy',
+  }) async {
+    final cached = await _cache.readSurah(
+      surahNumber: surahNumber,
+      languageCode: languageCode,
+      audioEdition: audioEdition,
+    );
+    if (cached != null) {
+      _refreshSurahInBackground(
+        surahNumber: surahNumber,
+        languageCode: languageCode,
+        audioEdition: audioEdition,
+      );
+      return cached;
+    }
+    return _fetchAndCacheSurah(
+      surahNumber,
+      languageCode: languageCode,
+      audioEdition: audioEdition,
+    );
+  }
+
+  Future<Surah> _fetchAndCacheSurah(
+    int surahNumber, {
+    required String languageCode,
+    required String audioEdition,
+  }) async {
     if (surahNumber < 1 || surahNumber > 114) {
       throw ArgumentError.value(surahNumber, 'surahNumber');
     }
@@ -72,14 +133,16 @@ class SurahService {
     final requestedEditions = [
       'quran-uthmani',
       if (translationSource != null) translationSource.edition,
-      'ar.alafasy',
+      audioEdition,
       'en.transliteration',
     ];
-    final response = await http.get(
-      Uri.parse(
-        '$_baseUrl/surah/$surahNumber/editions/${requestedEditions.join(',')}',
-      ),
-    );
+    final response = await http
+        .get(
+          Uri.parse(
+            '$_baseUrl/surah/$surahNumber/editions/${requestedEditions.join(',')}',
+          ),
+        )
+        .timeout(_networkTimeout);
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load Surah');
@@ -110,7 +173,7 @@ class SurahService {
     }
 
     final arabicEdition = editionFor('quran-uthmani');
-    final audioEdition = editionFor('ar.alafasy');
+    final audioEditionData = editionFor(audioEdition);
     final transliterationEdition = editionFor('en.transliteration');
     final translationEdition = translationSource == null
         ? null
@@ -123,7 +186,7 @@ class SurahService {
     );
 
     final arabicAyahs = _indexAyahs(arabicEdition, 'Arabic');
-    final audioAyahs = _indexAyahs(audioEdition, 'audio');
+    final audioAyahs = _indexAyahs(audioEditionData, 'audio');
     final transliterationAyahs = _indexAyahs(
       transliterationEdition,
       'transliteration',
@@ -158,13 +221,59 @@ class SurahService {
       );
     }
 
-    return Surah(
+    final surah = Surah(
       number: surahNumber,
       name: name,
       englishName: englishName,
       translationSource: translationSource?.credit,
       ayahs: ayahs,
     );
+    try {
+      await _cache.writeSurah(
+        surah: surah,
+        languageCode: languageCode,
+        audioEdition: audioEdition,
+      );
+    } catch (_) {
+      // The fetched content remains usable even if the device cache is full
+      // or temporarily unavailable.
+    }
+    return surah;
+  }
+
+  void _refreshListInBackground() {
+    if (!_refreshesInFlight.add('list')) return;
+    unawaited(() async {
+      try {
+        await _fetchAndCacheList();
+      } catch (_) {
+        // Cached content is intentionally retained while offline.
+      } finally {
+        _refreshesInFlight.remove('list');
+      }
+    }());
+  }
+
+  void _refreshSurahInBackground({
+    required int surahNumber,
+    required String languageCode,
+    required String audioEdition,
+  }) {
+    final key = 'surah:$surahNumber:$languageCode:$audioEdition';
+    if (!_refreshesInFlight.add(key)) return;
+    unawaited(() async {
+      try {
+        await _fetchAndCacheSurah(
+          surahNumber,
+          languageCode: languageCode,
+          audioEdition: audioEdition,
+        );
+      } catch (_) {
+        // Cached content is intentionally retained while offline.
+      } finally {
+        _refreshesInFlight.remove(key);
+      }
+    }());
   }
 
   static Map<int, Map<String, dynamic>> _indexAyahs(

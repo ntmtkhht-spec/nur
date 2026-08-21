@@ -7,18 +7,28 @@ import 'ayah_number_ornament.dart';
 
 class VerseCard extends ConsumerWidget {
   final Ayah ayah;
+  final bool isAudioActive;
 
-  const VerseCard({super.key, required this.ayah});
+  const VerseCard({super.key, required this.ayah, this.isAudioActive = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final prefs = ref.watch(quranReadingPrefsProvider);
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 30),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.cardBg, width: 1)),
+      decoration: BoxDecoration(
+        // A light tint keeps the reading view continuous while making the
+        // ayah currently spoken by the reciter easy to follow.
+        color: isAudioActive
+            ? AppColors.goldLight.withValues(alpha: 0.32)
+            : Colors.transparent,
+        border: const Border(
+          bottom: BorderSide(color: AppColors.cardBg, width: 1),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
