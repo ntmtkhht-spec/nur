@@ -138,6 +138,32 @@ class TasbihNotifier extends Notifier<TasbihState> {
     state = next;
     _persist(next);
   }
+
+  /// Drops everything, lifetime total included.
+  ///
+  /// Used when the device stops belonging to an account — signing out or
+  /// deleting it — not by the in-app reset button, which keeps the total.
+  Future<void> clear() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.remove(_countKey);
+    await prefs.remove(_roundKey);
+    await prefs.remove(_lifetimeKey);
+    await prefs.remove(_dhikrKey);
+    state = TasbihState(selectedDhikr: defaultDhikrs.first);
+  }
+
+  /// Folds a lifetime total coming from another device into the local one.
+  ///
+  /// The higher number wins rather than the newer one: a device that has
+  /// been offline for a while still holds a real count, and letting it
+  /// overwrite a larger total would silently discard recitations. The
+  /// prayer tracker merges for the same reason.
+  void mergeRemoteLifetime(int remoteLifetime) {
+    if (remoteLifetime <= state.lifetimeCount) return;
+    final next = state.copyWith(lifetimeCount: remoteLifetime);
+    state = next;
+    _persist(next);
+  }
 }
 
 final tasbihProvider = NotifierProvider<TasbihNotifier, TasbihState>(() {

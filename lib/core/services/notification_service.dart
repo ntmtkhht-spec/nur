@@ -11,13 +11,59 @@ class NotificationService {
   static final _plugin = FlutterLocalNotificationsPlugin();
   static bool _initialized = false;
 
+  /// How long before the next prayer the catch-up reminder goes out.
+  static const catchUpLeadTime = Duration(minutes: 30);
+
+  /// Order the five obligatory prayers run in, used to build stable ids.
+  static const _prayerOrder = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
+  /// Keeps catch-up ids clear of the prayer-time ones.
+  static const _catchUpIdOffset = 100000000;
+
+  /// A notification id that can be recomputed later from the same day and
+  /// prayer.
+  ///
+  /// Sequential ids would do for scheduling, but a catch-up reminder has to
+  /// be cancellable the moment its prayer is ticked off, and that happens
+  /// far away from the loop that created it.
+  static int notificationId(
+    DateTime day,
+    String prayerName, {
+    required bool catchUp,
+  }) {
+    // Built straight from the calendar date rather than a day count: an
+    // elapsed-days figure loses an hour at each daylight-saving change, and
+    // two calendar days then round to the same number — which handed two
+    // prayers the same id and let one silently replace the other.
+    final dayNumber = (day.year * 100 + day.month) * 100 + day.day;
+    final prayerIndex = _prayerOrder.indexOf(prayerName);
+    final base = dayNumber * 10 + (prayerIndex < 0 ? 9 : prayerIndex);
+    return catchUp ? base + _catchUpIdOffset : base;
+  }
+
+  /// Drops the catch-up reminder for one prayer.
+  ///
+  /// Called when the prayer is ticked off: the reminder was scheduled ahead
+  /// of time and cannot re-check that on its own when it fires.
+  static Future<void> cancelCatchUp(DateTime day, String prayerName) async {
+    await _ensureInitialized();
+    await _plugin.cancel(
+      id: notificationId(day, prayerName, catchUp: true),
+    );
+  }
+
   static Future<void> _ensureInitialized() async {
     if (_initialized) return;
     tzdata.initializeTimeZones();
     tz.setLocalLocation(tz.local);
 
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    // Not the launcher icon: Android builds the small notification icon from
+    // the alpha channel alone and paints it in one colour, so a full-colour
+    // launcher icon arrives as a featureless blob. ic_notification is the
+    // arch drawn as a white silhouette for exactly this.
+    const androidSettings = AndroidInitializationSettings(
+      '@drawable/ic_notification',
+    );
     const iosSettings = DarwinInitializationSettings();
 
     await _plugin.initialize(
@@ -86,6 +132,11 @@ class NotificationService {
     // Null means "all prayers" — the per-prayer settings toggle was never
     // wired to scheduling before, so it silently did nothing.
     Set<String>? enabledPrayers,
+    bool catchUpEnabled = true,
+    // Lets the catch-up reminder skip a prayer that is already ticked off.
+    // Passed as a predicate so this stays clear of how the tracker stores
+    // its entries.
+    bool Function(DateTime day, String prayerName)? isPrayerLogged,
   }) async {
     await _ensureInitialized();
     final l10n = await AppLocalizations.delegate.load(Locale(languageCode));
@@ -109,28 +160,77 @@ class NotificationService {
         channelDescription: l10n.notificationChannelDescription,
         importance: Importance.high,
         priority: Priority.high,
+        // Tints the silhouette and the surrounding dot in the app's green
+        // rather than the system default, so the reminder is recognisable
+        // in a crowded notification shade.
+        color: Color(0xFF16402D),
+        colorized: false,
+      ),
+      iOS: const DarwinNotificationDetails(),
+    );
+
+    final catchUpDetails = NotificationDetails(
+      android: AndroidNotificationDetails(
+        // Its own channel so it can be silenced from the system settings
+        // without losing the prayer times themselves.
+        'adhan_catchup_channel',
+        l10n.notificationCatchUpChannelName,
+        channelDescription: l10n.notificationCatchUpChannelDescription,
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        color: Color(0xFF16402D),
+        colorized: false,
       ),
       iOS: const DarwinNotificationDetails(),
     );
 
     final now = DateTime.now();
-    var id = 0;
+    final obligatory = prayers.where((p) => p.isPrayer).toList();
 
-    for (final prayer in prayers) {
-      if (!prayer.isPrayer) continue;
-      if (prayer.time.isBefore(now)) continue;
-      if (enabledPrayers != null && !enabledPrayers.contains(prayer.name)) {
-        continue;
+    for (var i = 0; i < obligatory.length; i++) {
+      final prayer = obligatory[i];
+      final enabled =
+          enabledPrayers == null || enabledPrayers.contains(prayer.name);
+
+      if (enabled && prayer.time.isAfter(now)) {
+        await _plugin.zonedSchedule(
+          id: notificationId(prayer.time, prayer.name, catchUp: false),
+          scheduledDate: tz.TZDateTime.from(prayer.time, tz.local),
+          title: l10n.notificationPrayerTimeTitle(
+            localizedPrayerName(l10n, prayer.name),
+          ),
+          body: _bodyFor(l10n, prayer.name),
+          notificationDetails: details,
+          androidScheduleMode: scheduleMode,
+        );
       }
 
+      if (!catchUpEnabled) continue;
+      // Isha is left out on purpose: the next prayer is the following
+      // morning's Fajr, so this would fire in the middle of the night.
+      if (prayer.name == 'Isha') continue;
+      // Someone who silenced this prayer does not want to be asked about it
+      // half an hour later either.
+      if (!enabled) continue;
+      if (i + 1 >= obligatory.length) continue;
+      if (isPrayerLogged?.call(prayer.time, prayer.name) ?? false) continue;
+
+      final next = obligatory[i + 1];
+      final catchUpAt = next.time.subtract(catchUpLeadTime);
+      // Nothing to remind about once the window has already closed.
+      if (!catchUpAt.isAfter(now)) continue;
+      if (!catchUpAt.isAfter(prayer.time)) continue;
+
       await _plugin.zonedSchedule(
-        id: id++,
-        scheduledDate: tz.TZDateTime.from(prayer.time, tz.local),
-        title: l10n.notificationPrayerTimeTitle(
+        id: notificationId(prayer.time, prayer.name, catchUp: true),
+        scheduledDate: tz.TZDateTime.from(catchUpAt, tz.local),
+        title: l10n.notificationCatchUpTitle(
           localizedPrayerName(l10n, prayer.name),
         ),
-        body: _bodyFor(l10n, prayer.name),
-        notificationDetails: details,
+        body: l10n.notificationCatchUpBody(
+          localizedPrayerName(l10n, next.name),
+        ),
+        notificationDetails: catchUpDetails,
         androidScheduleMode: scheduleMode,
       );
     }

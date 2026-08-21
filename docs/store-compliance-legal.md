@@ -59,7 +59,8 @@ Platzhalter in Impressum oder Datenschutz sind ein Rejection-Risiko.
 - Qur'an: Surah-Liste, Texte, Uebersetzungen, Transliteration und Audio von
   `https://api.alquran.cloud/v1`.
 - Konto: optional Google Sign-In/Firebase Auth.
-- Sync: Firebase Cloud Firestore speichert Tracker, Name, Sprache, updatedAt.
+- Sync: Firebase Cloud Firestore speichert Tracker, Tasbih-Gesamtzahl, Name,
+  Sprache, updatedAt.
 - Benachrichtigungen: lokal geplant, keine eigenen Push-Inhalte an Server.
 
 ## Quellen

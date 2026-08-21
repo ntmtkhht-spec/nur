@@ -15,6 +15,7 @@ import 'features/splash/splash_screen.dart';
 import 'features/surah/screens/surah_list_screen.dart';
 import 'features/tasbih/tasbih_screen.dart';
 import 'shared/widgets/app_bottom_nav.dart';
+import 'shared/widgets/prayer_celebration_overlay.dart';
 
 class MunirApp extends ConsumerWidget {
   const MunirApp({super.key});
@@ -89,7 +90,14 @@ class _MainShell extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: colors.background,
-      body: _bodyForIndex(currentIndex),
+      // The celebration sits above every tab: the day can be finished from
+      // the home card or the prayers list, and a milestone is reached once.
+      body: Stack(
+        children: [
+          _bodyForIndex(currentIndex),
+          const Positioned.fill(child: PrayerCelebrationOverlay()),
+        ],
+      ),
       bottomNavigationBar: AppBottomNav(
         currentIndex: currentIndex,
         onTap: (i) => ref.read(mainTabIndexProvider.notifier).select(i),

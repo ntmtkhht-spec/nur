@@ -62,6 +62,35 @@ class AppLocalizationsTr extends AppLocalizations {
   String get prayerNotYetDue => 'Bu namazın vakti henüz gelmedi.';
 
   @override
+  String get statsTitle => 'İstatistikler';
+
+  @override
+  String get statsStreakLabel => 'Gün üst üste';
+
+  @override
+  String get statsBestLabel => 'En iyi';
+
+  @override
+  String get statsWeekLabel => 'Son 7 gün';
+
+  @override
+  String get statsTotalLabel => 'Kaydedilen namaz';
+
+  @override
+  String statsWeekValue(int done) {
+    return '$done/7';
+  }
+
+  @override
+  String statsWeakest(String prayer) {
+    return 'Son zamanlarda en çok kaçan: $prayer';
+  }
+
+  @override
+  String get statsEmpty =>
+      'İlk namazını işaretle — rakamların burada görünecek.';
+
+  @override
   String get streakTitle => 'Namaz serin';
 
   @override
@@ -424,20 +453,46 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get notificationBodyFajr =>
-      'Gün sessizlikle başlıyor — senin için sakin bir an.';
+      'الصلاة خير من النوم\nNamaz uykudan hayırlıdır.';
 
   @override
   String get notificationBodyDhuhr =>
-      'Günden kısa bir mola. Durup nefes alma vakti.';
+      'Gün gürültülü oldu. Öğle, sessizleştiği andır — geçmeden onu al.';
 
   @override
-  String get notificationBodyAsr => 'Işık altın rengine dönüyor. Asr vakti.';
+  String get notificationBodyAsr =>
+      'Işık altın rengine dönüyor. Bu anı al ve ikindi namazını kıl.';
 
   @override
-  String get notificationBodyMaghrib => 'Güneş batıyor — bir şükür anı.';
+  String get notificationBodyMaghrib => 'Güneş battı. Bir şükür anı.';
 
   @override
-  String get notificationBodyIsha => 'Günü huzurla kapat.';
+  String get notificationBodyIsha =>
+      'Gün bitti, son namaz henüz değil. Uyumadan önce yatsıyı kıl.';
+
+  @override
+  String notificationCatchUpTitle(String prayer) {
+    return '$prayer vakti yakında bitiyor';
+  }
+
+  @override
+  String notificationCatchUpBody(String next) {
+    return '$next başlamadan önce kalan zamanı değerlendir.';
+  }
+
+  @override
+  String get notificationCatchUpChannelName => 'Açık namazlar';
+
+  @override
+  String get notificationCatchUpChannelDescription =>
+      'Bir namaz henüz kaydedilmediğinde hatırlatma';
+
+  @override
+  String get settingsCatchUpReminders => 'Açık namazları hatırlat';
+
+  @override
+  String get settingsCatchUpRemindersHint =>
+      'Henüz kayıt yoksa, sonraki namazdan 30 dakika önce';
 
   @override
   String get settingsMadhabShafiHint =>
@@ -617,7 +672,36 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get settingsDeleteAccountConfirm =>
-      'Hesabın gerçekten silinsin mi? Sunuculardaki geçmişin kalıcı olarak silinir. Bu cihazdaki veriler kalır.';
+      'Hesabın gerçekten silinsin mi? Geçmişin hem hesabından hem de bu cihazdan kalıcı olarak silinir. Bu geri alınamaz.';
+
+  @override
+  String get onboardingPrivacyLink => 'Gizlilik politikasını oku';
+
+  @override
+  String get adoptLocalDataTitle => 'Mevcut kayıtlar eklensin mi?';
+
+  @override
+  String get adoptLocalDataBody =>
+      'Bu cihazda henüz hiçbir hesaba ait olmayan kayıtlar var. Hesabına eklensin mi? Bu cihazı başkasından aldıysan onları sil.';
+
+  @override
+  String adoptLocalDataBodyCounted(int count) {
+    return 'Bu cihazda henüz hiçbir hesaba ait olmayan $count namaz kaydı var. Hesabına eklensin mi? Bu cihazı başkasından aldıysan onları sil.';
+  }
+
+  @override
+  String get adoptLocalDataKeep => 'Ekle';
+
+  @override
+  String get adoptLocalDataDiscard => 'Sil';
+
+  @override
+  String get settingsSignOutConfirm =>
+      'Çıkış yapılsın mı? Kayıtların önce hesabına yedeklenir, sonra bu cihazdan kaldırılır. Tekrar giriş yaptığında geri gelirler. Bunun için internet bağlantısı gerekir.';
+
+  @override
+  String get settingsSignOutNeedsConnection =>
+      'Çıkış yapmak için bağlantı gerekir – kayıtların önce hesabına yedeklenir. Lütfen daha sonra tekrar dene.';
 
   @override
   String settingsSignedInAs(String email) {

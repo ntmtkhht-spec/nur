@@ -194,6 +194,54 @@ abstract class AppLocalizations {
   /// **'Dieses Gebet liegt noch vor dir.'**
   String get prayerNotYetDue;
 
+  /// No description provided for @statsTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Statistiken'**
+  String get statsTitle;
+
+  /// No description provided for @statsStreakLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Tage in Folge'**
+  String get statsStreakLabel;
+
+  /// No description provided for @statsBestLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Bestwert'**
+  String get statsBestLabel;
+
+  /// No description provided for @statsWeekLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Letzte 7 Tage'**
+  String get statsWeekLabel;
+
+  /// No description provided for @statsTotalLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'Gebete erfasst'**
+  String get statsTotalLabel;
+
+  /// No description provided for @statsWeekValue.
+  ///
+  /// In de, this message translates to:
+  /// **'{done}/7'**
+  String statsWeekValue(int done);
+
+  /// No description provided for @statsWeakest.
+  ///
+  /// In de, this message translates to:
+  /// **'Fällt zuletzt am häufigsten aus: {prayer}'**
+  String statsWeakest(String prayer);
+
+  /// No description provided for @statsEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Hake dein erstes Gebet ab – hier erscheinen dann deine Zahlen.'**
+  String get statsEmpty;
+
   /// No description provided for @streakTitle.
   ///
   /// In de, this message translates to:
@@ -821,32 +869,68 @@ abstract class AppLocalizations {
   /// No description provided for @notificationBodyFajr.
   ///
   /// In de, this message translates to:
-  /// **'Der Tag beginnt in Stille — ein ruhiger Moment für dich.'**
+  /// **'الصلاة خير من النوم\nDas Gebet ist besser als der Schlaf.'**
   String get notificationBodyFajr;
 
   /// No description provided for @notificationBodyDhuhr.
   ///
   /// In de, this message translates to:
-  /// **'Eine kurze Pause vom Tag. Zeit, innezuhalten.'**
+  /// **'Der Tag ist laut geworden. Dhuhr ist der Moment, in dem es still wird — nimm ihn dir, bevor er vergeht.'**
   String get notificationBodyDhuhr;
 
   /// No description provided for @notificationBodyAsr.
   ///
   /// In de, this message translates to:
-  /// **'Das Licht wird golden. Zeit für dein Asr-Gebet.'**
+  /// **'Das Licht wird golden. Nimm dir diesen Moment und verrichte dein Asr-Gebet.'**
   String get notificationBodyAsr;
 
   /// No description provided for @notificationBodyMaghrib.
   ///
   /// In de, this message translates to:
-  /// **'Die Sonne geht unter — ein Moment der Dankbarkeit.'**
+  /// **'Die Sonne ist untergegangen. Ein Moment der Dankbarkeit.'**
   String get notificationBodyMaghrib;
 
   /// No description provided for @notificationBodyIsha.
   ///
   /// In de, this message translates to:
-  /// **'Lass den Tag ruhig ausklingen.'**
+  /// **'Der Tag ist zu Ende, das letzte Gebet noch nicht. Verrichte Isha, bevor du schlafen gehst.'**
   String get notificationBodyIsha;
+
+  /// No description provided for @notificationCatchUpTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'{prayer} geht bald zu Ende'**
+  String notificationCatchUpTitle(String prayer);
+
+  /// No description provided for @notificationCatchUpBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Nutze die verbleibende Zeit, bevor {next} beginnt.'**
+  String notificationCatchUpBody(String next);
+
+  /// No description provided for @notificationCatchUpChannelName.
+  ///
+  /// In de, this message translates to:
+  /// **'Offene Gebete'**
+  String get notificationCatchUpChannelName;
+
+  /// No description provided for @notificationCatchUpChannelDescription.
+  ///
+  /// In de, this message translates to:
+  /// **'Erinnerung, wenn ein Gebet noch nicht eingetragen ist'**
+  String get notificationCatchUpChannelDescription;
+
+  /// No description provided for @settingsCatchUpReminders.
+  ///
+  /// In de, this message translates to:
+  /// **'Erinnerung an offene Gebete'**
+  String get settingsCatchUpReminders;
+
+  /// No description provided for @settingsCatchUpRemindersHint.
+  ///
+  /// In de, this message translates to:
+  /// **'30 Minuten vor dem nächsten Gebet, wenn noch nichts eingetragen ist'**
+  String get settingsCatchUpRemindersHint;
 
   /// No description provided for @settingsMadhabShafiHint.
   ///
@@ -1169,8 +1253,56 @@ abstract class AppLocalizations {
   /// No description provided for @settingsDeleteAccountConfirm.
   ///
   /// In de, this message translates to:
-  /// **'Konto wirklich löschen? Dein Verlauf auf den Servern wird endgültig gelöscht. Die Daten auf diesem Gerät bleiben erhalten.'**
+  /// **'Konto wirklich löschen? Dein Verlauf wird endgültig gelöscht – im Konto und auf diesem Gerät. Das lässt sich nicht rückgängig machen.'**
   String get settingsDeleteAccountConfirm;
+
+  /// No description provided for @onboardingPrivacyLink.
+  ///
+  /// In de, this message translates to:
+  /// **'Datenschutzerklärung lesen'**
+  String get onboardingPrivacyLink;
+
+  /// No description provided for @adoptLocalDataTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Bisherige Einträge übernehmen?'**
+  String get adoptLocalDataTitle;
+
+  /// No description provided for @adoptLocalDataBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Auf diesem Gerät sind Einträge gespeichert, die noch zu keinem Konto gehören. Sollen sie zu deinem Konto hinzugefügt werden? Wenn du dieses Gerät von jemand anderem hast, verwirf sie.'**
+  String get adoptLocalDataBody;
+
+  /// No description provided for @adoptLocalDataBodyCounted.
+  ///
+  /// In de, this message translates to:
+  /// **'Auf diesem Gerät sind {count} erfasste Gebete gespeichert, die noch zu keinem Konto gehören. Sollen sie zu deinem Konto hinzugefügt werden? Wenn du dieses Gerät von jemand anderem hast, verwirf sie.'**
+  String adoptLocalDataBodyCounted(int count);
+
+  /// No description provided for @adoptLocalDataKeep.
+  ///
+  /// In de, this message translates to:
+  /// **'Übernehmen'**
+  String get adoptLocalDataKeep;
+
+  /// No description provided for @adoptLocalDataDiscard.
+  ///
+  /// In de, this message translates to:
+  /// **'Verwerfen'**
+  String get adoptLocalDataDiscard;
+
+  /// No description provided for @settingsSignOutConfirm.
+  ///
+  /// In de, this message translates to:
+  /// **'Abmelden? Deine Einträge werden zuerst in deinem Konto gesichert und dann von diesem Gerät entfernt. Bei der nächsten Anmeldung sind sie wieder da. Dafür ist eine Internetverbindung nötig.'**
+  String get settingsSignOutConfirm;
+
+  /// No description provided for @settingsSignOutNeedsConnection.
+  ///
+  /// In de, this message translates to:
+  /// **'Zum Abmelden brauchst du eine Verbindung – deine Einträge werden vorher in deinem Konto gesichert. Bitte versuch es später noch einmal.'**
+  String get settingsSignOutNeedsConnection;
 
   /// No description provided for @settingsSignedInAs.
   ///

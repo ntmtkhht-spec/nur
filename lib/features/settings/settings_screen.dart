@@ -12,12 +12,14 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/config/feature_flags.dart';
 import '../../core/i18n/prayer_names.dart';
 import '../../core/providers/providers.dart';
+import '../../core/services/account_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/sync_service.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/prayer_icons.dart';
 import '../../core/theme/app_tokens.dart';
+import '../../shared/widgets/adopt_local_data_dialog.dart';
 import '../legal/legal_document_screen.dart';
 import '../mosques/providers/mosques_provider.dart';
 import 'widgets/option_picker.dart';
@@ -195,12 +197,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _signIn(Future<User?> Function() signIn) async {
     try {
-      final user = await signIn();
+      // AccountService owns the order: clear a previous account's entries,
+      // ask about unclaimed ones, pull, push, record the owner.
+      final user = await ref
+          .read(accountServiceProvider)
+          .signIn(
+            signIn,
+            onUnclaimedActivity: (count) =>
+                showAdoptLocalDataDialog(context, count),
+          );
       if (user == null) return; // dismissed, not an error
-      // Pull first so a fresh device inherits what is already stored, then
-      // push so the server learns about anything recorded offline.
-      await ref.read(syncServiceProvider).pull(user.uid);
-      await ref.read(syncServiceProvider).push(user.uid);
       if (mounted) _toast(l10n.settingsSyncDone);
     } catch (e, stack) {
       // Surfaced in debug builds: a silent failure here is impossible to
@@ -223,8 +229,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  /// Signing out clears this device, so it asks first and makes sure the
+  /// entries are safely in the account before letting go of them.
   Future<void> _signOut() async {
-    await ref.read(authServiceProvider).signOut();
+    final confirmed = await _confirm(
+      l10n.settingsSignOut,
+      l10n.settingsSignOutConfirm,
+      l10n.settingsSignOut,
+    );
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(accountServiceProvider).signOut();
+    } on SignOutNotSyncedException catch (e) {
+      // Nothing was cleared. Staying signed in is the safe outcome: the
+      // entries are still here, and signing out later will save them.
+      debugPrint('Sign-out refused, could not sync: $e');
+      if (mounted) _toast(l10n.settingsSignOutNeedsConnection);
+    }
   }
 
   Future<void> _deleteAccount() async {
@@ -236,7 +258,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (confirmed != true) return;
 
     try {
-      await ref.read(authServiceProvider).deleteAccount();
+      await ref.read(accountServiceProvider).deleteAccount();
       if (mounted) _toast(l10n.settingsAccountDeleted);
     } catch (_) {
       if (mounted) _toast(l10n.settingsSignInFailed);
@@ -341,6 +363,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
           ),
         ),
+        // Only meaningful while reminders are on at all: it never fires for
+        // a prayer whose own reminder is switched off.
+        if (enabled)
+          SettingsTile(
+            icon: Icons.pending_actions_outlined,
+            label: l10n.settingsCatchUpReminders,
+            subtitle: l10n.settingsCatchUpRemindersHint,
+            trailing: Switch(
+              value: ref.watch(catchUpRemindersProvider),
+              onChanged: (v) =>
+                  ref.read(catchUpRemindersProvider.notifier).set(v),
+            ),
+          ),
         // Per-prayer switches only matter while the master switch is on.
         if (enabled)
           for (final p in prayers)

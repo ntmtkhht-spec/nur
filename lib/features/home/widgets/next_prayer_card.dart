@@ -188,7 +188,11 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
                       color: colors.accentGold,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xl),
+                  // Flexible rather than fixed: the card sits in a
+                  // carousel of a set height, and the gap above the bar is
+                  // what absorbs a longer countdown or a larger system font.
+                  const Spacer(),
+                  const SizedBox(height: AppSpacing.md),
                   ClipRRect(
                     borderRadius: AppRadius.circularSm,
                     child: LinearProgressIndicator(

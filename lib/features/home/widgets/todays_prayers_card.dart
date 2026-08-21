@@ -35,32 +35,12 @@ class TodaysPrayersCard extends ConsumerStatefulWidget {
   ConsumerState<TodaysPrayersCard> createState() => _TodaysPrayersCardState();
 }
 
-class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard>
-    with SingleTickerProviderStateMixin {
+class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard> {
   Timer? _ticker;
-  Timer? _celebrationCleanup;
-  late final AnimationController _celebrationController;
-  int? _lastCompleted;
-  String? _lastLogicalDateKey;
-  String? _celebratedDateKey;
-  bool _showCompletionPraise = false;
-
-  /// Set when the day that was just completed also closed a streak
-  /// milestone, so the banner can say so instead of the usual daily line.
-  int? _praiseMilestone;
 
   @override
   void initState() {
     super.initState();
-    _celebrationController =
-        AnimationController(
-          vsync: this,
-          duration: const Duration(milliseconds: 1900),
-        )..addStatusListener((status) {
-          if (status == AnimationStatus.completed && mounted) {
-            setState(() => _showCompletionPraise = false);
-          }
-        });
     // Prayer times pass while the home screen sits open, so a circle has to be
     // able to move from "upcoming" to "open" without the user leaving the tab.
     _ticker = Timer.periodic(
@@ -72,8 +52,6 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard>
   @override
   void dispose() {
     _ticker?.cancel();
-    _celebrationCleanup?.cancel();
-    _celebrationController.dispose();
     super.dispose();
   }
 
@@ -87,57 +65,6 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard>
           behavior: SnackBarBehavior.floating,
         ),
       );
-  }
-
-  void _maybeCelebrateCompletion({
-    required DateTime logicalDate,
-    required int completed,
-    required int total,
-    required int streak,
-  }) {
-    final dateKey =
-        '${logicalDate.year}_${logicalDate.month}_${logicalDate.day}';
-
-    if (_lastLogicalDateKey != dateKey) {
-      _lastLogicalDateKey = dateKey;
-      _lastCompleted = completed;
-      return;
-    }
-
-    final reachedFullProgress =
-        total > 0 &&
-        completed == total &&
-        (_lastCompleted ?? completed) < total;
-    _lastCompleted = completed;
-
-    if (!reachedFullProgress || _celebratedDateKey == dateKey) return;
-
-    _celebratedDateKey = dateKey;
-    // Completing the day is what moves the streak, so a milestone can only
-    // ever be closed at this exact moment.
-    final milestone = milestoneReachedAt(streak);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _celebrationCleanup?.cancel();
-      setState(() {
-        _praiseMilestone = milestone;
-        _showCompletionPraise = true;
-      });
-      // The controller drives the fade, so it has to outlast the same
-      // beat the cleanup timer is waiting for.
-      _celebrationController.duration = Duration(
-        milliseconds: milestone == null ? 1900 : 2900,
-      );
-      _celebrationController.forward(from: 0);
-      // A milestone is rarer and carries more text, so it stays up longer.
-      _celebrationCleanup = Timer(
-        Duration(milliseconds: milestone == null ? 2200 : 3200),
-        () {
-          if (mounted) setState(() => _showCompletionPraise = false);
-        },
-      );
-    });
   }
 
   @override
@@ -168,240 +95,67 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard>
         .length;
     final total = prayers.length;
     final percent = total == 0 ? 0 : (completed / total * 100).round();
-    _maybeCelebrateCompletion(
-      logicalDate: logicalDate,
-      completed: completed,
-      total: total,
-      streak: ref.watch(currentStreakProvider),
-    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: colors.cardBg,
-              borderRadius: AppRadius.circularLg,
-              boxShadow: AppShadows.sm,
-            ),
-            child: Material(
-              color: Colors.transparent,
-              borderRadius: AppRadius.circularLg,
-              child: InkWell(
-                borderRadius: AppRadius.circularLg,
-                onTap: () => ref
-                    .read(mainTabIndexProvider.notifier)
-                    .select(prayersTabIndex),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Column(
+      child: Container(
+        decoration: BoxDecoration(
+          color: colors.cardBg,
+          borderRadius: AppRadius.circularLg,
+          boxShadow: AppShadows.sm,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: AppRadius.circularLg,
+          child: InkWell(
+            borderRadius: AppRadius.circularLg,
+            onTap: () =>
+                ref.read(mainTabIndexProvider.notifier).select(prayersTabIndex),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Header(
+                    strings: strings,
+                    completed: completed,
+                    total: total,
+                    streak: ref.watch(currentStreakProvider),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _Header(
-                        strings: strings,
-                        completed: completed,
-                        total: total,
-                        streak: ref.watch(currentStreakProvider),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (final p in prayers)
-                            Flexible(
-                              child: _PrayerCheck(
-                                prayer: p,
-                                state: stateOf(p),
-                                icon: prayerIcons[p.name] ?? fallbackPrayerIcon,
-                                // A prayer whose time has not arrived yet
-                                // cannot have been performed. Say so rather
-                                // than leaving the tap to fall through to the
-                                // card underneath, which would navigate away.
-                                onTap: stateOf(p) == _PrayerState.upcoming
-                                    ? () => _showNotYetDue(context, strings)
-                                    : () => ref
-                                          .read(prayerTrackerProvider.notifier)
-                                          .toggle(logicalDate, p.name),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      _OverallProgress(strings: strings, percent: percent),
+                      for (final p in prayers)
+                        Flexible(
+                          child: _PrayerCheck(
+                            prayer: p,
+                            state: stateOf(p),
+                            icon: prayerIcons[p.name] ?? fallbackPrayerIcon,
+                            // A prayer whose time has not arrived yet cannot
+                            // have been performed. Say so rather than leaving
+                            // the tap to fall through to the card underneath,
+                            // which would navigate away.
+                            onTap: stateOf(p) == _PrayerState.upcoming
+                                ? () => _showNotYetDue(context, strings)
+                                : () => ref
+                                      .read(prayerTrackerProvider.notifier)
+                                      .toggle(logicalDate, p.name),
+                          ),
+                        ),
                     ],
                   ),
-                ),
+                  const SizedBox(height: AppSpacing.md),
+                  _OverallProgress(strings: strings, percent: percent),
+                ],
               ),
             ),
           ),
-          if (_showCompletionPraise)
-            Positioned.fill(
-              child: IgnorePointer(
-                child: _CompletionPraise(
-                  controller: _celebrationController,
-                  colors: colors,
-                  title: _praiseMilestone == null
-                      ? strings.praiseTitle
-                      : strings.streakMilestoneTitle,
-                  body: _praiseMilestone == null
-                      ? strings.praiseAllPrayers(completed, total)
-                      : strings.streakMilestoneBody(_praiseMilestone!),
-                ),
-              ),
-            ),
-        ],
+        ),
       ),
     );
   }
-}
-
-class _CompletionPraise extends StatelessWidget {
-  final Animation<double> controller;
-  final AppColorsExtension colors;
-  final String title;
-  final String body;
-
-  const _CompletionPraise({
-    required this.controller,
-    required this.colors,
-    required this.title,
-    required this.body,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        final t = controller.value;
-        final enter = Curves.easeOutBack.transform((t / 0.34).clamp(0.0, 1.0));
-        final exit =
-            1 - Curves.easeIn.transform(((t - 0.74) / 0.26).clamp(0.0, 1.0));
-        final sparkle = Curves.easeOut.transform((t / 0.55).clamp(0.0, 1.0));
-
-        return Opacity(
-          opacity: (enter * exit).clamp(0.0, 1.0),
-          child: Transform.translate(
-            offset: Offset(0, -8 * enter),
-            child: Transform.scale(
-              scale: 0.86 + (0.14 * enter),
-              child: Center(
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  alignment: Alignment.center,
-                  children: [
-                    for (final particle in _praiseParticles)
-                      Transform.translate(
-                        offset: Offset(
-                          particle.dx * sparkle,
-                          particle.dy * sparkle,
-                        ),
-                        child: Transform.rotate(
-                          angle: particle.angle * sparkle,
-                          child: Icon(
-                            Icons.auto_awesome,
-                            size: particle.size,
-                            color: colors.accentGold.withValues(
-                              alpha: 0.85 * exit,
-                            ),
-                          ),
-                        ),
-                      ),
-                    Container(
-                      constraints: const BoxConstraints(maxWidth: 230),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.sm,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colors.darkGreen,
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(
-                          color: colors.accentGold.withValues(alpha: 0.55),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: colors.darkGreen.withValues(alpha: 0.24),
-                            blurRadius: 18,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.check_circle,
-                            color: Colors.white,
-                            size: 22,
-                          ),
-                          const SizedBox(width: AppSpacing.xs),
-                          Flexible(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
-                                    height: 1.05,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  body,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-const _praiseParticles = [
-  _PraiseParticle(dx: -92, dy: -44, size: 15, angle: -0.4),
-  _PraiseParticle(dx: -68, dy: 38, size: 12, angle: 0.8),
-  _PraiseParticle(dx: 76, dy: -50, size: 16, angle: 0.5),
-  _PraiseParticle(dx: 88, dy: 34, size: 13, angle: -0.7),
-];
-
-class _PraiseParticle {
-  final double dx;
-  final double dy;
-  final double size;
-  final double angle;
-
-  const _PraiseParticle({
-    required this.dx,
-    required this.dy,
-    required this.size,
-    required this.angle,
-  });
 }
 
 class _Header extends StatelessWidget {
