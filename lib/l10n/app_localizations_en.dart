@@ -62,6 +62,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get prayerNotYetDue => 'This prayer is still ahead.';
 
   @override
+  String get streakTitle => 'Your prayer streak';
+
+  @override
+  String streakDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days in a row',
+      one: '1 day in a row',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakBest(int count) {
+    return 'Best: $count';
+  }
+
+  @override
+  String get streakMilestoneTitle => 'Milestone reached!';
+
+  @override
+  String streakMilestoneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days in a row',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get praiseTitle => 'MashaAllah!';
+
+  @override
+  String praiseAllPrayers(int completed, int total) {
+    return '$completed/$total done';
+  }
+
+  @override
+  String tasbihTotal(int count) {
+    return '$count total';
+  }
+
+  @override
   String get prayerFajr => 'Fajr';
 
   @override
@@ -451,6 +496,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingLocationNotFound => 'Place not found.';
+
+  @override
+  String get onboardingLocationSearchFailed =>
+      'Search failed. Check your connection.';
 
   @override
   String get onboardingMethodHeading => 'Adjust prayer times';

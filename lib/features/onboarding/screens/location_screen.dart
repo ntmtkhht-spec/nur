@@ -53,6 +53,10 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
             isoCountryCode: data.isoCountryCode,
           );
     } catch (e) {
+      // GPS can still fail after the user has moved on — a denied permission
+      // or a device with no fix resolves late. Without this guard setState
+      // runs against a disposed State and throws.
+      if (!mounted) return;
       setState(() => _errorText = e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _isDetecting = false);
@@ -71,6 +75,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
     final l10n = AppLocalizations.of(context);
     try {
       final results = await Geocoding().locationFromAddress(query);
+      if (!mounted) return;
       if (results.isEmpty) {
         setState(() => _errorText = l10n.onboardingLocationNotFound);
         return;
@@ -82,7 +87,8 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
             lng: result.longitude,
           );
     } catch (_) {
-      setState(() => _errorText = 'Suche fehlgeschlagen. Prüfe deine Verbindung.');
+      if (!mounted) return;
+      setState(() => _errorText = l10n.onboardingLocationSearchFailed);
     } finally {
       if (mounted) setState(() => _isSearching = false);
     }
