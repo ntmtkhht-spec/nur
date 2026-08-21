@@ -194,6 +194,54 @@ abstract class AppLocalizations {
   /// **'Dieses Gebet liegt noch vor dir.'**
   String get prayerNotYetDue;
 
+  /// No description provided for @streakTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Gebets-Streak'**
+  String get streakTitle;
+
+  /// No description provided for @streakDays.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =1{1 Tag in Folge} other{{count} Tage in Folge}}'**
+  String streakDays(int count);
+
+  /// No description provided for @streakBest.
+  ///
+  /// In de, this message translates to:
+  /// **'Bester: {count}'**
+  String streakBest(int count);
+
+  /// No description provided for @streakMilestoneTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Meilenstein erreicht!'**
+  String get streakMilestoneTitle;
+
+  /// No description provided for @streakMilestoneBody.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, other{{count} Tage am Stück}}'**
+  String streakMilestoneBody(int count);
+
+  /// No description provided for @praiseTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'MashaAllah!'**
+  String get praiseTitle;
+
+  /// No description provided for @praiseAllPrayers.
+  ///
+  /// In de, this message translates to:
+  /// **'{completed}/{total} geschafft'**
+  String praiseAllPrayers(int completed, int total);
+
+  /// No description provided for @tasbihTotal.
+  ///
+  /// In de, this message translates to:
+  /// **'Insgesamt {count}'**
+  String tasbihTotal(int count);
+
   /// No description provided for @prayerFajr.
   ///
   /// In de, this message translates to:
@@ -901,6 +949,12 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Ort nicht gefunden.'**
   String get onboardingLocationNotFound;
+
+  /// No description provided for @onboardingLocationSearchFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Suche fehlgeschlagen. Prüfe deine Verbindung.'**
+  String get onboardingLocationSearchFailed;
 
   /// No description provided for @onboardingMethodHeading.
   ///

@@ -49,6 +49,52 @@
     }
   },
   "prayerNotYetDue": "Dieses Gebet liegt noch vor dir.",
+  "streakTitle": "Dein Gebets-Streak",
+  "streakDays": "{count, plural, =1{1 Tag in Folge} other{{count} Tage in Folge}}",
+  "@streakDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "streakBest": "Bester: {count}",
+  "@streakBest": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "streakMilestoneTitle": "Meilenstein erreicht!",
+  "streakMilestoneBody": "{count, plural, other{{count} Tage am Stück}}",
+  "@streakMilestoneBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "praiseTitle": "MashaAllah!",
+  "praiseAllPrayers": "{completed}/{total} geschafft",
+  "@praiseAllPrayers": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tasbihTotal": "Insgesamt {count}",
+  "@tasbihTotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "prayerFajr": "Fajr",
   "prayerSunrise": "Sonnenaufgang",
   "prayerDhuhr": "Dhuhr",
@@ -258,6 +304,7 @@
     }
   },
   "onboardingLocationNotFound": "Ort nicht gefunden.",
+  "onboardingLocationSearchFailed": "Suche fehlgeschlagen. Prüfe deine Verbindung.",
   "onboardingMethodHeading": "Gebetszeiten anpassen",
   "onboardingMethodSection": "BERECHNUNGSMETHODE",
   "onboardingMadhabSection": "ASR-BERECHNUNG (MADHAB)",

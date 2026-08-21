@@ -120,13 +120,25 @@ class TasbihScreen extends ConsumerWidget {
             const SizedBox(height: 32),
             
             Text(
-              '${state.round}. Runde',
+              l10n.tasbihRound(state.round),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primaryGreen,
               ),
             ),
+
+            if (state.lifetimeCount > 0) ...[
+              const SizedBox(height: 6),
+              Text(
+                l10n.tasbihTotal(state.lifetimeCount),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
             
             const SizedBox(height: 16),
             

@@ -45,6 +45,10 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard>
   String? _celebratedDateKey;
   bool _showCompletionPraise = false;
 
+  /// Set when the day that was just completed also closed a streak
+  /// milestone, so the banner can say so instead of the usual daily line.
+  int? _praiseMilestone;
+
   @override
   void initState() {
     super.initState();
@@ -89,6 +93,7 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard>
     required DateTime logicalDate,
     required int completed,
     required int total,
+    required int streak,
   }) {
     final dateKey =
         '${logicalDate.year}_${logicalDate.month}_${logicalDate.day}';
@@ -108,14 +113,30 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard>
     if (!reachedFullProgress || _celebratedDateKey == dateKey) return;
 
     _celebratedDateKey = dateKey;
+    // Completing the day is what moves the streak, so a milestone can only
+    // ever be closed at this exact moment.
+    final milestone = milestoneReachedAt(streak);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _celebrationCleanup?.cancel();
-      setState(() => _showCompletionPraise = true);
-      _celebrationController.forward(from: 0);
-      _celebrationCleanup = Timer(const Duration(milliseconds: 2200), () {
-        if (mounted) setState(() => _showCompletionPraise = false);
+      setState(() {
+        _praiseMilestone = milestone;
+        _showCompletionPraise = true;
       });
+      // The controller drives the fade, so it has to outlast the same
+      // beat the cleanup timer is waiting for.
+      _celebrationController.duration = Duration(
+        milliseconds: milestone == null ? 1900 : 2900,
+      );
+      _celebrationController.forward(from: 0);
+      // A milestone is rarer and carries more text, so it stays up longer.
+      _celebrationCleanup = Timer(
+        Duration(milliseconds: milestone == null ? 2200 : 3200),
+        () {
+          if (mounted) setState(() => _showCompletionPraise = false);
+        },
+      );
     });
   }
 
@@ -151,6 +172,7 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard>
       logicalDate: logicalDate,
       completed: completed,
       total: total,
+      streak: ref.watch(currentStreakProvider),
     );
 
     return Padding(
@@ -181,6 +203,7 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard>
                         strings: strings,
                         completed: completed,
                         total: total,
+                        streak: ref.watch(currentStreakProvider),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       Row(
@@ -220,6 +243,12 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard>
                 child: _CompletionPraise(
                   controller: _celebrationController,
                   colors: colors,
+                  title: _praiseMilestone == null
+                      ? strings.praiseTitle
+                      : strings.streakMilestoneTitle,
+                  body: _praiseMilestone == null
+                      ? strings.praiseAllPrayers(completed, total)
+                      : strings.streakMilestoneBody(_praiseMilestone!),
                 ),
               ),
             ),
@@ -232,8 +261,15 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard>
 class _CompletionPraise extends StatelessWidget {
   final Animation<double> controller;
   final AppColorsExtension colors;
+  final String title;
+  final String body;
 
-  const _CompletionPraise({required this.controller, required this.colors});
+  const _CompletionPraise({
+    required this.controller,
+    required this.colors,
+    required this.title,
+    required this.body,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -294,37 +330,37 @@ class _CompletionPraise extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.check_circle,
                             color: Colors.white,
                             size: 22,
                           ),
-                          SizedBox(width: AppSpacing.xs),
+                          const SizedBox(width: AppSpacing.xs),
                           Flexible(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'MashaAllah!',
+                                  title,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w800,
                                     height: 1.05,
                                   ),
                                 ),
-                                SizedBox(height: 2),
+                                const SizedBox(height: 2),
                                 Text(
-                                  '5/5 geschafft',
+                                  body,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: Colors.white70,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
@@ -372,11 +408,13 @@ class _Header extends StatelessWidget {
   final AppLocalizations strings;
   final int completed;
   final int total;
+  final int streak;
 
   const _Header({
     required this.strings,
     required this.completed,
     required this.total,
+    required this.streak,
   });
 
   @override
@@ -412,6 +450,40 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
+        // The streak lives here rather than in its own row: it is the same
+        // fact as the counter next to it, one day wider.
+        if (streak > 0) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xxs,
+            ),
+            decoration: BoxDecoration(
+              color: colors.accentGold.withValues(alpha: 0.16),
+              borderRadius: AppRadius.circularSm,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.local_fire_department,
+                  size: 14,
+                  color: colors.accentGold,
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  '$streak',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: colors.textDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+        ],
         Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.sm,

@@ -123,7 +123,8 @@ class _PrayersScreenState extends ConsumerState<PrayersScreen> {
     final prayers = ref.watch(prayerTimesForDateProvider(_selectedDate));
     final notifications = ref.watch(prayerNotificationsProvider);
     final tracker = ref.watch(prayerTrackerProvider);
-    final streak = ref.watch(prayerTrackerProvider.notifier).currentStreak;
+    final streak = ref.watch(currentStreakProvider);
+    final longestStreak = ref.watch(longestStreakProvider);
 
     final activeIndex = _isToday ? _computeActiveIndex(prayers) : -1;
     final next = _isToday ? _computeNext(prayers) : null;
@@ -164,7 +165,10 @@ class _PrayersScreenState extends ConsumerState<PrayersScreen> {
                   if (streak > 0) ...[
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: _StreakBanner(streak: streak),
+                      child: _StreakBanner(
+                        streak: streak,
+                        longestStreak: longestStreak,
+                      ),
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -803,24 +807,31 @@ class _PrayerRow extends StatelessWidget {
 
 class _StreakBanner extends StatelessWidget {
   final int streak;
+  final int longestStreak;
 
-  const _StreakBanner({required this.streak});
+  const _StreakBanner({required this.streak, required this.longestStreak});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = AppColors.of(context);
+    // Only worth showing once it says something the current streak doesn't:
+    // while the user is on their best run the two numbers are identical.
+    final showBest = longestStreak > streak;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.accentGold.withValues(alpha: 0.1),
+        color: colors.accentGold.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.accentGold.withValues(alpha: 0.5)),
+        border: Border.all(color: colors.accentGold.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.local_fire_department,
-            color: AppColors.accentGold,
+            color: colors.accentGold,
             size: 24,
           ),
           const SizedBox(width: 12),
@@ -828,25 +839,44 @@ class _StreakBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Dein Gebets-Streak',
+                Text(
+                  l10n.streakTitle,
                   style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.textDark,
+                    color: colors.textDark,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
-                  '$streak Tage in Folge',
-                  style: const TextStyle(
+                  l10n.streakDays(streak),
+                  style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.primaryGreen,
+                    color: colors.primaryGreen,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               ],
             ),
           ),
+          if (showBest)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: colors.accentGold.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                l10n.streakBest(longestStreak),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: colors.textDark,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
         ],
       ),
     );

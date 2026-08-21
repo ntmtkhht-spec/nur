@@ -62,6 +62,60 @@ class AppLocalizationsAr extends AppLocalizations {
   String get prayerNotYetDue => 'لم يحن وقت هذه الصلاة بعد.';
 
   @override
+  String get streakTitle => 'سلسلة صلواتك';
+
+  @override
+  String streakDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم متتالٍ',
+      many: '$count يومًا متتاليًا',
+      few: '$count أيام متتالية',
+      two: 'يومان متتاليان',
+      one: 'يوم واحد متتالٍ',
+      zero: '$count يوم متتالٍ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakBest(int count) {
+    return 'الأفضل: $count';
+  }
+
+  @override
+  String get streakMilestoneTitle => 'إنجاز جديد!';
+
+  @override
+  String streakMilestoneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count يوم متتالٍ',
+      many: '$count يومًا متتاليًا',
+      few: '$count أيام متتالية',
+      two: 'يومان متتاليان',
+      one: 'يوم واحد متتالٍ',
+      zero: '$count يوم متتالٍ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get praiseTitle => 'ما شاء الله!';
+
+  @override
+  String praiseAllPrayers(int completed, int total) {
+    return '$completed/$total تمت';
+  }
+
+  @override
+  String tasbihTotal(int count) {
+    return 'المجموع $count';
+  }
+
+  @override
   String get prayerFajr => 'الفجر';
 
   @override
@@ -446,6 +500,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get onboardingLocationNotFound => 'لم يتم العثور على المكان.';
+
+  @override
+  String get onboardingLocationSearchFailed => 'فشل البحث. تحقق من اتصالك.';
 
   @override
   String get onboardingMethodHeading => 'ضبط مواقيت الصلاة';

@@ -62,6 +62,50 @@ class AppLocalizationsTr extends AppLocalizations {
   String get prayerNotYetDue => 'Bu namazın vakti henüz gelmedi.';
 
   @override
+  String get streakTitle => 'Namaz serin';
+
+  @override
+  String streakDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gün üst üste',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakBest(int count) {
+    return 'En iyi: $count';
+  }
+
+  @override
+  String get streakMilestoneTitle => 'Dönüm noktası!';
+
+  @override
+  String streakMilestoneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gün üst üste',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get praiseTitle => 'MaşaAllah!';
+
+  @override
+  String praiseAllPrayers(int completed, int total) {
+    return '$completed/$total tamamlandı';
+  }
+
+  @override
+  String tasbihTotal(int count) {
+    return 'Toplam $count';
+  }
+
+  @override
   String get prayerFajr => 'İmsak';
 
   @override
@@ -452,6 +496,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get onboardingLocationNotFound => 'Yer bulunamadı.';
+
+  @override
+  String get onboardingLocationSearchFailed =>
+      'Arama başarısız. Bağlantını kontrol et.';
 
   @override
   String get onboardingMethodHeading => 'Namaz vakitlerini ayarla';

@@ -62,6 +62,52 @@ class AppLocalizationsFr extends AppLocalizations {
   String get prayerNotYetDue => 'Cette prière n\'est pas encore venue.';
 
   @override
+  String get streakTitle => 'Ta série de prières';
+
+  @override
+  String streakDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours d\'affilée',
+      one: '1 jour d\'affilée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streakBest(int count) {
+    return 'Record : $count';
+  }
+
+  @override
+  String get streakMilestoneTitle => 'Étape franchie !';
+
+  @override
+  String streakMilestoneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours d\'affilée',
+      one: '1 jour d\'affilée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get praiseTitle => 'MachaAllah !';
+
+  @override
+  String praiseAllPrayers(int completed, int total) {
+    return '$completed/$total accomplies';
+  }
+
+  @override
+  String tasbihTotal(int count) {
+    return '$count au total';
+  }
+
+  @override
   String get prayerFajr => 'Fajr';
 
   @override
@@ -453,6 +499,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingLocationNotFound => 'Lieu introuvable.';
+
+  @override
+  String get onboardingLocationSearchFailed =>
+      'Échec de la recherche. Vérifie ta connexion.';
 
   @override
   String get onboardingMethodHeading => 'Ajuster les horaires';

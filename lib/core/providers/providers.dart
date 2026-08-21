@@ -470,7 +470,18 @@ final logicalDateProvider = Provider<DateTime>((ref) {
   final fajr = prayers.firstWhere((p) => p.name == 'Fajr').time;
 
   if (now.isBefore(fajr)) {
-    return now.subtract(const Duration(days: 1));
+    // Calendar arithmetic, not `Duration(days: 1)`: subtracting 24 hours
+    // across a daylight-saving boundary can land on the wrong calendar day,
+    // and the tracker keys are built from year/month/day.
+    final yesterday = DateTime(now.year, now.month, now.day - 1);
+    return DateTime(
+      yesterday.year,
+      yesterday.month,
+      yesterday.day,
+      now.hour,
+      now.minute,
+      now.second,
+    );
   }
   return now;
 });
@@ -831,43 +842,123 @@ class PrayerTrackerNotifier extends Notifier<Map<String, bool>> {
     state = {};
   }
 
-  int get currentStreak {
-    int streak = 0;
-    DateTime date = DateTime.now();
-    final requiredPrayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-
-    // We can't cleanly access providers inside a simple method if we don't have ref
-    // Wait, PrayerTrackerNotifier has `ref`!
-    final logicalDate = ref.read(logicalDateProvider);
-    date = logicalDate;
-
-    while (true) {
-      bool allCompleted = true;
-      for (final p in requiredPrayers) {
-        if (!isCompleted(date, p)) {
-          allCompleted = false;
-          break;
-        }
-      }
-      if (allCompleted) {
-        streak++;
-        date = date.subtract(const Duration(days: 1));
-      } else {
-        if (streak == 0 && date.day == logicalDate.day) {
-          date = date.subtract(const Duration(days: 1));
-          continue;
-        }
-        break;
-      }
-    }
-    return streak;
-  }
 }
 
 final prayerTrackerProvider =
     NotifierProvider<PrayerTrackerNotifier, Map<String, bool>>(
       PrayerTrackerNotifier.new,
     );
+
+// ---------------------------------------------------------------------------
+// Streaks (derived from the tracker, never stored separately)
+// ---------------------------------------------------------------------------
+
+const _trackerKeyPrefix = 'prayer_tracker_';
+
+/// The five prayers a day has to contain to count towards a streak. Sunrise
+/// is a time marker, not something that can be performed.
+const obligatoryPrayerNames = {'Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'};
+
+/// Calendar arithmetic, not `Duration(days: 1)`.
+///
+/// Subtracting 24 hours is wrong across a daylight-saving boundary — it can
+/// land on the same calendar day twice, or skip one. `DateTime(y, m, d ± 1)`
+/// normalises month and year boundaries on its own.
+DateTime _previousDay(DateTime day) =>
+    DateTime(day.year, day.month, day.day - 1);
+
+DateTime _nextDay(DateTime day) => DateTime(day.year, day.month, day.day + 1);
+
+/// Days on which all five obligatory prayers were ticked off.
+///
+/// Derived from the flat tracker keys rather than counted up in a separate
+/// field, so it stays correct after a sync merge, a reset, or a prayer being
+/// un-ticked — none of which a stored counter would survive.
+Set<DateTime> completedDaysFrom(Map<String, bool> tracker) {
+  final perDay = <DateTime, Set<String>>{};
+
+  for (final entry in tracker.entries) {
+    if (entry.value != true) continue;
+    if (!entry.key.startsWith(_trackerKeyPrefix)) continue;
+
+    // prayer_tracker_<year>_<month>_<day>_<name>
+    final parts = entry.key.substring(_trackerKeyPrefix.length).split('_');
+    if (parts.length != 4) continue;
+    if (!obligatoryPrayerNames.contains(parts[3])) continue;
+
+    final year = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final day = int.tryParse(parts[2]);
+    if (year == null || month == null || day == null) continue;
+
+    perDay
+        .putIfAbsent(DateTime(year, month, day), () => <String>{})
+        .add(parts[3]);
+  }
+
+  return perDay.entries
+      .where((e) => e.value.length == obligatoryPrayerNames.length)
+      .map((e) => e.key)
+      .toSet();
+}
+
+/// Consecutive complete days ending today.
+///
+/// An incomplete today does not break the streak — the day is not over yet,
+/// it just does not count towards it. An incomplete yesterday does.
+int currentStreakFrom(Set<DateTime> completedDays, DateTime logicalDate) {
+  var day = DateTime(logicalDate.year, logicalDate.month, logicalDate.day);
+  if (!completedDays.contains(day)) day = _previousDay(day);
+
+  var streak = 0;
+  while (completedDays.contains(day)) {
+    streak++;
+    day = _previousDay(day);
+  }
+  return streak;
+}
+
+/// Longest run of consecutive complete days ever recorded.
+int longestStreakFrom(Set<DateTime> completedDays) {
+  if (completedDays.isEmpty) return 0;
+
+  final days = completedDays.toList()..sort();
+  var longest = 1;
+  var run = 1;
+
+  for (var i = 1; i < days.length; i++) {
+    run = days[i] == _nextDay(days[i - 1]) ? run + 1 : 1;
+    if (run > longest) longest = run;
+  }
+  return longest;
+}
+
+/// Cached so the walk over the history happens once per tracker change.
+///
+/// The prayers screen rebuilds every second to drive its countdown; computing
+/// this in the widget would re-scan the whole history on every tick.
+final completedPrayerDaysProvider = Provider<Set<DateTime>>((ref) {
+  return completedDaysFrom(ref.watch(prayerTrackerProvider));
+});
+
+final currentStreakProvider = Provider<int>((ref) {
+  return currentStreakFrom(
+    ref.watch(completedPrayerDaysProvider),
+    ref.watch(logicalDateProvider),
+  );
+});
+
+final longestStreakProvider = Provider<int>((ref) {
+  return longestStreakFrom(ref.watch(completedPrayerDaysProvider));
+});
+
+/// Streak lengths worth celebrating.
+const streakMilestones = [7, 30, 100, 365];
+
+/// The milestone [streak] just reached, or null if it is not a milestone.
+int? milestoneReachedAt(int streak) {
+  return streakMilestones.contains(streak) ? streak : null;
+}
 
 // ---------------------------------------------------------------------------
 // Daily Reminder (rotating)
