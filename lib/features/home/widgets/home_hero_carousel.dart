@@ -28,8 +28,18 @@ class _HomeHeroCarouselState extends State<HomeHeroCarousel> {
 
   static const _slide = Duration(milliseconds: 420);
 
-  final _controller = PageController();
-  int _page = 0;
+  /// The carousel only ever moves forward, so the same two cards are handed
+  /// out over and over from a long strip of positions rather than sliding
+  /// back to the start. Pages are built on demand, so the length costs
+  /// nothing; at one turn every ten seconds it lasts weeks of uninterrupted
+  /// use, far past any session.
+  static const _strip = 100000;
+
+  /// Starts halfway along, on an even position so the first card shows.
+  static const _origin = _strip ~/ 2;
+
+  final _controller = PageController(initialPage: _origin);
+  int _page = _origin;
   Timer? _advance;
 
   /// False while the system asks for reduced motion, which is exactly the
@@ -66,13 +76,29 @@ class _HomeHeroCarouselState extends State<HomeHeroCarousel> {
 
     _advance = Timer(_dwell, () {
       if (!mounted || !_controller.hasClients) return;
-      // Wraps: after the last page the first comes back round.
+      // Always one step onward — the next position simply holds the other
+      // card, so the movement never reverses.
       _controller.animateToPage(
-        (_page + 1) % _pageCount,
+        _page + 1,
         duration: _slide,
         curve: Curves.easeInOut,
       );
     });
+  }
+
+  /// Moves to whichever upcoming position carries [card].
+  ///
+  /// Forward as well, so tapping a dot looks like the carousel turning on
+  /// its own rather than snapping backwards.
+  void _goToCard(int card) {
+    final steps = (card - _page % _pageCount + _pageCount) % _pageCount;
+    if (steps == 0) return;
+
+    _controller.animateToPage(
+      _page + steps,
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOut,
+    );
   }
 
   /// Keeps the timer from firing mid-drag, which would fight the finger on
@@ -102,25 +128,25 @@ class _HomeHeroCarouselState extends State<HomeHeroCarousel> {
           height: height,
           child: NotificationListener<ScrollNotification>(
             onNotification: _onScroll,
-            child: PageView(
+            child: PageView.builder(
               controller: _controller,
+              itemCount: _strip,
               onPageChanged: (index) {
                 setState(() => _page = index);
                 _restartDwell();
               },
-              children: const [NextPrayerCard(), PrayerStatsCard()],
+              itemBuilder: (context, index) => switch (index % _pageCount) {
+                0 => const NextPrayerCard(),
+                _ => const PrayerStatsCard(),
+              },
             ),
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
         _Dots(
           count: _pageCount,
-          active: _page,
-          onTap: (index) => _controller.animateToPage(
-            index,
-            duration: const Duration(milliseconds: 260),
-            curve: Curves.easeOut,
-          ),
+          active: _page % _pageCount,
+          onTap: _goToCard,
           labels: [l10n.nextPrayer, l10n.statsTitle],
         ),
       ],

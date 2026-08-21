@@ -7,10 +7,13 @@ import 'package:munir/features/home/widgets/home_hero_carousel.dart';
 import 'package:munir/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Which page the carousel is resting on.
-double? currentPage(WidgetTester tester) {
-  return tester.widget<PageView>(find.byType(PageView)).controller?.page;
+/// The raw position along the strip the carousel hands its cards out from.
+double rawPage(WidgetTester tester) {
+  return tester.widget<PageView>(find.byType(PageView)).controller!.page!;
 }
+
+/// Which of the two cards is showing: 0 is the prayer card, 1 the statistics.
+int currentCard(WidgetTester tester) => rawPage(tester).round() % 2;
 
 Future<void> mountCarousel(
   WidgetTester tester, {
@@ -54,7 +57,7 @@ void main() {
   testWidgets('starts on the prayer card', (tester) async {
     await mountCarousel(tester);
 
-    expect(currentPage(tester), 0);
+    expect(currentCard(tester), 0);
   });
 
   testWidgets('moves on by itself after the dwell', (tester) async {
@@ -62,20 +65,27 @@ void main() {
 
     // Nothing should happen before the ten seconds are up.
     await tester.pump(const Duration(seconds: 9));
-    expect(currentPage(tester), 0);
+    expect(currentCard(tester), 0);
 
     await waitForAdvance(tester);
-    expect(currentPage(tester), 1);
+    expect(currentCard(tester), 1);
   });
 
-  testWidgets('wraps back round to the first card', (tester) async {
+  testWidgets('comes back to the first card without reversing', (
+    tester,
+  ) async {
     await mountCarousel(tester);
+    final start = rawPage(tester);
 
     await waitForAdvance(tester);
-    expect(currentPage(tester), 1);
+    expect(currentCard(tester), 1);
 
     await waitForAdvance(tester);
-    expect(currentPage(tester), 0);
+    expect(currentCard(tester), 0);
+
+    // The prayer card is showing again, but the carousel travelled onward to
+    // reach it rather than sliding back the way it came.
+    expect(rawPage(tester), greaterThan(start));
   });
 
   testWidgets('keeps going round', (tester) async {
@@ -83,8 +93,31 @@ void main() {
 
     for (final expected in [1, 0, 1, 0]) {
       await waitForAdvance(tester);
-      expect(currentPage(tester), expected);
+      expect(currentCard(tester), expected);
     }
+  });
+
+  testWidgets('every turn moves forward, never back', (tester) async {
+    await mountCarousel(tester);
+
+    var previous = rawPage(tester);
+    for (var turn = 0; turn < 6; turn++) {
+      await waitForAdvance(tester);
+      expect(rawPage(tester), greaterThan(previous));
+      previous = rawPage(tester);
+    }
+  });
+
+  testWidgets('tapping a dot also moves forward', (tester) async {
+    await mountCarousel(tester);
+    final start = rawPage(tester);
+
+    // The second dot, for the statistics card.
+    await tester.tap(find.byType(GestureDetector).last);
+    await tester.pumpAndSettle();
+
+    expect(currentCard(tester), 1);
+    expect(rawPage(tester), greaterThan(start));
   });
 
   testWidgets('a swipe buys a full dwell on the new page', (tester) async {
@@ -96,15 +129,15 @@ void main() {
     // …but the user swipes to the statistics themselves.
     await tester.fling(find.byType(PageView), const Offset(-400, 0), 1200);
     await tester.pumpAndSettle();
-    expect(currentPage(tester), 1);
+    expect(currentCard(tester), 1);
 
     // The remaining second of the old countdown must not drag them away
     // while they are still reading.
     await tester.pump(const Duration(seconds: 9));
-    expect(currentPage(tester), 1);
+    expect(currentCard(tester), 1);
 
     await waitForAdvance(tester);
-    expect(currentPage(tester), 0);
+    expect(currentCard(tester), 0);
   });
 
   testWidgets('stays put when the system asks for reduced motion', (
@@ -115,6 +148,6 @@ void main() {
     await waitForAdvance(tester);
     await waitForAdvance(tester);
 
-    expect(currentPage(tester), 0);
+    expect(currentCard(tester), 0);
   });
 }
