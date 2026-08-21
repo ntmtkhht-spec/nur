@@ -8,7 +8,7 @@ import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_tokens.dart';
 import 'widgets/daily_reminder_banner.dart';
 import 'widgets/greeting_header.dart';
-import 'widgets/next_prayer_card.dart';
+import 'widgets/home_hero_carousel.dart';
 import 'widgets/quick_actions_grid.dart';
 import 'widgets/todays_prayers_card.dart';
 
@@ -32,7 +32,7 @@ class HomeScreen extends ConsumerWidget {
             ],
             const GreetingHeader(),
             const SizedBox(height: AppSpacing.xl),
-            const NextPrayerCard(),
+            const HomeHeroCarousel(),
             const SizedBox(height: AppSpacing.lg),
             const TodaysPrayersCard(),
             const SizedBox(height: AppSpacing.lg),
