@@ -14,17 +14,23 @@ class SurahListScreen extends ConsumerStatefulWidget {
   ConsumerState<SurahListScreen> createState() => _SurahListScreenState();
 }
 
-class _SurahListScreenState extends ConsumerState<SurahListScreen> {
+class _SurahListScreenState extends ConsumerState<SurahListScreen>
+    with SingleTickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  late final TabController _tabController;
   bool _showBackToTopButton = false;
+  bool _isSearching = false;
   String _query = '';
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_handleTabChanged);
     _searchController.addListener(() {
-      setState(() => _query = _searchController.text.trim().toLowerCase());
+      setState(() => _query = _normalizeSearchText(_searchController.text));
     });
     _scrollController.addListener(() {
       if (_scrollController.offset >= 400 && !_showBackToTopButton) {
@@ -41,9 +47,46 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen> {
 
   @override
   void dispose() {
+    _tabController
+      ..removeListener(_handleTabChanged)
+      ..dispose();
     _scrollController.dispose();
+    _searchFocusNode.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _handleTabChanged() {
+    if (!mounted) return;
+    if (_tabController.index != 0 && _isSearching) {
+      _closeSearch();
+      return;
+    }
+    setState(() {});
+  }
+
+  void _openSearch() {
+    setState(() => _isSearching = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _isSearching) {
+        _searchFocusNode.requestFocus();
+      }
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    if (_isSearching) {
+      _searchFocusNode.requestFocus();
+    }
+  }
+
+  void _closeSearch() {
+    _searchController.clear();
+    _searchFocusNode.unfocus();
+    if (mounted && _isSearching) {
+      setState(() => _isSearching = false);
+    }
   }
 
   void _scrollToTop() {
@@ -67,11 +110,21 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen> {
   List<SurahInfo> _filterSurahs(List<SurahInfo> surahs) {
     if (_query.isEmpty) return surahs;
     return surahs.where((surah) {
-      return surah.number.toString() == _query ||
-          surah.englishName.toLowerCase().contains(_query) ||
-          surah.englishNameTranslation.toLowerCase().contains(_query) ||
-          surah.name.contains(_query);
+      final searchableText = _normalizeSearchText(
+        '${surah.number} ${surah.englishName} '
+        '${surah.englishNameTranslation} ${surah.name}',
+      );
+      return searchableText.contains(_query);
     }).toList();
+  }
+
+  String _normalizeSearchText(String value) {
+    return value
+        .toLowerCase()
+        // Ignore Arabic vowel marks so an unvocalised query still matches.
+        .replaceAll(RegExp(r'[\u064B-\u065F\u0670\u06D6-\u06ED]'), '')
+        // Treat spaces and hyphens alike (for example, "al baqara").
+        .replaceAll(RegExp(r'[\s\-_]+'), '');
   }
 
   @override
@@ -82,71 +135,127 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          "Qur'an",
-          style: TextStyle(
-            color: AppColors.darkGreen,
-            fontWeight: FontWeight.bold,
-          ),
+        title: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 180),
+          switchInCurve: Curves.easeOut,
+          switchOutCurve: Curves.easeIn,
+          child: _isSearching
+              ? TextField(
+                  key: const ValueKey('quran-search-field'),
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
+                  autofocus: true,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => _searchFocusNode.unfocus(),
+                  style: const TextStyle(color: AppColors.textDark),
+                  decoration: InputDecoration(
+                    hintText: 'Sura suchen',
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      size: 20,
+                      color: AppColors.darkGreen,
+                    ),
+                    suffixIcon: IconButton(
+                      tooltip: _searchController.text.isEmpty
+                          ? 'Suche schließen'
+                          : 'Suche leeren',
+                      onPressed: _searchController.text.isEmpty
+                          ? _closeSearch
+                          : _clearSearch,
+                      icon: const Icon(Icons.close, size: 18),
+                    ),
+                    filled: true,
+                    fillColor: AppColors.white,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      borderSide: const BorderSide(color: AppColors.cardBg),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      borderSide: const BorderSide(
+                        color: AppColors.primaryGreen,
+                      ),
+                    ),
+                  ),
+                )
+              : const Text(
+                  "Qur'an",
+                  key: ValueKey('quran-title'),
+                  style: TextStyle(
+                    color: AppColors.darkGreen,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
         ),
+        actions: [
+          if (_tabController.index == 0)
+            IconButton(
+              tooltip: _isSearching ? 'Suche schließen' : 'Suren suchen',
+              onPressed: _isSearching ? _closeSearch : _openSearch,
+              icon: Icon(
+                _isSearching ? Icons.close : Icons.search,
+                color: AppColors.darkGreen,
+              ),
+            ),
+        ],
         centerTitle: false,
         backgroundColor: AppColors.background,
         elevation: 0,
       ),
-      body: DefaultTabController(
-        length: 2,
-        child: Column(
-          children: [
-            const TabBar(
-              labelColor: AppColors.darkGreen,
-              unselectedLabelColor: AppColors.textMuted,
-              indicatorColor: AppColors.primaryGreen,
-              tabs: [
-                Tab(text: 'Lesen'),
-                Tab(text: 'Fortschritt'),
+      body: Column(
+        children: [
+          TabBar(
+            controller: _tabController,
+            labelColor: AppColors.darkGreen,
+            unselectedLabelColor: AppColors.textMuted,
+            indicatorColor: AppColors.primaryGreen,
+            tabs: const [
+              Tab(text: 'Lesen'),
+              Tab(text: 'Fortschritt'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                listAsyncValue.when(
+                  data: (surahs) => _ReadingList(
+                    controller: _scrollController,
+                    progress: progress,
+                    surahs: _filterSurahs(surahs),
+                    onOpen: _openSurah,
+                  ),
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.darkGreen,
+                    ),
+                  ),
+                  error: (error, stack) =>
+                      Center(child: Text('Fehler beim Laden: $error')),
+                ),
+                listAsyncValue.when(
+                  data: (surahs) => _ProgressTab(
+                    progress: progress,
+                    surahs: surahs,
+                    onOpen: _openSurah,
+                  ),
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.darkGreen,
+                    ),
+                  ),
+                  error: (error, stack) =>
+                      Center(child: Text('Fehler beim Laden: $error')),
+                ),
               ],
             ),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  listAsyncValue.when(
-                    data: (surahs) => _ReadingList(
-                      controller: _scrollController,
-                      progress: progress,
-                      surahs: _filterSurahs(surahs),
-                      onOpen: _openSurah,
-                      search: _QuranSearch(
-                        controller: _searchController,
-                        onClear: () => _searchController.clear(),
-                      ),
-                    ),
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.darkGreen,
-                      ),
-                    ),
-                    error: (error, stack) =>
-                        Center(child: Text('Fehler beim Laden: $error')),
-                  ),
-                  listAsyncValue.when(
-                    data: (surahs) => _ProgressTab(
-                      progress: progress,
-                      surahs: surahs,
-                      onOpen: _openSurah,
-                    ),
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.darkGreen,
-                      ),
-                    ),
-                    error: (error, stack) =>
-                        Center(child: Text('Fehler beim Laden: $error')),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
       floatingActionButton: _showBackToTopButton
           ? FloatingActionButton(
@@ -164,14 +273,12 @@ class _ReadingList extends StatelessWidget {
   final QuranReadingProgress progress;
   final List<SurahInfo> surahs;
   final void Function(int number, {int? resumeAtAyah}) onOpen;
-  final Widget search;
 
   const _ReadingList({
     required this.controller,
     required this.progress,
     required this.surahs,
     required this.onOpen,
-    required this.search,
   });
 
   @override
@@ -179,8 +286,6 @@ class _ReadingList extends StatelessWidget {
     final items = <Widget>[
       if (progress.lastPosition != null)
         _ContinueReadingCard(position: progress.lastPosition!, onOpen: onOpen),
-      search,
-      _QuickAccess(onOpen: (number) => onOpen(number)),
       if (surahs.isEmpty)
         const _NoSurahResults()
       else
@@ -318,97 +423,6 @@ class _ContinueReadingText extends StatelessWidget {
   }
 }
 
-class _QuranSearch extends StatelessWidget {
-  final TextEditingController controller;
-  final VoidCallback onClear;
-
-  const _QuranSearch({required this.controller, required this.onClear});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      textInputAction: TextInputAction.search,
-      decoration: InputDecoration(
-        hintText: 'Sura suchen',
-        prefixIcon: const Icon(Icons.search, size: 20),
-        suffixIcon: controller.text.isEmpty
-            ? null
-            : IconButton(
-                onPressed: onClear,
-                icon: const Icon(Icons.close, size: 18),
-              ),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: BorderSide(color: AppColors.cardBg),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.primaryGreen),
-        ),
-      ),
-    );
-  }
-}
-
-class _QuickAccess extends StatelessWidget {
-  final ValueChanged<int> onOpen;
-
-  const _QuickAccess({required this.onOpen});
-
-  static const _items = [
-    (number: 67, label: 'Al Mulk'),
-    (number: 36, label: 'Ya Sin'),
-    (number: 18, label: 'Al Kahf'),
-    (number: 2, label: 'Al Baqara'),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Schnellzugriff',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textMuted,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (final item in _items) ...[
-                ActionChip(
-                  onPressed: () => onOpen(item.number),
-                  backgroundColor: Colors.white,
-                  side: const BorderSide(color: AppColors.primaryGreen),
-                  label: Text(item.label),
-                  labelStyle: const TextStyle(
-                    color: AppColors.darkGreen,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _SurahTile extends StatelessWidget {
   final SurahInfo surah;
   final VoidCallback onTap;
@@ -432,26 +446,48 @@ class _SurahTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.cardBg,
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
+              SizedBox.square(
+                dimension: 48,
                 child: Center(
                   child: Text(
                     '${surah.number}',
                     style: const TextStyle(
+                      // The editorial serif gives the list numbers the same
+                      // distinctive look as the earlier Quran layout.
+                      fontFamily: 'serif',
                       color: AppColors.darkGreen,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      height: 1,
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
+                flex: 4,
+                child: SizedBox(
+                  height: 40,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'surah${surah.number.toString().padLeft(3, '0')}',
+                      maxLines: 1,
+                      textDirection: TextDirection.ltr,
+                      style: const TextStyle(
+                        fontFamily: 'SurahNameV4',
+                        color: AppColors.darkGreen,
+                        fontSize: 38,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                flex: 6,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -479,20 +515,6 @@ class _SurahTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Flexible(
-                child: Text(
-                  surah.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textDirection: TextDirection.rtl,
-                  style: const TextStyle(
-                    color: AppColors.darkGreen,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -518,7 +540,7 @@ class _NoSurahResults extends StatelessWidget {
   }
 }
 
-class _ProgressTab extends ConsumerWidget {
+class _ProgressTab extends StatelessWidget {
   final QuranReadingProgress progress;
   final List<SurahInfo> surahs;
   final void Function(int number, {int? resumeAtAyah}) onOpen;
@@ -529,27 +551,8 @@ class _ProgressTab extends ConsumerWidget {
     required this.onOpen,
   });
 
-  Future<void> _pickPlanDate(BuildContext context, WidgetRef ref) async {
-    final now = DateTime.now();
-    final existing = progress.plan == null
-        ? now.add(const Duration(days: 30))
-        : DateTime.fromMillisecondsSinceEpoch(progress.plan!.targetDateMs);
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: existing.isBefore(now)
-          ? now.add(const Duration(days: 1))
-          : existing,
-      firstDate: DateTime(now.year, now.month, now.day),
-      lastDate: DateTime(now.year + 20),
-      helpText: 'Ziel für deinen Leseplan',
-    );
-    if (picked == null) return;
-    await ref.read(quranReadingProgressProvider.notifier).setPlanTarget(picked);
-  }
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final status = planStatus(progress, DateTime.now());
+  Widget build(BuildContext context) {
     final progressPercent = (progress.completionFraction * 100).toStringAsFixed(
       1,
     );
@@ -579,14 +582,6 @@ class _ProgressTab extends ConsumerWidget {
           completed: progress.completedAyahCount,
           percentage: progressPercent,
           fraction: progress.completionFraction,
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        _ReadingPlanCard(
-          plan: progress.plan,
-          status: status,
-          onPickDate: () => _pickPlanDate(context, ref),
-          onRemove: () =>
-              ref.read(quranReadingProgressProvider.notifier).removePlan(),
         ),
         const SizedBox(height: AppSpacing.lg),
         if (readSurahs.isNotEmpty) ...[
@@ -663,102 +658,6 @@ class _ProgressSummaryCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ReadingPlanCard extends StatelessWidget {
-  final QuranReadingPlan? plan;
-  final QuranPlanStatus status;
-  final VoidCallback onPickDate;
-  final VoidCallback onRemove;
-
-  const _ReadingPlanCard({
-    required this.plan,
-    required this.status,
-    required this.onPickDate,
-    required this.onRemove,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final dateFormat = MaterialLocalizations.of(context);
-    final target = plan == null
-        ? null
-        : DateTime.fromMillisecondsSinceEpoch(plan!.targetDateMs);
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: AppRadius.circularLg,
-        border: Border.all(color: AppColors.cardBg),
-      ),
-      child: plan == null
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Leseplan',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                const Text(
-                  'Lege einen Zieltermin fest. Dein Tagesziel wird aus deinem echten Gesamtfortschritt berechnet.',
-                  style: TextStyle(color: AppColors.textMuted, height: 1.35),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                OutlinedButton.icon(
-                  onPressed: onPickDate,
-                  icon: const Icon(Icons.calendar_month_outlined),
-                  label: const Text('Leseplan erstellen'),
-                ),
-              ],
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Leseplan',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textDark,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'Ziel: ${dateFormat.formatMediumDate(target!)}',
-                  style: const TextStyle(color: AppColors.textMuted),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  status.isOverdue
-                      ? '${status.remainingAyahs} Verse noch offen · Zieltermin überschritten'
-                      : '${status.remainingAyahs} Verse übrig · ${status.ayahsPerDay} Verse pro Tag',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.darkGreen,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Row(
-                  children: [
-                    TextButton(
-                      onPressed: onPickDate,
-                      child: const Text('Ziel ändern'),
-                    ),
-                    TextButton(
-                      onPressed: onRemove,
-                      child: const Text('Plan entfernen'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
     );
   }
 }

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -50,58 +49,16 @@ class QuranReadingPosition {
   }
 }
 
-class QuranReadingPlan {
-  final int createdAtMs;
-  final int targetDateMs;
-  final int updatedAtMs;
-
-  const QuranReadingPlan({
-    required this.createdAtMs,
-    required this.targetDateMs,
-    required this.updatedAtMs,
-  });
-
-  Map<String, dynamic> toJson() => {
-    'createdAtMs': createdAtMs,
-    'targetDateMs': targetDateMs,
-    'updatedAtMs': updatedAtMs,
-  };
-
-  static QuranReadingPlan? fromJson(Object? value) {
-    if (value is! Map) return null;
-    final createdAt = value['createdAtMs'];
-    final targetDate = value['targetDateMs'];
-    final updatedAt = value['updatedAtMs'];
-    if (createdAt is! num || targetDate is! num || updatedAt is! num) {
-      return null;
-    }
-    final result = QuranReadingPlan(
-      createdAtMs: createdAt.toInt(),
-      targetDateMs: targetDate.toInt(),
-      updatedAtMs: updatedAt.toInt(),
-    );
-    if (result.createdAtMs < 0 ||
-        result.targetDateMs < result.createdAtMs ||
-        result.updatedAtMs < 0) {
-      return null;
-    }
-    return result;
-  }
-}
-
 class QuranReadingProgress {
   final QuranReadingPosition? lastPosition;
   final Set<String> readAyahIds;
-  final QuranReadingPlan? plan;
 
   const QuranReadingProgress({
     this.lastPosition,
     this.readAyahIds = const <String>{},
-    this.plan,
   });
 
-  bool get hasActivity =>
-      lastPosition != null || readAyahIds.isNotEmpty || plan != null;
+  bool get hasActivity => lastPosition != null || readAyahIds.isNotEmpty;
   int get completedAyahCount => readAyahIds.length;
   double get completionFraction =>
       (completedAyahCount / quranTotalAyahs).clamp(0.0, 1.0);
@@ -109,13 +66,10 @@ class QuranReadingProgress {
   QuranReadingProgress copyWith({
     QuranReadingPosition? lastPosition,
     Set<String>? readAyahIds,
-    QuranReadingPlan? plan,
-    bool clearPlan = false,
   }) {
     return QuranReadingProgress(
       lastPosition: lastPosition ?? this.lastPosition,
       readAyahIds: readAyahIds ?? this.readAyahIds,
-      plan: clearPlan ? null : plan ?? this.plan,
     );
   }
 
@@ -125,7 +79,6 @@ class QuranReadingProgress {
     // Sorted output makes the persisted and synced representation stable,
     // which avoids meaningless writes when two devices have the same data.
     'readAyahIds': readAyahIds.toList()..sort(),
-    if (plan != null) 'plan': plan!.toJson(),
   };
 
   static QuranReadingProgress fromJson(Object? value) {
@@ -140,7 +93,6 @@ class QuranReadingProgress {
     return QuranReadingProgress(
       lastPosition: QuranReadingPosition.fromJson(value['lastPosition']),
       readAyahIds: ids,
-      plan: QuranReadingPlan.fromJson(value['plan']),
     );
   }
 
@@ -155,43 +107,6 @@ class QuranReadingProgress {
         surah <= 114 &&
         ayah >= 1;
   }
-}
-
-class QuranPlanStatus {
-  final int remainingAyahs;
-  final int remainingDays;
-  final int ayahsPerDay;
-  final bool isOverdue;
-
-  const QuranPlanStatus({
-    required this.remainingAyahs,
-    required this.remainingDays,
-    required this.ayahsPerDay,
-    required this.isOverdue,
-  });
-}
-
-QuranPlanStatus planStatus(QuranReadingProgress progress, DateTime now) {
-  final plan = progress.plan;
-  if (plan == null) {
-    return const QuranPlanStatus(
-      remainingAyahs: quranTotalAyahs,
-      remainingDays: 0,
-      ayahsPerDay: 0,
-      isOverdue: false,
-    );
-  }
-  final today = DateTime(now.year, now.month, now.day);
-  final target = DateTime.fromMillisecondsSinceEpoch(plan.targetDateMs);
-  final targetDay = DateTime(target.year, target.month, target.day);
-  final days = targetDay.difference(today).inDays + 1;
-  final remaining = math.max(0, quranTotalAyahs - progress.completedAyahCount);
-  return QuranPlanStatus(
-    remainingAyahs: remaining,
-    remainingDays: math.max(0, days),
-    ayahsPerDay: days > 0 ? (remaining / days).ceil() : remaining,
-    isOverdue: days <= 0 && remaining > 0,
-  );
 }
 
 class QuranReadingProgressNotifier extends Notifier<QuranReadingProgress> {
@@ -223,29 +138,6 @@ class QuranReadingProgressNotifier extends Notifier<QuranReadingProgress> {
     await _replace(state.copyWith(lastPosition: position, readAyahIds: ids));
   }
 
-  Future<void> setPlanTarget(DateTime targetDate) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final today = DateTime.now();
-    final earliest = DateTime(today.year, today.month, today.day);
-    final requested = DateTime(
-      targetDate.year,
-      targetDate.month,
-      targetDate.day,
-    );
-    final target = requested.isBefore(earliest) ? earliest : requested;
-    await _replace(
-      state.copyWith(
-        plan: QuranReadingPlan(
-          createdAtMs: state.plan?.createdAtMs ?? now,
-          targetDateMs: target.millisecondsSinceEpoch,
-          updatedAtMs: now,
-        ),
-      ),
-    );
-  }
-
-  Future<void> removePlan() => _replace(state.copyWith(clearPlan: true));
-
   /// Unioning completed ayat means reading recorded on either device is never
   /// lost. The newest resume marker wins; an exact timestamp tie has a stable
   /// lexical tie-breaker, so every device reaches the same result.
@@ -253,13 +145,8 @@ class QuranReadingProgressNotifier extends Notifier<QuranReadingProgress> {
     final other = QuranReadingProgress.fromJson(remote);
     final mergedIds = {...state.readAyahIds, ...other.readAyahIds};
     final last = _newerPosition(state.lastPosition, other.lastPosition);
-    final plan = _newerPlan(state.plan, other.plan);
     await _replace(
-      QuranReadingProgress(
-        lastPosition: last,
-        readAyahIds: mergedIds,
-        plan: plan,
-      ),
+      QuranReadingProgress(lastPosition: last, readAyahIds: mergedIds),
     );
   }
 
@@ -275,18 +162,6 @@ class QuranReadingProgressNotifier extends Notifier<QuranReadingProgress> {
       return first.updatedAtMs > second.updatedAtMs ? first : second;
     }
     return first.ayahId.compareTo(second.ayahId) >= 0 ? first : second;
-  }
-
-  QuranReadingPlan? _newerPlan(
-    QuranReadingPlan? first,
-    QuranReadingPlan? second,
-  ) {
-    if (first == null) return second;
-    if (second == null) return first;
-    if (first.updatedAtMs != second.updatedAtMs) {
-      return first.updatedAtMs > second.updatedAtMs ? first : second;
-    }
-    return first.targetDateMs >= second.targetDateMs ? first : second;
   }
 
   Future<void> _replace(QuranReadingProgress next) async {

@@ -99,6 +99,11 @@ flutter:
     - assets/images/
     - assets/icon/
 
+  fonts:
+    - family: SurahNameV4
+      fonts:
+        - asset: assets/fonts/surah-name-v4.ttf
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

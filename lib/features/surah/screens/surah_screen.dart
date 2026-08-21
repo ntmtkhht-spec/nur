@@ -138,21 +138,21 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
 
   // The gear icon had no handler; it now opens the reading preferences that
   // VerseCard reads (transliteration, translation, Arabic text size).
-  void _openReadingSettings(BuildContext context) {
+  void _openReadingSettings(BuildContext context, {String? translationSource}) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.background,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => const _ReadingSettingsSheet(),
+      builder: (_) =>
+          _ReadingSettingsSheet(translationSource: translationSource),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final surahAsyncValue = ref.watch(surahProvider(widget.surahNumber));
-    final audioState = ref.watch(audioPlayerNotifierProvider);
     final quranProgress = ref.watch(quranReadingProgressProvider);
 
     return Scaffold(
@@ -173,7 +173,7 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
                 children: [
                   Flexible(
                     child: Text(
-                      '${surah.englishName} · ${surah.name}',
+                      surah.englishName,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: AppColors.darkGreen,
@@ -201,7 +201,11 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
               Icons.settings_outlined,
               color: AppColors.darkGreen,
             ),
-            onPressed: () => _openReadingSettings(context),
+            onPressed: () => _openReadingSettings(
+              context,
+              translationSource:
+                  surahAsyncValue.asData?.value.translationSource,
+            ),
           ),
         ],
         backgroundColor: AppColors.background,
@@ -234,25 +238,22 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
             },
             child: Stack(
               children: [
-                ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.only(
-                    top: 16,
-                    bottom: 120,
-                  ), // extra space for bottom bar
-                  itemCount: surah.ayahs.length,
-                  itemBuilder: (context, index) {
-                    final ayah = surah.ayahs[index];
-                    final isPlaying = audioState.currentAyahIndex == index;
-                    return KeyedSubtree(
-                      key: _keyForAyah(ayah.numberInSurah),
-                      child: VerseCard(
-                        surahNumber: widget.surahNumber,
-                        ayah: ayah,
-                        isPlaying: isPlaying,
-                      ),
-                    );
-                  },
+                ColoredBox(
+                  color: AppColors.background,
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.only(
+                      bottom: 120,
+                    ), // extra space for bottom bar
+                    itemCount: surah.ayahs.length,
+                    itemBuilder: (context, index) {
+                      final ayah = surah.ayahs[index];
+                      return KeyedSubtree(
+                        key: _keyForAyah(ayah.numberInSurah),
+                        child: VerseCard(ayah: ayah),
+                      );
+                    },
+                  ),
                 ),
                 Positioned(
                   left: 0,
@@ -445,7 +446,9 @@ class _SurahPickerSheetState extends ConsumerState<_SurahPickerSheet> {
 }
 
 class _ReadingSettingsSheet extends ConsumerWidget {
-  const _ReadingSettingsSheet();
+  final String? translationSource;
+
+  const _ReadingSettingsSheet({this.translationSource});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -478,6 +481,16 @@ class _ReadingSettingsSheet extends ConsumerWidget {
                 color: AppColors.darkGreen,
               ),
             ),
+            if (translationSource != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Übersetzung: $translationSource',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textMuted,
+                ),
+              ),
+            ],
             const SizedBox(height: 8),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,

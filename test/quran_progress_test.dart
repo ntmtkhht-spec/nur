@@ -50,28 +50,12 @@ void main() {
     },
   );
 
-  test('plan pace uses all remaining ayat, not a daily dummy value', () {
-    const progress = QuranReadingProgress(
-      readAyahIds: {'1:1', '1:2', '1:3'},
-      plan: QuranReadingPlan(
-        createdAtMs: 0,
-        targetDateMs: 1767312000000, // 2026-01-02 local midnight UTC
-        updatedAtMs: 0,
-      ),
-    );
+  test('legacy reading-plan data is ignored after the feature removal', () {
+    final progress = QuranReadingProgress.fromJson({
+      'plan': {'createdAtMs': 1, 'targetDateMs': 2, 'updatedAtMs': 1},
+    });
 
-    final status = planStatus(progress, DateTime.utc(2026, 1, 1, 12));
-
-    expect(status.remainingAyahs, quranTotalAyahs - 3);
-    expect(status.remainingDays, 2);
-    expect(status.ayahsPerDay, ((quranTotalAyahs - 3) / 2).ceil());
-  });
-
-  test('a reading plan is personal activity even before the first ayah', () {
-    const progress = QuranReadingProgress(
-      plan: QuranReadingPlan(createdAtMs: 1, targetDateMs: 2, updatedAtMs: 1),
-    );
-
-    expect(progress.hasActivity, isTrue);
+    expect(progress.hasActivity, isFalse);
+    expect(progress.toJson(), {'version': 1, 'readAyahIds': <String>[]});
   });
 }

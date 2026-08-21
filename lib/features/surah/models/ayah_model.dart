@@ -2,7 +2,7 @@ class Ayah {
   final int numberInSurah;
   final String arabicText;
   final String transliteration;
-  final String translation;
+  final String? translation;
   final String audioUrl;
 
   Ayah({
@@ -18,12 +18,14 @@ class Surah {
   final int number;
   final String name;
   final String englishName;
+  final String? translationSource;
   final List<Ayah> ayahs;
 
   Surah({
     required this.number,
     required this.name,
     required this.englishName,
+    this.translationSource,
     required this.ayahs,
   });
 }
