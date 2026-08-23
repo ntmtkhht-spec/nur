@@ -282,10 +282,13 @@
   "onboardingDoneTitle": "Alles bereit",
   "onboardingDoneBody": "Möge dir die App bei deinen Gebeten helfen.",
   "onboardingStart": "Los geht's",
-  "notificationPrayerTimeTitle": "Zeit für {prayer}",
+  "notificationPrayerTimeTitle": "Zeit für {prayer} · {time}",
   "@notificationPrayerTimeTitle": {
     "placeholders": {
       "prayer": {
+        "type": "String"
+      },
+      "time": {
         "type": "String"
       }
     }
@@ -295,6 +298,14 @@
   "notificationBodyAsr": "Das Licht wird golden. Nimm dir diesen Moment und verrichte dein Asr-Gebet.",
   "notificationBodyMaghrib": "Die Sonne ist untergegangen. Ein Moment der Dankbarkeit.",
   "notificationBodyIsha": "Der Tag ist zu Ende, das letzte Gebet noch nicht. Verrichte Isha, bevor du schlafen gehst.",
+  "notificationLocationLine": "Berechnet für {city}",
+  "@notificationLocationLine": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
   "notificationCatchUpTitle": "{prayer} geht bald zu Ende",
   "@notificationCatchUpTitle": {
     "placeholders": {
@@ -303,10 +314,13 @@
       }
     }
   },
-  "notificationCatchUpBody": "Nutze die verbleibende Zeit, bevor {next} beginnt.",
+  "notificationCatchUpBody": "Nutze die verbleibende Zeit, bevor {next} um {time} beginnt.",
   "@notificationCatchUpBody": {
     "placeholders": {
       "next": {
+        "type": "String"
+      },
+      "time": {
         "type": "String"
       }
     }

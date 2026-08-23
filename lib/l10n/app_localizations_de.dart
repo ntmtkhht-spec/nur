@@ -449,8 +449,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get onboardingStart => 'Los geht\'s';
 
   @override
-  String notificationPrayerTimeTitle(String prayer) {
-    return 'Zeit für $prayer';
+  String notificationPrayerTimeTitle(String prayer, String time) {
+    return 'Zeit für $prayer · $time';
   }
 
   @override
@@ -474,13 +474,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Tag ist zu Ende, das letzte Gebet noch nicht. Verrichte Isha, bevor du schlafen gehst.';
 
   @override
+  String notificationLocationLine(String city) {
+    return 'Berechnet für $city';
+  }
+
+  @override
   String notificationCatchUpTitle(String prayer) {
     return '$prayer geht bald zu Ende';
   }
 
   @override
-  String notificationCatchUpBody(String next) {
-    return 'Nutze die verbleibende Zeit, bevor $next beginnt.';
+  String notificationCatchUpBody(String next, String time) {
+    return 'Nutze die verbleibende Zeit, bevor $next um $time beginnt.';
   }
 
   @override

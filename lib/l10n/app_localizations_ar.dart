@@ -453,8 +453,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get onboardingStart => 'لنبدأ';
 
   @override
-  String notificationPrayerTimeTitle(String prayer) {
-    return 'حان وقت $prayer';
+  String notificationPrayerTimeTitle(String prayer, String time) {
+    return 'حان وقت $prayer · $time';
   }
 
   @override
@@ -476,13 +476,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'انتهى اليوم، ولم تنتهِ الصلاة الأخيرة. صلِّ العشاء قبل أن تنام.';
 
   @override
+  String notificationLocationLine(String city) {
+    return 'محسوبة لـ $city';
+  }
+
+  @override
   String notificationCatchUpTitle(String prayer) {
     return '$prayer على وشك الانتهاء';
   }
 
   @override
-  String notificationCatchUpBody(String next) {
-    return 'اغتنم الوقت المتبقي قبل أن يبدأ $next.';
+  String notificationCatchUpBody(String next, String time) {
+    return 'اغتنم الوقت المتبقي قبل أن يبدأ $next في $time.';
   }
 
   @override

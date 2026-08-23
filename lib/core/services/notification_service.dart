@@ -137,6 +137,10 @@ class NotificationService {
     // Passed as a predicate so this stays clear of how the tracker stores
     // its entries.
     bool Function(DateTime day, String prayerName)? isPrayerLogged,
+    // The place the times were calculated for. Shown on every reminder so a
+    // stale or wrong location is visible in the notification itself rather
+    // than only after opening the app and wondering why Asr felt early.
+    String? city,
   }) async {
     await _ensureInitialized();
     final l10n = await AppLocalizations.delegate.load(Locale(languageCode));
@@ -198,8 +202,9 @@ class NotificationService {
           scheduledDate: tz.TZDateTime.from(prayer.time, tz.local),
           title: l10n.notificationPrayerTimeTitle(
             localizedPrayerName(l10n, prayer.name),
+            prayer.formattedTime,
           ),
-          body: _bodyFor(l10n, prayer.name),
+          body: _withLocation(l10n, _bodyFor(l10n, prayer.name), city),
           notificationDetails: details,
           androidScheduleMode: scheduleMode,
         );
@@ -227,13 +232,31 @@ class NotificationService {
         title: l10n.notificationCatchUpTitle(
           localizedPrayerName(l10n, prayer.name),
         ),
-        body: l10n.notificationCatchUpBody(
-          localizedPrayerName(l10n, next.name),
+        body: _withLocation(
+          l10n,
+          l10n.notificationCatchUpBody(
+            localizedPrayerName(l10n, next.name),
+            next.formattedTime,
+          ),
+          city,
         ),
         notificationDetails: catchUpDetails,
         androidScheduleMode: scheduleMode,
       );
     }
+  }
+
+  /// Appends the place the times were calculated for, when one is known.
+  ///
+  /// A blank line keeps it readable as a footnote rather than running it into
+  /// the reminder's own sentence.
+  static String _withLocation(
+    AppLocalizations l10n,
+    String body,
+    String? city,
+  ) {
+    if (city == null || city.isEmpty) return body;
+    return '$body\n\n${l10n.notificationLocationLine(city)}';
   }
 
   static String _bodyFor(AppLocalizations l10n, String prayerKey) {

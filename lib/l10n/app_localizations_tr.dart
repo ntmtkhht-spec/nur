@@ -447,8 +447,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get onboardingStart => 'Başla';
 
   @override
-  String notificationPrayerTimeTitle(String prayer) {
-    return '$prayer vakti girdi';
+  String notificationPrayerTimeTitle(String prayer, String time) {
+    return '$prayer vakti girdi · $time';
   }
 
   @override
@@ -471,13 +471,18 @@ class AppLocalizationsTr extends AppLocalizations {
       'Gün bitti, son namaz henüz değil. Uyumadan önce yatsıyı kıl.';
 
   @override
+  String notificationLocationLine(String city) {
+    return '$city için hesaplandı';
+  }
+
+  @override
   String notificationCatchUpTitle(String prayer) {
     return '$prayer vakti yakında bitiyor';
   }
 
   @override
-  String notificationCatchUpBody(String next) {
-    return '$next başlamadan önce kalan zamanı değerlendir.';
+  String notificationCatchUpBody(String next, String time) {
+    return '$next saat $time itibarıyla başlamadan önce kalan zamanı değerlendir.';
   }
 
   @override

@@ -863,8 +863,8 @@ abstract class AppLocalizations {
   /// No description provided for @notificationPrayerTimeTitle.
   ///
   /// In de, this message translates to:
-  /// **'Zeit für {prayer}'**
-  String notificationPrayerTimeTitle(String prayer);
+  /// **'Zeit für {prayer} · {time}'**
+  String notificationPrayerTimeTitle(String prayer, String time);
 
   /// No description provided for @notificationBodyFajr.
   ///
@@ -896,6 +896,12 @@ abstract class AppLocalizations {
   /// **'Der Tag ist zu Ende, das letzte Gebet noch nicht. Verrichte Isha, bevor du schlafen gehst.'**
   String get notificationBodyIsha;
 
+  /// No description provided for @notificationLocationLine.
+  ///
+  /// In de, this message translates to:
+  /// **'Berechnet für {city}'**
+  String notificationLocationLine(String city);
+
   /// No description provided for @notificationCatchUpTitle.
   ///
   /// In de, this message translates to:
@@ -905,8 +911,8 @@ abstract class AppLocalizations {
   /// No description provided for @notificationCatchUpBody.
   ///
   /// In de, this message translates to:
-  /// **'Nutze die verbleibende Zeit, bevor {next} beginnt.'**
-  String notificationCatchUpBody(String next);
+  /// **'Nutze die verbleibende Zeit, bevor {next} um {time} beginnt.'**
+  String notificationCatchUpBody(String next, String time);
 
   /// No description provided for @notificationCatchUpChannelName.
   ///

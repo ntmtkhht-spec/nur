@@ -135,6 +135,14 @@ class LocationData {
     this.isFallback = false,
   });
 
+  /// The city name only when one was actually resolved.
+  ///
+  /// [city] falls back to the literal 'Standort' when reverse geocoding gave
+  /// nothing, which is fine as a label above a field but reads as nonsense in
+  /// a sentence like "Berechnet für Standort".
+  String? get resolvedCity =>
+      city.isEmpty || city == 'Standort' ? null : city;
+
   static const fallback = LocationData(
     lat: 52.52,
     lng: 13.405,
@@ -578,6 +586,7 @@ Future<void> _runNotificationScheduler(Ref ref) async {
         tracker['prayer_tracker_${day.year}_${day.month}_${day.day}_'
             '$prayerName'] ==
         true,
+    city: location.resolvedCity,
   );
 }
 
