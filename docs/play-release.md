@@ -55,9 +55,14 @@ Backup, nicht nur auf diesen Rechner.
 Ausserhalb des Repositorys ablegen, damit er weder versehentlich commitet wird
 noch mit dem Projektordner verschwindet:
 
-```bash
-mkdir -p ~/keys
+```powershell
+New-Item -ItemType Directory -Force "$env:USERPROFILE\keys"
 ```
+
+Den Pfad überall ausgeschrieben lassen. `~` expandiert zwar die Shell, aber
+keytool ist ein Java-Programm und bekommt die Tilde unverändert übergeben — es
+sucht dann wörtlich nach einem Ordner namens `~` und bricht mit
+`FileNotFoundException` ab, nachdem es das Schlüsselpaar schon erzeugt hat.
 
 `keytool` liegt beim JDK, das Flutter ohnehin braucht. Den Distinguished Name
 gleich mitgeben, dann entfallen die Rückfragen:
