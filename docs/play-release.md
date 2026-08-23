@@ -59,61 +59,52 @@ noch mit dem Projektordner verschwindet:
 mkdir -p ~/keys
 ```
 
-```bash
-keytool -genkey -v -keystore ~/keys/upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+`keytool` liegt beim JDK, das Flutter ohnehin braucht. Den Distinguished Name
+gleich mitgeben, dann entfallen die Rückfragen:
+
+```powershell
+keytool -genkey -v -keystore "$env:USERPROFILE\keys\upload-keystore.jks" -keyalg RSA -keysize 2048 -validity 10000 -alias upload -dname "CN=Mouhmad Khalel, L=Oldenburg, ST=Niedersachsen, C=DE"
 ```
 
-`keytool` liegt beim JDK, das Flutter ohnehin braucht. Das Kommando fragt der
-Reihe nach:
+Abgefragt wird dann nur noch das Keystore-Passwort (zweimal) und das Kennwort
+für den Alias `upload` — dort Enter drücken, das übernimmt das
+Keystore-Passwort. Die Angaben im `-dname` landen im Zertifikat, nicht im
+Store-Eintrag; bei Play sieht sie niemand.
 
-| Frage | Eintrag |
-|---|---|
-| Keystore-Passwort (zweimal) | frei wählbar |
-| Vor- und Nachname | der Name aus dem Impressum |
-| Organisationseinheit, Organisation | leer lassen genügt |
-| Stadt, Bundesland, Ländercode | `Oldenburg`, `Niedersachsen`, `DE` |
-| Kennwort für `upload` | Enter — übernimmt das Keystore-Passwort |
-
-Diese Angaben landen im Zertifikat, nicht im Store-Eintrag.
+Ohne `-dname` fragt keytool die Felder einzeln ab und schliesst mit
+"Ist CN=… richtig? **[Nein]**:". Dort muss `ja` getippt werden — Enter
+bestätigt das `Nein` in den Klammern und startet die Abfrage von vorn, endlos.
 
 ### 4. Secrets hinterlegen
 
 `GOOGLE_SERVICES_JSON` und `FIREBASE_OPTIONS_DART` liegen schon vom
 iOS-Workflow vor. Es fehlen die vier `ANDROID_*`.
 
-Keystore nach Base64, weil ein Secret nur Text aufnimmt:
+Ein Secret nimmt nur Text auf, der Keystore muss also als Base64 hinein.
+Direkt durch die Pipe, ohne Zwischendatei, die man zu löschen vergessen kann:
 
-```bash
-base64 -w0 ~/keys/upload-keystore.jks > ~/keys/keystore.base64.txt
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("$env:USERPROFILE\keys\upload-keystore.jks")) | gh secret set ANDROID_KEYSTORE_BASE64 -R ntmtkhht-spec/nur
 ```
 
-Dann setzen, aus dem Repository-Ordner heraus:
-
-```bash
-gh secret set ANDROID_KEYSTORE_BASE64 < ~/keys/keystore.base64.txt
+```powershell
+gh secret set ANDROID_KEYSTORE_PASSWORD -R ntmtkhht-spec/nur
 ```
 
-```bash
-gh secret set ANDROID_KEYSTORE_PASSWORD
+```powershell
+gh secret set ANDROID_KEY_PASSWORD -R ntmtkhht-spec/nur
 ```
 
-```bash
-gh secret set ANDROID_KEY_PASSWORD
+```powershell
+gh secret set ANDROID_KEY_ALIAS --body upload -R ntmtkhht-spec/nur
 ```
 
-```bash
-gh secret set ANDROID_KEY_ALIAS --body upload
-```
+Die beiden Passwort-Befehle fragen interaktiv und zeigen die Eingabe nicht an,
+so landet das Passwort weder in der Shell-History noch in einer Datei. Beide
+Male dasselbe Passwort, sofern beim Alias-Kennwort Enter gedrückt wurde.
 
-Die beiden Passwort-Befehle fragen interaktiv und zeigen nichts an — so landet
-das Passwort weder in der Shell-History noch in einer Datei. Beide Male
-dasselbe Passwort, sofern bei "Kennwort für upload" Enter gedrückt wurde.
-
-Danach die Base64-Datei löschen, die `.jks` behalten:
-
-```bash
-rm ~/keys/keystore.base64.txt
-```
+PowerShell kennt weder `base64` noch `<` zur Eingabeumleitung — in einer
+Bash-Shell entsprechend `base64 -w0 … | gh secret set …`.
 
 Über die Weboberfläche geht es auch: **Settings → Secrets and variables →
 Actions → New repository secret**, vier Einträge mit genau diesen Namen.
