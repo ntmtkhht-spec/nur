@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -110,7 +110,7 @@ jobs:
         run: rm -f android/key.properties "$RUNNER_TEMP/upload-keystore.jks"
 
       - name: Upload app bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: munir-play-aab
           path: build/app/outputs/bundle/release/app-release.aab
