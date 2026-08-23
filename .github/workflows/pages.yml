@@ -1,0 +1,63 @@
+name: Publish legal pages
+
+# Google Play will not accept the listing without a privacy policy that is
+# reachable without a login, and it wants the account deletion route on the
+# open web too. Both pages are generated from the same Dart values the app
+# renders, so publishing them is part of the build rather than a copy someone
+# has to remember to update.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'lib/features/legal/**'
+      - 'tool/build_legal_site.dart'
+      - '.github/workflows/pages.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# A half-published privacy policy is worse than an old one, so let a running
+# deployment finish instead of cancelling it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate pages
+        run: dart run tool/build_legal_site.dart site
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -6,19 +6,26 @@ Diese Datei ist keine Rechtsberatung. Sie dokumentiert, was vor der Einreichung
 bei Apple App Store und Google Play noch auszufuellen oder im Store-Backend
 anzugeben ist.
 
-## Muss vor Store-Upload ersetzt werden
+## Stand der Pflichtangaben
 
-- `lib/features/legal/legal_profile.dart`
-  - Betreiber/Firma
-  - ladungsfaehige Anschrift
-  - E-Mail-Adresse
-  - Telefon oder andere unmittelbare Kontaktmoeglichkeit, soweit vorhanden
-  - Register/UST-ID, falls vorhanden
-  - Verantwortliche Person nach § 18 Abs. 2 MStV, falls erforderlich
-  - oeffentliche Datenschutz-URL
-  - oeffentliche Konto-/Datenloesch-URL fuer Google Play
+Alle Angaben in `lib/features/legal/legal_profile.dart` sind gesetzt:
+Betreiber, ladungsfaehige Anschrift, E-Mail und Telefon. Register, UST-ID und
+eine verantwortliche Person nach § 18 Abs. 2 MStV entfallen, weil Munir von
+einer Privatperson ohne journalistische Inhalte angeboten wird.
 
-Platzhalter in Impressum oder Datenschutz sind ein Rejection-Risiko.
+Datenschutz-URL und Konto-Loesch-URL zeigen auf GitHub Pages:
+
+- https://ntmtkhht-spec.github.io/nur/index.html
+- https://ntmtkhht-spec.github.io/nur/impressum.html
+- https://ntmtkhht-spec.github.io/nur/konto-loeschen.html
+
+Die Seiten werden von `.github/workflows/pages.yml` aus
+`lib/features/legal/legal_documents.dart` erzeugt — derselben Quelle, aus der
+die App ihre Rechtstexte rendert. Der Text kann deshalb nicht auseinander
+laufen, und ein Platzhalter in einer der beiden Fassungen ist ausgeschlossen.
+
+Vor der Einreichung beide URLs in einem privaten Fenster oeffnen: eine
+Datenschutz-URL, die nur eingeloggt erreichbar ist, ist ein Rejection-Grund.
 
 ## Apple App Store
 

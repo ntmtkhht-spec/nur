@@ -17,10 +17,13 @@ class LegalProfile {
   // "does not apply" over and over. Add the fields back here if that ever
   // changes.
 
-  static const privacyPolicyUrl =
-      'https://claude.ai/code/artifact/1960da49-9d5f-495a-9c72-3d4d1c05b0ae';
-  static const accountDeletionUrl =
-      'https://claude.ai/code/artifact/1960da49-9d5f-495a-9c72-3d4d1c05b0ae#konto-loeschen';
+  /// Published by `.github/workflows/pages.yml` from the same text the app
+  /// shows, so these can never describe a different app than the screens do.
+  /// Google Play requires both to be reachable publicly, without a login.
+  static const siteUrl = 'https://ntmtkhht-spec.github.io/nur/';
+  static const privacyPolicyUrl = '${siteUrl}index.html';
+  static const imprintUrl = '${siteUrl}impressum.html';
+  static const accountDeletionUrl = '${siteUrl}konto-loeschen.html';
 
-  static const lastUpdated = '21. August 2026';
+  static const lastUpdated = '23. August 2026';
 }

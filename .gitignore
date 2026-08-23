@@ -63,3 +63,14 @@ firebase.json
 # passwords and the .jks file up somewhere outside this repo.
 android/key.properties
 android/app/upload-keystore.jks
+
+# Generated: the legal pages are rendered from lib/features/legal by
+# tool/build_legal_site.dart and published by CI, never committed.
+site/
+
+# Downloaded release artifacts. The design-qa screenshots next to them are
+# tracked on purpose; builds are not.
+artifacts/ipa/
+
+# Kotlin incremental-compile scratch from Gradle.
+android/.kotlin/
