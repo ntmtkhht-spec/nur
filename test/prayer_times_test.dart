@@ -24,10 +24,17 @@ void main() {
 
       final fajr = prayers.firstWhere((p) => p.name == 'Fajr');
 
-      // Without high latitude rule, fajr would wrap around to 23:00+ or be null.
-      // With the rule, Fajr should be around 2-3 AM in summer.
-      expect(fajr.time.hour, greaterThanOrEqualTo(1));
-      expect(fajr.time.hour, lessThan(4));
+      // Read on Oldenburg's own clock, not the machine's. computePrayerTimes
+      // hands back `.toLocal()` times, so asserting the raw hour passes in
+      // Germany and fails on a UTC build runner — the times are identical,
+      // only the timezone printing them differs. 1 June 2026 is CEST.
+      const cest = 2;
+      final fajrHour = fajr.time.toUtc().add(const Duration(hours: cest)).hour;
+
+      // Without the high latitude rule, Fajr would wrap around to 23:00+ or be
+      // null. With it, Fajr should land around 2-3 AM in summer.
+      expect(fajrHour, greaterThanOrEqualTo(1));
+      expect(fajrHour, lessThan(4));
     });
 
     test('Midnight boundary check', () {
