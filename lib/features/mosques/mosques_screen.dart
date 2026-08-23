@@ -178,6 +178,7 @@ class _MosqueResults extends ConsumerWidget {
                 userLat: location.lat,
                 userLng: location.lng,
                 radiusMeters: radius,
+                isSearching: isLoading,
               ),
               if (isLoading)
                 const Positioned(
