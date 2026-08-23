@@ -71,6 +71,7 @@ site/
 # Downloaded release artifacts. The design-qa screenshots next to them are
 # tracked on purpose; builds are not.
 artifacts/ipa/
+artifacts/aab/
 
 # Kotlin incremental-compile scratch from Gradle.
 android/.kotlin/
