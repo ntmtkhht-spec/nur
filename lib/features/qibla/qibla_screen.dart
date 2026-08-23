@@ -116,9 +116,9 @@ class _QiblaCompassView extends StatelessWidget {
 
         final deviceHeading = reading.trueHeading!;
         final relative = _normalizeRelative(qiblaBearing - deviceHeading);
-        // A sensor uncertainty is part of the alignment decision: an
-        // uncertain heading must never produce a false "aligned" result.
-        final aligned = relative.abs() + reading.accuracyDegrees! <= 5;
+        // Readings this far off are already filtered out by `isUsable` above,
+        // so the tolerance here is purely about where the device points.
+        final aligned = isAlignedWithQibla(relative);
         return _QiblaBody(
           qiblaBearing: qiblaBearing,
           deviceHeading: deviceHeading,

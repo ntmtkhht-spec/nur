@@ -49,4 +49,30 @@ void main() {
       expect(reading.isUsable, isTrue);
     });
   });
+
+  group('Qibla alignment', () {
+    // Regression: the rule used to be `|relative| + accuracy <= 5`. iOS
+    // reports a heading accuracy of 10-15 degrees even when well calibrated,
+    // so the banner could never turn green on a real device.
+    test('is reachable with a real-world heading accuracy', () {
+      const reading = QiblaCompassReading(
+        trueHeading: 135,
+        accuracyDegrees: 15,
+      );
+
+      expect(reading.isUsable, isTrue);
+      expect(isAlignedWithQibla(0), isTrue);
+    });
+
+    test('holds up to the tolerance on either side', () {
+      expect(isAlignedWithQibla(qiblaAlignmentToleranceDegrees), isTrue);
+      expect(isAlignedWithQibla(-qiblaAlignmentToleranceDegrees), isTrue);
+    });
+
+    test('does not claim alignment beyond the tolerance', () {
+      expect(isAlignedWithQibla(qiblaAlignmentToleranceDegrees + 0.1), isFalse);
+      expect(isAlignedWithQibla(-qiblaAlignmentToleranceDegrees - 0.1), isFalse);
+      expect(isAlignedWithQibla(180), isFalse);
+    });
+  });
 }

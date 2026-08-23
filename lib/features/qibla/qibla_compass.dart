@@ -32,6 +32,24 @@ class QiblaCompassReading {
       accuracyDegrees! <= 15;
 }
 
+/// How far off the Qibla the device may point and still count as facing it.
+///
+/// Wide enough to be reachable while holding a phone, narrow enough that the
+/// Kaaba marker is visibly under the needle when it is met.
+const qiblaAlignmentToleranceDegrees = 5.0;
+
+/// Whether a heading [relativeDegrees] off the Qibla counts as facing it.
+///
+/// Sensor uncertainty is deliberately not subtracted from the tolerance here.
+/// It used to be — the rule was `|relative| + accuracy <= 5` — but iOS reports
+/// a heading accuracy of 10-15 degrees even on a well calibrated device, so no
+/// real reading could ever satisfy it and the "aligned" state was unreachable.
+/// Deciding whether a reading can be trusted at all is
+/// [QiblaCompassReading.isUsable]'s job, and it already rejects anything worse
+/// than 15 degrees; counting the same uncertainty twice only broke the result.
+bool isAlignedWithQibla(double relativeDegrees) =>
+    relativeDegrees.abs() <= qiblaAlignmentToleranceDegrees;
+
 class QiblaCompass {
   static const _events = EventChannel('com.munir.app/qibla_heading');
 
