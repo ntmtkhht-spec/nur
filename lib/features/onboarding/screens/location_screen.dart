@@ -74,7 +74,15 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
 
     final l10n = AppLocalizations.of(context);
     try {
-      final results = await Geocoding().locationFromAddress(query);
+      // The platform geocoder can hang indefinitely rather than fail — with no
+      // connection, or on a device whose geocoder has no backend service at
+      // all. Without a deadline the spinner never stops and onboarding traps
+      // the user on its second screen, which is a worse first impression than
+      // an honest "not found". Matches the timeout the reverse lookup in
+      // LocationNotifier._resolvePlace already uses.
+      final results = await Geocoding()
+          .locationFromAddress(query)
+          .timeout(const Duration(seconds: 8));
       if (!mounted) return;
       if (results.isEmpty) {
         setState(() => _errorText = l10n.onboardingLocationNotFound);

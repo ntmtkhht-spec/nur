@@ -72,6 +72,8 @@ site/
 # tracked on purpose; builds are not.
 artifacts/ipa/
 artifacts/aab/
+# Store screenshots: regenerated per release by tool/capture_screenshots.ps1.
+artifacts/screenshots/
 
 # Kotlin incremental-compile scratch from Gradle.
 android/.kotlin/
