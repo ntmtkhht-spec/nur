@@ -13,23 +13,19 @@ Rechtsberatung.
 
 ## Einmalig
 
-### 1. Play Console
+### 1. Play Console — erledigt
 
-- Entwicklerkonto anlegen: <https://play.google.com/console> — einmalig 25 USD.
-- Für private Entwicklerkonten verlangt Google eine Identitätsprüfung, und die
-  öffentlich sichtbare Anschrift ist dieselbe, die auch im Impressum steht.
-  Das dauert erfahrungsgemäß einige Tage, also früh anstoßen.
-- App anlegen: Name `Munir`, Standardsprache Deutsch, Typ App, kostenlos.
+Entwicklerkonto besteht. Falls die App dort noch nicht angelegt ist: Name
+`Munir`, Standardsprache Deutsch, Typ App, kostenlos.
 
-### 2. Rechtsseiten veröffentlichen
+### 2. Rechtsseiten veröffentlichen — erledigt
 
 Die Seiten werden aus der App heraus erzeugt und liegen auf GitHub Pages.
+Pages ist aktiviert (Source: GitHub Actions, HTTPS erzwungen) und
+`.github/workflows/pages.yml` veröffentlicht sie bei jeder Änderung an
+`lib/features/legal/` neu. Hier ist nichts mehr zu tun.
 
-Einmal im Repository aktivieren: **Settings → Pages → Source: GitHub Actions**.
-Danach den Workflow `Publish legal pages` einmal von Hand starten
-(**Actions → Publish legal pages → Run workflow**).
-
-Danach erreichbar unter:
+Erreichbar unter:
 
 | Zweck | URL |
 |---|---|
@@ -37,52 +33,96 @@ Danach erreichbar unter:
 | Impressum | <https://ntmtkhht-spec.github.io/nur/impressum.html> |
 | Konto löschen | <https://ntmtkhht-spec.github.io/nur/konto-loeschen.html> |
 
-Beide Pflicht-URLs prüfen: in einem privaten Fenster öffnen, ohne Login. Ist
-eine davon nicht erreichbar, lehnt Play die Einreichung ab.
+Alle drei antworten mit HTTP 200 ohne Anmeldung — geprüft mit `curl`, das
+weder Cookies noch Zugangsdaten mitschickt und damit genau das nachweist, was
+Play verlangt. Nachprüfen lässt sich das jederzeit:
+
+```bash
+curl -sI https://ntmtkhht-spec.github.io/nur/index.html | head -1
+```
+
+Ändert sich der Repository-Name oder wird das Repository privat, brechen diese
+URLs — dann lehnt Play die Einreichung ab, und `legal_profile.dart` muss
+nachgezogen werden.
 
 ### 3. Upload-Keystore erzeugen
 
-Der Schlüssel signiert jedes Bundle. **Geht er verloren, lässt sich die App
-nicht mehr aktualisieren** — sichere ihn in einem Passwortmanager, nicht nur
-auf dem Rechner. Er gehört nicht ins Repository; `.gitignore` hält
-`android/key.properties` und `android/app/upload-keystore.jks` bereits heraus.
+Der Schlüssel signiert jedes Bundle. **Geht er verloren, lässt sich Munir bei
+Play nie wieder aktualisieren** — es gibt keinen Reset, nur einen langwierigen
+Antrag bei Google. Datei und Passwort gehören in einen Passwortmanager oder ein
+Backup, nicht nur auf diesen Rechner.
+
+Ausserhalb des Repositorys ablegen, damit er weder versehentlich commitet wird
+noch mit dem Projektordner verschwindet:
 
 ```bash
-keytool -genkey -v -keystore upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+mkdir -p ~/keys
 ```
 
-`keytool` liegt beim JDK, das Flutter ohnehin braucht. Das Kommando fragt nach
-einem Passwort und nach Name und Anschrift; die landen im Zertifikat, nicht im
-Store-Eintrag.
+```bash
+keytool -genkey -v -keystore ~/keys/upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+```
+
+`keytool` liegt beim JDK, das Flutter ohnehin braucht. Das Kommando fragt der
+Reihe nach:
+
+| Frage | Eintrag |
+|---|---|
+| Keystore-Passwort (zweimal) | frei wählbar |
+| Vor- und Nachname | der Name aus dem Impressum |
+| Organisationseinheit, Organisation | leer lassen genügt |
+| Stadt, Bundesland, Ländercode | `Oldenburg`, `Niedersachsen`, `DE` |
+| Kennwort für `upload` | Enter — übernimmt das Keystore-Passwort |
+
+Diese Angaben landen im Zertifikat, nicht im Store-Eintrag.
 
 ### 4. Secrets hinterlegen
 
-**Settings → Secrets and variables → Actions → New repository secret.**
+`GOOGLE_SERVICES_JSON` und `FIREBASE_OPTIONS_DART` liegen schon vom
+iOS-Workflow vor. Es fehlen die vier `ANDROID_*`.
 
-| Secret | Inhalt |
-|---|---|
-| `ANDROID_KEYSTORE_BASE64` | die `.jks` als Base64, siehe unten |
-| `ANDROID_KEYSTORE_PASSWORD` | das Keystore-Passwort aus Schritt 3 |
-| `ANDROID_KEY_ALIAS` | `upload` |
-| `ANDROID_KEY_PASSWORD` | das Key-Passwort (meist dasselbe) |
-| `GOOGLE_SERVICES_JSON` | `android/app/google-services.json` als Base64 |
-| `FIREBASE_OPTIONS_DART` | `lib/firebase_options.dart` als Base64 |
-
-Die letzten beiden existieren schon vom iOS-Workflow.
-
-Base64 erzeugen:
+Keystore nach Base64, weil ein Secret nur Text aufnimmt:
 
 ```bash
-base64 -w0 upload-keystore.jks > keystore.base64.txt
+base64 -w0 ~/keys/upload-keystore.jks > ~/keys/keystore.base64.txt
 ```
 
-Auf Windows in PowerShell:
+Dann setzen, aus dem Repository-Ordner heraus:
 
-```powershell
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("upload-keystore.jks")) | Set-Content keystore.base64.txt
+```bash
+gh secret set ANDROID_KEYSTORE_BASE64 < ~/keys/keystore.base64.txt
 ```
 
-Inhalt der Datei einfügen, danach `keystore.base64.txt` löschen.
+```bash
+gh secret set ANDROID_KEYSTORE_PASSWORD
+```
+
+```bash
+gh secret set ANDROID_KEY_PASSWORD
+```
+
+```bash
+gh secret set ANDROID_KEY_ALIAS --body upload
+```
+
+Die beiden Passwort-Befehle fragen interaktiv und zeigen nichts an — so landet
+das Passwort weder in der Shell-History noch in einer Datei. Beide Male
+dasselbe Passwort, sofern bei "Kennwort für upload" Enter gedrückt wurde.
+
+Danach die Base64-Datei löschen, die `.jks` behalten:
+
+```bash
+rm ~/keys/keystore.base64.txt
+```
+
+Über die Weboberfläche geht es auch: **Settings → Secrets and variables →
+Actions → New repository secret**, vier Einträge mit genau diesen Namen.
+
+Prüfen, ob alle stehen:
+
+```bash
+gh secret list
+```
 
 ### 5. Lokal bauen (optional)
 
@@ -90,7 +130,7 @@ Für einen signierten Build auf dem eigenen Rechner `android/key.properties`
 anlegen — gitignored:
 
 ```properties
-storeFile=../upload-keystore.jks
+storeFile=/c/Users/<name>/keys/upload-keystore.jks
 storePassword=…
 keyAlias=upload
 keyPassword=…
