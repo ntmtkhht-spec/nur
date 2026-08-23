@@ -41,7 +41,6 @@ private final class QiblaHeadingStreamHandler: NSObject, FlutterStreamHandler,
     locationManager.delegate = self
     locationManager.desiredAccuracy = kCLLocationAccuracyBest
     locationManager.headingFilter = 1
-    locationManager.headingOrientation = .portrait
   }
 
   func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink)
@@ -55,6 +54,17 @@ private final class QiblaHeadingStreamHandler: NSObject, FlutterStreamHandler,
       unavailable("Aktiviere den Standortzugriff für eine genaue Qibla.")
       return nil
     }
+    // Core Location applies this orientation itself.  Do not correct the
+    // resulting heading a second time in Dart/Swift: doing so moves the Qibla
+    // by 90° or 180° after an interface rotation.
+    updateHeadingOrientation()
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(interfaceOrientationDidChange),
+      name: UIDevice.orientationDidChangeNotification,
+      object: nil
+    )
+    UIDevice.current.beginGeneratingDeviceOrientationNotifications()
     locationManager.startUpdatingLocation()
     locationManager.startUpdatingHeading()
     return nil
@@ -63,6 +73,8 @@ private final class QiblaHeadingStreamHandler: NSObject, FlutterStreamHandler,
   func onCancel(withArguments arguments: Any?) -> FlutterError? {
     locationManager.stopUpdatingHeading()
     locationManager.stopUpdatingLocation()
+    NotificationCenter.default.removeObserver(self, name: UIDevice.orientationDidChangeNotification, object: nil)
+    UIDevice.current.endGeneratingDeviceOrientationNotifications()
     eventSink = nil
     return nil
   }
@@ -74,7 +86,9 @@ private final class QiblaHeadingStreamHandler: NSObject, FlutterStreamHandler,
       return
     }
     eventSink?([
-      "trueHeading": normalized(newHeading.trueHeading + interfaceOrientationOffset()),
+      // `trueHeading` is already relative to the `headingOrientation` set
+      // above, and is therefore directly comparable to the Qibla bearing.
+      "trueHeading": normalized(newHeading.trueHeading),
       "accuracyDegrees": newHeading.headingAccuracy,
     ])
   }
@@ -103,7 +117,11 @@ private final class QiblaHeadingStreamHandler: NSObject, FlutterStreamHandler,
     eventSink?(["reason": reason])
   }
 
-  private func interfaceOrientationOffset() -> Double {
+  @objc private func interfaceOrientationDidChange() {
+    updateHeadingOrientation()
+  }
+
+  private func updateHeadingOrientation() {
     let orientation: UIInterfaceOrientation
     if #available(iOS 13.0, *) {
       orientation = UIApplication.shared.connectedScenes
@@ -113,10 +131,16 @@ private final class QiblaHeadingStreamHandler: NSObject, FlutterStreamHandler,
       orientation = UIApplication.shared.statusBarOrientation
     }
     switch orientation {
-    case .portraitUpsideDown: return 180
-    case .landscapeLeft: return -90
-    case .landscapeRight: return 90
-    default: return 0
+    case .portraitUpsideDown:
+      locationManager.headingOrientation = .portraitUpsideDown
+    // UI and physical-device landscape names are opposite. For example, the
+    // top edge of a landscape-left interface is the physical device's right.
+    case .landscapeLeft:
+      locationManager.headingOrientation = .landscapeRight
+    case .landscapeRight:
+      locationManager.headingOrientation = .landscapeLeft
+    default:
+      locationManager.headingOrientation = .portrait
     }
   }
 

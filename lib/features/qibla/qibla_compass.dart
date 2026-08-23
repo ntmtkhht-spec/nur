@@ -24,6 +24,8 @@ class QiblaCompassReading {
   bool get isUsable =>
       trueHeading != null &&
       trueHeading!.isFinite &&
+      trueHeading! >= 0 &&
+      trueHeading! < 360 &&
       accuracyDegrees != null &&
       accuracyDegrees!.isFinite &&
       accuracyDegrees! >= 0 &&
@@ -44,7 +46,16 @@ class QiblaCompass {
           final heading = data['trueHeading'];
           final accuracy = data['accuracyDegrees'];
           return QiblaCompassReading(
-            trueHeading: heading is num ? heading.toDouble() : null,
+            // Platform code normalizes the value. Keep this guard here as
+            // well so a malformed sensor event can never be rendered as a
+            // convincing but false Qibla direction.
+            trueHeading:
+                heading is num &&
+                    heading.isFinite &&
+                    heading >= 0 &&
+                    heading < 360
+                ? heading.toDouble()
+                : null,
             accuracyDegrees: accuracy is num ? accuracy.toDouble() : null,
             unavailableReason: data['reason'] as String?,
           );

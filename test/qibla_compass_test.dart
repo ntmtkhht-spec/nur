@@ -26,6 +26,20 @@ void main() {
       expect(imprecise.isUsable, isFalse);
     });
 
+    test('rejects a heading outside one full compass turn', () {
+      const negative = QiblaCompassReading(
+        trueHeading: -0.1,
+        accuracyDegrees: 3,
+      );
+      const overflow = QiblaCompassReading(
+        trueHeading: 360,
+        accuracyDegrees: 3,
+      );
+
+      expect(negative.isUsable, isFalse);
+      expect(overflow.isUsable, isFalse);
+    });
+
     test('accepts a precise true-north heading', () {
       const reading = QiblaCompassReading(
         trueHeading: 135,
