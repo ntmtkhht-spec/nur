@@ -51,6 +51,7 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
             lat: data.lat,
             lng: data.lng,
             isoCountryCode: data.isoCountryCode,
+            fromGps: true,
           );
     } catch (e) {
       // GPS can still fail after the user has moved on — a denied permission

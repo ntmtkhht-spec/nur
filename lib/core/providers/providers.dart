@@ -10,6 +10,7 @@ import 'package:hijri/hijri_calendar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/prayer.dart';
+import '../services/location_refresh_policy.dart';
 import '../services/notification_service.dart';
 
 // ---------------------------------------------------------------------------
@@ -167,6 +168,29 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
     return LocationData.fallback;
   }
 
+  static const _sourceKey = 'location_source';
+  static const _sourceGps = 'gps';
+  static const _sourceManual = 'manual';
+
+  /// Whether the stored position came from GPS rather than from a city the
+  /// user typed in.
+  ///
+  /// Only the GPS one is refreshed on its own. A city picked by hand is a
+  /// decision — someone keeping their home town's times while away, or a
+  /// phone whose GPS is not to be trusted — and quietly replacing it would
+  /// be the app overruling the user.
+  ///
+  /// Installs from before this key existed answer yes, because the detect
+  /// button was the usual way in and the alternative — every existing user
+  /// having to tap the location row once before the app tracked them again
+  /// — is the worse of the two wrong answers. The permission check in
+  /// [refreshQuietly] covers most of the rest: someone who searched for a
+  /// city by hand generally did so having refused location access, and a
+  /// refused permission stops the refresh before it starts.
+  bool get followsGps =>
+      ref.read(sharedPreferencesProvider).getString(_sourceKey) !=
+      _sourceManual;
+
   /// Detects location via GPS. Returns the resolved data, or throws on failure.
   Future<LocationData> detectViaGps() async {
     state = const AsyncLoading();
@@ -187,28 +211,7 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
       throw Exception('Standortzugriff wurde verweigert.');
     }
 
-    /// A cached fix older than this is not trustworthy enough to drive prayer
-    /// times — the user may have travelled a long way since it was recorded.
-    const maxCachedFixAge = Duration(minutes: 2);
-
-    Position? position;
-    try {
-      position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.low,
-          timeLimit: Duration(seconds: 10),
-        ),
-      );
-    } catch (_) {
-      // Live fetch failed or timed out. A recent cached fix is acceptable,
-      // but a stale one would silently produce wrong prayer times.
-      final cached = await Geolocator.getLastKnownPosition();
-      if (cached != null) {
-        final age = DateTime.now().difference(cached.timestamp);
-        if (age <= maxCachedFixAge) position = cached;
-      }
-    }
-
+    final position = await _currentOrRecentFix();
     if (position == null) {
       state = AsyncData(LocationData.fallback);
       throw Exception(
@@ -216,17 +219,95 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
       );
     }
 
+    final data = await _describe(position);
+    await _persist(data, fromGps: true);
+    state = AsyncData(data);
+    return data;
+  }
+
+  /// Brings the position up to date without anyone having asked for it.
+  ///
+  /// Deliberately quiet. It sets no loading state — the home screen would
+  /// flash a spinner every time the app is opened — throws nothing, because
+  /// there is nobody watching to show it to, and never asks for permission:
+  /// a system dialog appearing with no tap behind it is worse than a
+  /// slightly stale position. What it cannot get, it gives up on.
+  ///
+  /// Driven by [LocationRefresher]: on launch, on resume and on a timer.
+  Future<void> refreshQuietly() async {
+    if (!followsGps) return;
+
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) return;
+
+      final permission = await Geolocator.checkPermission();
+      final granted =
+          permission == LocationPermission.always ||
+          permission == LocationPermission.whileInUse;
+      if (!granted) return;
+
+      final position = await _currentOrRecentFix();
+      if (position == null) return;
+
+      final previous = state.value;
+      if (previous != null && !_worthAdopting(previous, position)) return;
+
+      final data = await _describe(position);
+      await _persist(data, fromGps: true);
+      state = AsyncData(data);
+    } catch (e) {
+      // No fix, no geocoder, permission revoked mid-call, plugin missing in
+      // a test. The stored position stays and the next attempt tries again.
+      debugPrint('Quiet location refresh skipped: $e');
+    }
+  }
+
+  bool _worthAdopting(LocationData previous, Position fix) {
+    return locationRefreshPolicy.worthAdopting(
+      movedMetres: Geolocator.distanceBetween(
+        previous.lat,
+        previous.lng,
+        fix.latitude,
+        fix.longitude,
+      ),
+      previousWasFallback: previous.isFallback,
+      previousCityUnresolved: previous.resolvedCity == null,
+    );
+  }
+
+  /// A live fix, or a cached one recent enough to still be true.
+  ///
+  /// A stale cached fix would silently produce prayer times for wherever the
+  /// phone was hours ago, which is worse than admitting to having no
+  /// position at all.
+  Future<Position?> _currentOrRecentFix() async {
+    const maxCachedFixAge = Duration(minutes: 2);
+
+    try {
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.low,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+    } catch (_) {
+      // Live fetch failed or timed out.
+      final cached = await Geolocator.getLastKnownPosition();
+      if (cached == null) return null;
+
+      final age = DateTime.now().difference(cached.timestamp);
+      return age <= maxCachedFixAge ? cached : null;
+    }
+  }
+
+  Future<LocationData> _describe(Position position) async {
     final place = await _resolvePlace(position.latitude, position.longitude);
-    final data = LocationData(
+    return LocationData(
       lat: position.latitude,
       lng: position.longitude,
       city: place.city,
       isoCountryCode: place.isoCountryCode,
     );
-
-    await _persist(data);
-    state = AsyncData(data);
-    return data;
   }
 
   /// Reverse-geocodes coordinates into a city label and a country code.
@@ -269,17 +350,21 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
     );
   }
 
-  /// Sets location explicitly, e.g. from manual city search.
+  /// Sets location explicitly, from the manual city search.
+  ///
+  /// Recorded as the user's own choice, which is what stops
+  /// [refreshQuietly] from ever replacing it.
   Future<void> setManual(LocationData data) async {
-    await _persist(data);
+    await _persist(data, fromGps: false);
     state = AsyncData(data);
   }
 
-  Future<void> _persist(LocationData data) async {
+  Future<void> _persist(LocationData data, {required bool fromGps}) async {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setDouble('cached_lat', data.lat);
     await prefs.setDouble('cached_lng', data.lng);
     await prefs.setString('cached_city', data.city);
+    await prefs.setString(_sourceKey, fromGps ? _sourceGps : _sourceManual);
   }
 }
 

@@ -18,11 +18,17 @@ class OnboardingData {
   final bool notificationsEnabled;
   final String name;
 
+  /// True when the location was detected rather than typed in. Decides
+  /// whether the app may keep it up to date on its own afterwards — see
+  /// LocationNotifier.followsGps.
+  final bool locationFromGps;
+
   const OnboardingData({
     this.language = 'Deutsch',
     this.city,
     this.lat,
     this.lng,
+    this.locationFromGps = false,
     this.calculationMethod = adhan.CalculationMethod.muslimWorldLeague,
     this.madhab = adhan.Madhab.shafi,
     this.muezzinVoice = MuezzinVoice.misharyAlafasy,
@@ -42,12 +48,14 @@ class OnboardingData {
     MuezzinVoice? muezzinVoice,
     bool? notificationsEnabled,
     String? name,
+    bool? locationFromGps,
   }) {
     return OnboardingData(
       language: language ?? this.language,
       city: city ?? this.city,
       lat: lat ?? this.lat,
       lng: lng ?? this.lng,
+      locationFromGps: locationFromGps ?? this.locationFromGps,
       calculationMethod: calculationMethod ?? this.calculationMethod,
       madhab: madhab ?? this.madhab,
       muezzinVoice: muezzinVoice ?? this.muezzinVoice,
@@ -70,11 +78,13 @@ class OnboardingNotifier extends Notifier<OnboardingData> {
     required double lat,
     required double lng,
     String? isoCountryCode,
+    bool fromGps = false,
   }) {
     state = state.copyWith(
       city: city,
       lat: lat,
       lng: lng,
+      locationFromGps: fromGps,
       // The calculation method is no longer asked for; it follows from the
       // country and stays changeable in Settings.
       calculationMethod: calculationMethodForCountry(isoCountryCode),
@@ -109,7 +119,11 @@ class OnboardingNotifier extends Notifier<OnboardingData> {
 
     ref.read(appLanguageProvider.notifier).update(data.language);
 
-    if (data.hasLocation) {
+    // A detected location was already stored by detectViaGps, marked as
+    // coming from GPS. Re-storing it here would mark it as the user's own
+    // choice and shut off the automatic refresh for everyone who onboarded
+    // with the detect button.
+    if (data.hasLocation && !data.locationFromGps) {
       ref.read(locationProvider.notifier).setManual(
             LocationData(
               lat: data.lat!,

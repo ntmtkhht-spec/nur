@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers/navigation_provider.dart';
+import 'core/services/location_refresher.dart';
 import 'core/services/sync_scheduler.dart';
 import 'l10n/app_localizations.dart';
 import 'core/providers/providers.dart';
@@ -88,6 +89,11 @@ class _MainShell extends ConsumerWidget {
     // several days, re-running whenever location/method/madhab/language or
     // the notification toggle changes. See notificationSchedulerProvider.
     ref.watch(notificationSchedulerProvider);
+
+    // Side-effect watch: keeps the position current as the phone travels,
+    // so prayer times follow it without anyone tapping anything. See
+    // locationRefresherProvider.
+    ref.watch(locationRefresherProvider);
 
     // Side-effect watch: uploads what was recorded while offline once a
     // connection is there again, without waiting for the sync button in
