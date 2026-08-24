@@ -21,16 +21,44 @@ class QiblaCompassReading {
     this.unavailableReason,
   });
 
-  bool get isUsable =>
+  bool get _hasHeading =>
       trueHeading != null &&
       trueHeading!.isFinite &&
       trueHeading! >= 0 &&
-      trueHeading! < 360 &&
+      trueHeading! < 360;
+
+  bool get _hasAccuracy =>
       accuracyDegrees != null &&
       accuracyDegrees!.isFinite &&
-      accuracyDegrees! >= 0 &&
-      accuracyDegrees! <= 15;
+      accuracyDegrees! >= 0;
+
+  bool get isUsable =>
+      _hasHeading &&
+      _hasAccuracy &&
+      accuracyDegrees! <= qiblaMaxTrustedAccuracyDegrees;
+
+  /// Whether the heading is worth showing but worth warning about.
+  ///
+  /// A usable reading that is this coarse still points the right way to
+  /// within a quadrant, which is enough to pray by, but the user should know
+  /// that a figure-of-eight would sharpen it.
+  bool get needsCalibration =>
+      isUsable && accuracyDegrees! > qiblaCalibrationHintAccuracyDegrees;
 }
+
+/// The worst heading accuracy that is still shown as a direction.
+///
+/// Anything coarser than this is a guess, not a bearing, and is replaced by
+/// the calibration screen. It is deliberately not the same as
+/// [qiblaCalibrationHintAccuracyDegrees]: the gate used to sit at 15 degrees,
+/// which is the accuracy a *well* calibrated phone reports — iOS routinely
+/// says 10-15 and Android maps its MEDIUM sensor status to 20 — so the
+/// compass spent most of its life hidden behind "please calibrate" even
+/// though the heading underneath it was fine.
+const qiblaMaxTrustedAccuracyDegrees = 30.0;
+
+/// Above this accuracy the direction is shown with a calibration hint.
+const qiblaCalibrationHintAccuracyDegrees = 15.0;
 
 /// How far off the Qibla the device may point and still count as facing it.
 ///
@@ -45,10 +73,61 @@ const qiblaAlignmentToleranceDegrees = 5.0;
 /// a heading accuracy of 10-15 degrees even on a well calibrated device, so no
 /// real reading could ever satisfy it and the "aligned" state was unreachable.
 /// Deciding whether a reading can be trusted at all is
-/// [QiblaCompassReading.isUsable]'s job, and it already rejects anything worse
-/// than 15 degrees; counting the same uncertainty twice only broke the result.
+/// [QiblaCompassReading.isUsable]'s job; counting the same uncertainty twice
+/// only broke the result.
 bool isAlignedWithQibla(double relativeDegrees) =>
     relativeDegrees.abs() <= qiblaAlignmentToleranceDegrees;
+
+/// Wraps [degrees] into `[0, 360)`.
+double normalizeDegrees(double degrees) {
+  final wrapped = degrees % 360;
+  return wrapped < 0 ? wrapped + 360 : wrapped;
+}
+
+/// Wraps [degrees] into `(-180, 180]`, i.e. the shortest turn either way.
+double normalizeRelativeDegrees(double degrees) {
+  var a = degrees % 360;
+  if (a > 180) a -= 360;
+  if (a < -180) a += 360;
+  return a;
+}
+
+/// How much of each new heading is adopted per sensor event.
+///
+/// The raw magnetometer wobbles by a few degrees even when the phone is lying
+/// still, which is what made the needle twitch rather than point.
+const _headingSmoothingFactor = 0.25;
+
+/// A turn larger than this is the user moving, not the sensor wobbling, and
+/// is followed immediately instead of being eased into.
+const _headingSnapDegrees = 40.0;
+
+/// Eases [next] into [previous] along the shortest arc across 0/360.
+///
+/// Averaging the two numbers directly would sweep the needle the long way
+/// round whenever the heading crosses north (359 -> 1 would read as a 358
+/// degree turn), so the blend happens on the relative angle.
+double smoothHeading(double? previous, double next) {
+  if (previous == null || !previous.isFinite) return normalizeDegrees(next);
+  final delta = normalizeRelativeDegrees(next - previous);
+  if (delta.abs() >= _headingSnapDegrees) return normalizeDegrees(next);
+  return normalizeDegrees(previous + delta * _headingSmoothingFactor);
+}
+
+/// Whether two positions are far enough apart to be worth restarting the
+/// platform compass for.
+///
+/// The only thing the platform does with the position is look up the magnetic
+/// declination, which moves by well under a tenth of a degree over this
+/// distance. Resubscribing costs far more than it buys: every restart drops
+/// the sensor back to "unknown accuracy" on Android and to a negative true
+/// heading on iOS, which is exactly the flicker back to the calibration
+/// screen that made the compass feel broken while walking around.
+bool isWorthRestartingCompass(LocationData previous, LocationData next) {
+  const thresholdDegrees = 0.05; // roughly 5 km
+  return (previous.lat - next.lat).abs() > thresholdDegrees ||
+      (previous.lng - next.lng).abs() > thresholdDegrees;
+}
 
 class QiblaCompass {
   static const _events = EventChannel('com.munir.app/qibla_heading');
