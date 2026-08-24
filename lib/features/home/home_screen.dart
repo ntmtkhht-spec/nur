@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_tokens.dart';
-import 'widgets/daily_reminder_banner.dart';
+import 'widgets/daily_advice_card.dart';
 import 'widgets/greeting_header.dart';
 import 'widgets/home_hero_carousel.dart';
 import 'widgets/quick_actions_grid.dart';
@@ -38,7 +38,7 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.lg),
             const QuickActionsGrid(),
             const SizedBox(height: AppSpacing.lg),
-            const DailyReminderBanner(),
+            const DailyAdviceCard(),
             const SizedBox(
               height: 120,
             ), // Bottom padding for bottom navigation bar
