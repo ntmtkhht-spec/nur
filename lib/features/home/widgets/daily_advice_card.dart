@@ -24,7 +24,7 @@ class DailyAdviceCard extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Container(
         decoration: BoxDecoration(
-          color: colors.cardBg,
+          color: colors.white,
           borderRadius: AppRadius.circularLg,
           boxShadow: AppShadows.sm,
         ),
@@ -45,7 +45,10 @@ class DailyAdviceCard extends ConsumerWidget {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: colors.accentGold.withValues(alpha: 0.12),
+                          // Mixed against white rather than the beige card
+                          // this used to sit on, so it needs more gold to
+                          // read as a tinted tile at all.
+                          color: colors.accentGold.withValues(alpha: 0.18),
                           borderRadius: AppRadius.circularMd,
                         ),
                         child: Icon(

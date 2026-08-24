@@ -100,7 +100,7 @@ class _TodaysPrayersCardState extends ConsumerState<TodaysPrayersCard> {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: Container(
         decoration: BoxDecoration(
-          color: colors.cardBg,
+          color: colors.white,
           borderRadius: AppRadius.circularLg,
           boxShadow: AppShadows.sm,
         ),
