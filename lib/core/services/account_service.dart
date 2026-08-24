@@ -79,6 +79,13 @@ class AccountService {
   /// Throws [SignOutNotSyncedException] when the upload failed, and nothing
   /// is cleared. Signing out offline is refused rather than offered with a
   /// warning — the only thing such an offer could do is lose entries.
+  ///
+  /// Offline the upload does not fail, it stalls: Firestore queues the write
+  /// and only answers once a server has it. SyncService puts a deadline on
+  /// that, and the timeout arrives here as any other failure would. Refusing
+  /// on a timeout is right even though the write is sitting in Firestore's
+  /// queue — signing out takes the token with it, and the queued write would
+  /// then be turned away by the security rules.
   Future<void> signOut() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
 

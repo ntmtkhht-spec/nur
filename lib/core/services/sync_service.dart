@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,6 +20,21 @@ class SyncService {
 
   static const _collection = 'users';
 
+  /// Every call here is awaited by someone who is waiting on a screen, and
+  /// none of them fails on its own when there is no connection.
+  ///
+  /// Firestore keeps a write made offline in a local queue and flushes it
+  /// once the connection is back — the right behaviour, and the reason a
+  /// timeout here loses nothing. But the future returned by `set` only
+  /// completes when the server has acknowledged the write, which offline
+  /// never happens. Sign-out awaited exactly that, so signing out with no
+  /// connection spun forever instead of reporting that it could not save.
+  ///
+  /// Twenty seconds: long enough for a slow mobile connection to finish a
+  /// document this size, short enough that a stuck screen is a moment rather
+  /// than a hang.
+  static const _deadline = Duration(seconds: 20);
+
   DocumentReference<Map<String, dynamic>> _doc(String uid) =>
       FirebaseFirestore.instance.collection(_collection).doc(uid);
 
@@ -30,12 +47,14 @@ class SyncService {
       'updatedAt': FieldValue.serverTimestamp(),
     };
 
-    await _doc(uid).set({
-      'tracker': tracker,
-      'preferences': prefs,
-      'tasbihLifetime': _ref.read(tasbihProvider).lifetimeCount,
-      'quranProgress': _ref.read(quranReadingProgressProvider).toJson(),
-    }, SetOptions(merge: true));
+    await _doc(uid)
+        .set({
+          'tracker': tracker,
+          'preferences': prefs,
+          'tasbihLifetime': _ref.read(tasbihProvider).lifetimeCount,
+          'quranProgress': _ref.read(quranReadingProgressProvider).toJson(),
+        }, SetOptions(merge: true))
+        .timeout(_deadline);
   }
 
   /// Reads the remote document and merges it into local state.
@@ -44,7 +63,7 @@ class SyncService {
   /// ticked, so remote and local entries are unioned rather than one
   /// overwriting the other.
   Future<void> pull(String uid) async {
-    final snapshot = await _doc(uid).get();
+    final snapshot = await _doc(uid).get().timeout(_deadline);
     final data = snapshot.data();
     if (data == null) return;
 
@@ -77,7 +96,7 @@ class SyncService {
   /// Removes everything stored for this user. Called before deleting the
   /// account itself, which both stores require to be possible in-app.
   Future<void> deleteUserData(String uid) async {
-    await _doc(uid).delete();
+    await _doc(uid).delete().timeout(_deadline);
   }
 }
 
