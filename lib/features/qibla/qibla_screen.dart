@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -81,60 +82,129 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
   }
 }
 
-class _QiblaCompassView extends StatelessWidget {
+class _QiblaCompassView extends StatefulWidget {
   final LocationData location;
 
   const _QiblaCompassView({required this.location});
 
   @override
-  Widget build(BuildContext context) {
-    final colors = AppColors.of(context);
-    final qiblaBearing = calculateQiblaBearing(location);
-    final distanceKm = calculateDistanceToKaabaKm(location);
+  State<_QiblaCompassView> createState() => _QiblaCompassViewState();
+}
 
-    return StreamBuilder<QiblaCompassReading>(
-      stream: QiblaCompass.trueNorthEvents(location),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return const _CompassUnavailable(
-            message: 'Kompass nicht verfügbar auf diesem Gerät.',
-          );
-        }
-        final reading = snapshot.data;
-        if (reading == null) {
-          return Center(
-            child: CircularProgressIndicator(color: colors.primaryGreen),
-          );
-        }
-        if (!reading.isUsable) {
-          return _CompassUnavailable(
-            message:
-                reading.unavailableReason ??
-                'Kompass wird kalibriert. Bewege dein Gerät in einer Acht (∞) und halte es flach.',
-          );
-        }
+class _QiblaCompassViewState extends State<_QiblaCompassView> {
+  StreamSubscription<QiblaCompassReading>? _subscription;
 
-        final deviceHeading = reading.trueHeading!;
-        final relative = _normalizeRelative(qiblaBearing - deviceHeading);
-        // Readings this far off are already filtered out by `isUsable` above,
-        // so the tolerance here is purely about where the device points.
-        final aligned = isAlignedWithQibla(relative);
-        return _QiblaBody(
-          qiblaBearing: qiblaBearing,
-          deviceHeading: deviceHeading,
-          distanceKm: distanceKm,
-          aligned: aligned,
-        );
+  /// The heading actually drawn: the raw sensor value eased along the
+  /// shortest arc, so the needle points instead of twitching.
+  double? _smoothedHeading;
+
+  /// The last reading good enough to draw.
+  ///
+  /// Kept so that a single coarse or momentarily invalid event — which every
+  /// platform emits while the phone is picked up or turned — does not tear
+  /// the whole dial down and replace it with the calibration screen.
+  QiblaCompassReading? _lastUsable;
+
+  Object? _error;
+  String? _unavailableReason;
+
+  @override
+  void initState() {
+    super.initState();
+    _subscribe();
+  }
+
+  @override
+  void didUpdateWidget(_QiblaCompassView old) {
+    super.didUpdateWidget(old);
+    // The position feeds only the magnetic declination lookup, so a few
+    // hundred metres of GPS drift is no reason to restart the sensor and
+    // throw the user back to "calibrating".
+    if (isWorthRestartingCompass(old.location, widget.location)) {
+      _subscribe();
+    }
+  }
+
+  void _subscribe() {
+    _subscription?.cancel();
+    _error = null;
+    _subscription = QiblaCompass.trueNorthEvents(widget.location).listen(
+      _onReading,
+      onError: (Object e) {
+        if (mounted) setState(() => _error = e);
       },
     );
   }
-}
 
-double _normalizeRelative(double raw) {
-  var a = raw % 360;
-  if (a > 180) a -= 360;
-  if (a < -180) a += 360;
-  return a;
+  void _onReading(QiblaCompassReading reading) {
+    if (!mounted) return;
+    if (!reading.isUsable) {
+      // Remember why, but keep showing the last good direction if there is
+      // one; only a compass that never worked shows the bare hint screen.
+      if (_unavailableReason != reading.unavailableReason) {
+        setState(() => _unavailableReason = reading.unavailableReason);
+      }
+      return;
+    }
+
+    final smoothed = smoothHeading(_smoothedHeading, reading.trueHeading!);
+    final movedEnough =
+        _smoothedHeading == null ||
+        normalizeRelativeDegrees(smoothed - _smoothedHeading!).abs() >= 0.2;
+    final qualityChanged =
+        _lastUsable?.needsCalibration != reading.needsCalibration ||
+        _unavailableReason != null;
+    if (!movedEnough && !qualityChanged) {
+      _lastUsable = reading;
+      return;
+    }
+    setState(() {
+      _smoothedHeading = smoothed;
+      _lastUsable = reading;
+      _unavailableReason = null;
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+
+    if (_error != null && _smoothedHeading == null) {
+      return const _CompassUnavailable(
+        message: 'Kompass nicht verfügbar auf diesem Gerät.',
+      );
+    }
+
+    final reading = _lastUsable;
+    final heading = _smoothedHeading;
+    if (reading == null || heading == null) {
+      if (_unavailableReason != null) {
+        return _CompassUnavailable(message: _unavailableReason!);
+      }
+      return Center(child: CircularProgressIndicator(color: colors.primaryGreen));
+    }
+
+    final qiblaBearing = calculateQiblaBearing(widget.location);
+    final distanceKm = calculateDistanceToKaabaKm(widget.location);
+    final relative = normalizeRelativeDegrees(qiblaBearing - heading);
+
+    return _QiblaBody(
+      qiblaBearing: qiblaBearing,
+      deviceHeading: heading,
+      relative: relative,
+      distanceKm: distanceKm,
+      // Readings too coarse to trust never reach here, so the tolerance is
+      // purely about where the device points.
+      aligned: isAlignedWithQibla(relative),
+      needsCalibration: reading.needsCalibration,
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -144,20 +214,22 @@ double _normalizeRelative(double raw) {
 class _QiblaBody extends StatelessWidget {
   final double qiblaBearing;
   final double deviceHeading;
+  final double relative;
   final double distanceKm;
   final bool aligned;
+  final bool needsCalibration;
 
   const _QiblaBody({
     required this.qiblaBearing,
     required this.deviceHeading,
+    required this.relative,
     required this.distanceKm,
     required this.aligned,
+    required this.needsCalibration,
   });
 
   @override
   Widget build(BuildContext context) {
-    final relative = _normalizeRelative(qiblaBearing - deviceHeading);
-
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -171,6 +243,10 @@ class _QiblaBody extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           _AlignmentBanner(aligned: aligned),
+          if (needsCalibration) ...[
+            const SizedBox(height: 10),
+            const _CalibrationHint(),
+          ],
           const SizedBox(height: 14),
           Text(
             'Entfernung nach Mekka: ${_formatKm(distanceKm)} km',
@@ -373,7 +449,7 @@ class _CompassDialPainter extends CustomPainter {
       canvas.drawLine(inner, outer, tickPaint);
     }
 
-    const cardinals = {0: 'N', 90: 'E', 180: 'S', 270: 'W'};
+    const cardinals = {0: 'N', 90: 'O', 180: 'S', 270: 'W'};
     final cardinalStyle = TextStyle(
       fontSize: size.width * 0.045,
       color: AppColors.darkGreen.withValues(alpha: 0.74),
@@ -472,6 +548,38 @@ class _AlignmentBanner extends StatelessWidget {
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: aligned ? AppColors.white : AppColors.textDark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Shown alongside a usable but coarse heading.
+///
+/// The direction under it is still good to within a quadrant, so the compass
+/// stays on screen; this only says it could be sharper.
+class _CalibrationHint extends StatelessWidget {
+  const _CalibrationHint();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.goldLight.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.gps_not_fixed, size: 18, color: AppColors.textMuted),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Richtung ist ungenau. Bewege dein Gerät in einer Acht (∞).',
+              style: TextStyle(fontSize: 13, color: AppColors.textDark),
             ),
           ),
         ],

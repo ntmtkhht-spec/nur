@@ -66,7 +66,15 @@ private class QiblaHeadingStreamHandler(
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type != Sensor.TYPE_ROTATION_VECTOR) return
         val rotation = FloatArray(9)
-        SensorManager.getRotationMatrixFromVector(rotation, event.values)
+        // Some devices append a heading-accuracy element, and passing that
+        // longer array straight through crashes getRotationMatrixFromVector
+        // on parts of the Samsung fleet. Only the quaternion is wanted here.
+        val quaternion = if (event.values.size > 4) {
+            event.values.copyOf(4)
+        } else {
+            event.values
+        }
+        SensorManager.getRotationMatrixFromVector(rotation, quaternion)
         val adjusted = FloatArray(9)
         val (axisX, axisY) = when (displayRotation()) {
             Surface.ROTATION_90 -> SensorManager.AXIS_Y to SensorManager.AXIS_MINUS_X
@@ -78,10 +86,15 @@ private class QiblaHeadingStreamHandler(
         val orientation = FloatArray(3)
         SensorManager.getOrientation(adjusted, orientation)
         val magneticHeading = normalize(Math.toDegrees(orientation[0].toDouble()))
-        val accuracyDegrees = event.values.getOrNull(4)
+        // A device-reported estimate is preferred, but only when it is
+        // plausible: some sensors emit a constant placeholder of several
+        // radians, which would hide a perfectly good heading behind the
+        // calibration screen forever.
+        val reportedAccuracy = event.values.getOrNull(4)
             ?.takeIf { it >= 0f }
             ?.let { Math.toDegrees(it.toDouble()) }
-            ?: accuracyFromStatus()
+            ?.takeIf { it <= 180.0 }
+        val accuracyDegrees = reportedAccuracy ?: accuracyFromStatus()
         eventSink?.success(
             mapOf(
                 "trueHeading" to normalize(magneticHeading + declinationDegrees),
@@ -97,6 +110,11 @@ private class QiblaHeadingStreamHandler(
     @Suppress("DEPRECATION")
     private fun displayRotation(): Int = activity.windowManager.defaultDisplay.rotation
 
+    // Degrees of uncertainty for a device that reports only a coarse status.
+    // MEDIUM is the everyday indoor case — near a desk, a car, a radiator —
+    // and the direction it gives is still good to well within a quadrant, so
+    // it must stay inside the Dart side's trust threshold. Only LOW and
+    // UNRELIABLE are worth interrupting the user for.
     private fun accuracyFromStatus(): Double = when (sensorAccuracy) {
         SensorManager.SENSOR_STATUS_ACCURACY_HIGH -> 10.0
         SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM -> 20.0

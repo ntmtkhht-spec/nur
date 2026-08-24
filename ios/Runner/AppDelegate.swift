@@ -93,6 +93,18 @@ private final class QiblaHeadingStreamHandler: NSObject, FlutterStreamHandler,
     ])
   }
 
+  /// Lets iOS put up its own calibration HUD when the magnetometer is off.
+  ///
+  /// Without this the delegate defaults to `false`, so the system never got
+  /// to correct itself: the heading stayed coarse, the app kept telling the
+  /// user to wave the phone in a figure of eight, and nothing the user did
+  /// reached Core Location. Returning true only while the reading is bad
+  /// keeps the HUD from covering a compass that is already fine.
+  func locationManagerShouldDisplayHeadingCalibration(_ manager: CLLocationManager) -> Bool {
+    guard let heading = manager.heading else { return true }
+    return heading.headingAccuracy < 0 || heading.headingAccuracy > 15
+  }
+
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
     unavailable("Der Standort konnte nicht bestimmt werden.")
   }
