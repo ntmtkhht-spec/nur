@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/i18n/prayer_names.dart';
@@ -606,7 +607,7 @@ class _DayEdges extends StatelessWidget {
         ),
         Expanded(
           child: _edge(
-            icon: Icons.nights_stay_outlined,
+            icon: CupertinoIcons.sunset,
             label: localizedPrayerName(l10n, maghrib.name),
             time: maghrib.formattedTime,
             iconFirst: false,
@@ -795,44 +796,24 @@ class _PrayersList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // No IntrinsicHeight around this: the Stack already takes its height
-    // from the Column, and the extra layout pass it forced was paid on every
-    // frame the page moved.
-    return Stack(
+    return Column(
       children: [
-        // Timeline line, running behind the dots.
-        Positioned(
-          left: 11,
-          top: 28,
-          bottom: 28,
-          child: Container(
-            width: 2,
-            decoration: BoxDecoration(
-              color: AppColors.accentGold.withValues(alpha: 0.22),
-              borderRadius: BorderRadius.circular(1),
-            ),
+        for (var i = 0; i < entries.length; i++) ...[
+          _PrayerRow(
+            prayer: entries[i].prayer,
+            end: entries[i].end,
+            isActive: i == activeIndex,
+            isPast: i < activeIndex,
+            notificationOn: notifications.contains(entries[i].prayer.name),
+            isCompleted:
+                tracker['prayer_tracker_${date.year}_${date.month}_${date.day}_${entries[i].prayer.name}'] ??
+                false,
+            onToggleNotification: () =>
+                onToggleNotification(entries[i].prayer.name),
+            onToggleTracker: () => onToggleTracker(entries[i].prayer.name),
           ),
-        ),
-        Column(
-          children: [
-            for (var i = 0; i < entries.length; i++) ...[
-              _PrayerRow(
-                prayer: entries[i].prayer,
-                end: entries[i].end,
-                isActive: i == activeIndex,
-                isPast: i < activeIndex,
-                notificationOn: notifications.contains(entries[i].prayer.name),
-                isCompleted:
-                    tracker['prayer_tracker_${date.year}_${date.month}_${date.day}_${entries[i].prayer.name}'] ??
-                    false,
-                onToggleNotification: () =>
-                    onToggleNotification(entries[i].prayer.name),
-                onToggleTracker: () => onToggleTracker(entries[i].prayer.name),
-              ),
-              if (i < entries.length - 1) const SizedBox(height: 12),
-            ],
-          ],
-        ),
+          if (i < entries.length - 1) const SizedBox(height: 12),
+        ],
       ],
     );
   }
@@ -864,8 +845,8 @@ class _PrayerRow extends StatelessWidget {
       'Fajr' => Icons.wb_twilight,
       'Sunrise' || 'Sonnenaufgang' => Icons.wb_sunny_outlined,
       'Dhuhr' => Icons.wb_sunny,
-      'Asr' => Icons.mosque_outlined,
-      'Maghrib' => Icons.nights_stay_outlined,
+      'Asr' => CupertinoIcons.cloud_sun,
+      'Maghrib' => CupertinoIcons.sunset,
       'Isha' => Icons.nightlight_round,
       _ => Icons.access_time,
     };
@@ -890,20 +871,6 @@ class _PrayerRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
-          SizedBox(
-            width: 24,
-            child: Center(
-              child: Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.accentGold.withValues(alpha: 0.35),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
           Icon(Icons.wb_sunny_outlined, size: 13, color: faint),
           const SizedBox(width: 6),
           Text(
@@ -962,181 +929,114 @@ class _PrayerRow extends StatelessWidget {
         ? AppColors.textMuted.withValues(alpha: 0.4)
         : AppColors.textMuted;
 
-    return Row(
-      children: [
-        _TimelineDot(isActive: isActive, isPast: isPast, isMarker: isMarker),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: isMarker ? 8 : 12,
-            ),
-            decoration: BoxDecoration(
-              color: isPast
-                  ? Colors.white.withValues(alpha: 0.45)
-                  : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isActive
-                    ? AppColors.accentGold.withValues(alpha: 0.55)
-                    : AppColors.textMuted.withValues(
-                        alpha: isPast ? 0.05 : 0.10,
-                      ),
-                width: isActive ? 1.5 : 1,
-              ),
-              boxShadow: isPast || isMarker
-                  ? null
-                  : [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: tileBg,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(_icon, size: 22, color: tileFg),
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: isMarker ? 8 : 12,
+      ),
+      decoration: BoxDecoration(
+        color: isPast ? Colors.white.withValues(alpha: 0.45) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isActive
+              ? AppColors.accentGold.withValues(alpha: 0.55)
+              : AppColors.textMuted.withValues(alpha: isPast ? 0.05 : 0.10),
+          width: isActive ? 1.5 : 1,
+        ),
+        boxShadow: isPast || isMarker
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              localizedPrayerName(l10n, prayer.name),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: isMarker ? 14 : 16,
-                                fontWeight: isActive
-                                    ? FontWeight.w800
-                                    : FontWeight.w700,
-                                color: isMarker
-                                    ? AppColors.textMuted
-                                    : titleColor,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            prayer.arabicName,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isPast
-                                  ? detailColor
-                                  : AppColors.textMuted.withValues(alpha: 0.8),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        isMarker ? prayer.formattedTime : _window(),
+              ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(color: tileBg, shape: BoxShape.circle),
+            child: Icon(_icon, size: 22, color: tileFg),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        localizedPrayerName(l10n, prayer.name),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: detailColor,
+                          fontSize: isMarker ? 14 : 16,
+                          fontWeight: isActive
+                              ? FontWeight.w800
+                              : FontWeight.w700,
+                          color: isMarker ? AppColors.textMuted : titleColor,
                         ),
                       ),
-                    ],
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      prayer.arabicName,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isPast
+                            ? detailColor
+                            : AppColors.textMuted.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  isMarker ? prayer.formattedTime : _window(),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: detailColor,
                   ),
                 ),
-                if (!isMarker)
-                  GestureDetector(
-                    onTap: isPast ? onToggleTracker : onToggleNotification,
-                    behavior: HitTestBehavior.opaque,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 8,
-                      ),
-                      child: isPast
-                          ? Icon(
-                              isCompleted
-                                  ? Icons.check_circle
-                                  : Icons.radio_button_unchecked,
-                              size: 24,
-                              color: isCompleted
-                                  ? AppColors.primaryGreen.withValues(
-                                      alpha: 0.5,
-                                    )
-                                  : AppColors.textMuted.withValues(alpha: 0.25),
-                            )
-                          : Icon(
-                              notificationOn
-                                  ? Icons.notifications_active
-                                  : Icons.notifications_none_outlined,
-                              size: 24,
-                              color: notificationOn
-                                  ? AppColors.primaryGreen
-                                  : AppColors.textMuted.withValues(alpha: 0.5),
-                            ),
-                    ),
-                  )
-                else
-                  const SizedBox(width: 12),
               ],
             ),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class _TimelineDot extends StatelessWidget {
-  final bool isActive;
-  final bool isPast;
-  final bool isMarker;
-
-  const _TimelineDot({
-    required this.isActive,
-    required this.isPast,
-    required this.isMarker,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final size = isActive ? 24.0 : 16.0;
-
-    return SizedBox(
-      width: 24,
-      child: Center(
-        child: Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isActive
-                ? AppColors.accentGold
-                : AppColors.accentGold.withValues(
-                    alpha: isPast ? 0.22 : (isMarker ? 0.2 : 0.35),
-                  ),
-          ),
-          child: Center(
-            child: Container(
-              width: size * 0.34,
-              height: size * 0.34,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.background,
+          if (!isMarker)
+            GestureDetector(
+              onTap: isPast ? onToggleTracker : onToggleNotification,
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                child: isPast
+                    ? Icon(
+                        isCompleted
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                        size: 24,
+                        color: isCompleted
+                            ? AppColors.primaryGreen.withValues(alpha: 0.5)
+                            : AppColors.textMuted.withValues(alpha: 0.25),
+                      )
+                    : Icon(
+                        notificationOn
+                            ? Icons.notifications_active
+                            : Icons.notifications_none_outlined,
+                        size: 24,
+                        color: notificationOn
+                            ? AppColors.primaryGreen
+                            : AppColors.textMuted.withValues(alpha: 0.5),
+                      ),
               ),
-            ),
-          ),
-        ),
+            )
+          else
+            const SizedBox(width: 12),
+        ],
       ),
     );
   }
