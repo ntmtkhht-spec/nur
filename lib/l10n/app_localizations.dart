@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Gebet'**
   String get navPrayers;
 
+  /// No description provided for @prayerTimesTitle.
+  ///
+  /// In de, this message translates to:
+  /// **'Gebetszeiten'**
+  String get prayerTimesTitle;
+
   /// No description provided for @navQuran.
   ///
   /// In de, this message translates to:

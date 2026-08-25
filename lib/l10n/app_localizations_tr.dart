@@ -18,6 +18,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get navPrayers => 'Namaz';
 
   @override
+  String get prayerTimesTitle => 'Namaz Vakitleri';
+
+  @override
   String get navQuran => 'Kur\'an';
 
   @override
