@@ -1,0 +1,13 @@
+{
+  "name": "munir-firestore-rules-test",
+  "private": true,
+  "type": "module",
+  "description": "Security-rule tests. Run from the repository root: npm --prefix tool/firestore_rules_test install && npm --prefix tool/firestore_rules_test test",
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore --project munir-rules-test --config firebase.json \"node rules_test.mjs\""
+  },
+  "dependencies": {
+    "@firebase/rules-unit-testing": "^5.0.0",
+    "firebase": "^12.0.0"
+  }
+}

@@ -3,14 +3,34 @@ rules_version = '2';
 // Everything a signed-in user owns lives under /users/{uid}. Nothing else is
 // readable or writable — with Firebase the client keys are public by design,
 // so these rules are the only thing standing between a stranger and the data.
+//
+// Deploying is a separate step: nothing in CI pushes this file. After changing
+// it, run
+//   firebase deploy --only firestore:rules
+// and check the result in the Rules tab of the Firebase console. Until then
+// the project keeps running whatever was deployed last.
 service cloud.firestore {
   match /databases/{database}/documents {
 
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read: if isOwner(userId);
 
-      // Prayer tracker entries, settings and anything added later.
-      match /{subcollection=**} {
+      // Split rather than a single `write`: a delete carries no
+      // request.resource at all, so a shape check written against it would
+      // deny every deletion — and deleting the document is the first half of
+      // deleting the account, which both stores require to work.
+      allow create, update: if isOwner(userId) && isWellFormedUserDocument();
+      allow delete: if isOwner(userId);
+
+      // Anything filed under the user later, in its own collection.
+      //
+      // Note the two segments. A bare `{subcollection=**}` matches zero or
+      // more, so it also matches /users/{userId} itself — and since rules are
+      // OR-ed, that unconditional `write` quietly overruled the shape check
+      // above. The emulator caught it: every validation below passed while it
+      // was written that way. Requiring one collection segment keeps this
+      // rule to genuine subcollections.
+      match /{collection}/{document=**} {
         allow read, write: if isOwner(userId);
       }
     }
@@ -22,6 +42,46 @@ service cloud.firestore {
 
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Owner-only was the whole rule before, which left the document itself
+    // unconstrained: a signed-in user could park arbitrary fields of arbitrary
+    // size in their own space. Firestore's own 1 MiB per document is a ceiling,
+    // not a budget, and once billing is per-operation that is somebody else's
+    // bill. These checks describe what SyncService actually writes.
+    //
+    // Deliberately shallow: the tracker and the read-ayah list are a map and a
+    // list that grow with genuine use, and walking them in a rule is both
+    // expensive and brittle. Pinning down the field names is what stops the
+    // document being used as free storage; the shapes below catch the rest.
+    function isWellFormedUserDocument() {
+      return request.resource.data.keys().hasOnly([
+               'tracker', 'preferences', 'tasbihLifetime', 'quranProgress'
+             ])
+             && isValidTasbih()
+             && isValidPreferences();
+    }
+
+    function isValidTasbih() {
+      return !('tasbihLifetime' in request.resource.data)
+             || (request.resource.data.tasbihLifetime is int
+                 && request.resource.data.tasbihLifetime >= 0);
+    }
+
+    function isValidPreferences() {
+      return !('preferences' in request.resource.data)
+             || (request.resource.data.preferences is map
+                 && request.resource.data.preferences.keys().hasOnly([
+                      'language', 'name', 'updatedAt'
+                    ])
+                 // The name is typed by hand in settings, so it has no natural
+                 // bound; 200 characters is well past any real one.
+                 && (!('name' in request.resource.data.preferences)
+                     || (request.resource.data.preferences.name is string
+                         && request.resource.data.preferences.name.size() <= 200))
+                 && (!('language' in request.resource.data.preferences)
+                     || request.resource.data.preferences.language in
+                        ['de', 'en', 'tr', 'ar', 'fr']));
     }
   }
 }
