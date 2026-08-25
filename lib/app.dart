@@ -59,24 +59,14 @@ class _RootGate extends ConsumerWidget {
 class _MainShell extends ConsumerWidget {
   const _MainShell();
 
-  static const _placeholderLabels = ["Qur'an", 'Qibla'];
-
   Widget _bodyForIndex(int index) {
     return switch (index) {
-      0 => const HomeScreen(),
       1 => const PrayersScreen(),
       2 => const SurahListScreen(), // Qur'an is golden center button
       3 => const TasbihScreen(),
       4 => const QiblaScreen(),
-      _ => Center(
-          child: Text(
-            index == 2 ? _placeholderLabels[0] : _placeholderLabels[1],
-            style: const TextStyle(
-              fontSize: 18,
-              color: AppColors.textMuted,
-            ),
-          ),
-        ),
+      // Index 0 and anything the nav could never produce: home.
+      _ => const HomeScreen(),
     };
   }
 
