@@ -13,6 +13,25 @@ import '../../core/models/prayer.dart';
 import '../../core/providers/providers.dart';
 import '../../core/theme/app_colors.dart';
 
+/// Whether [prayer] can be ticked off on the day being viewed.
+///
+/// The same rule the home screen's progress row applies: a prayer whose time
+/// has arrived can be recorded, one still ahead cannot. Days already behind
+/// us are recordable in full — that is what the date browser is for.
+///
+/// Previously the prayers list only offered a checkmark for prayers *before*
+/// the current one, which left the prayer just performed — and Isha for the
+/// whole evening — with no way to tick it off here at all, and left earlier
+/// days entirely read-only.
+bool canTrackPrayer({
+  required PrayerTime prayer,
+  required bool isSelectedDayToday,
+  required DateTime now,
+}) {
+  if (!prayer.isPrayer) return false;
+  return !isSelectedDayToday || !prayer.time.isAfter(now);
+}
+
 class PrayersScreen extends ConsumerStatefulWidget {
   const PrayersScreen({super.key});
 
@@ -21,8 +40,25 @@ class PrayersScreen extends ConsumerStatefulWidget {
 }
 
 class _PrayersScreenState extends ConsumerState<PrayersScreen> {
-  DateTime _selectedDate = DateTime.now();
+  /// The day the user browsed to, or null while the screen follows today.
+  ///
+  /// Null rather than today's date so the view rolls over on its own: a
+  /// stored date goes stale the moment the day turns while the screen sits
+  /// open, and the list would keep offering yesterday's prayers to tick off.
+  DateTime? _pickedDate;
   Timer? _timer;
+
+  static DateTime _dayOf(DateTime date) =>
+      DateTime(date.year, date.month, date.day);
+
+  /// The day the tracker means by "today".
+  ///
+  /// Day boundaries follow Fajr, not midnight — the same rule the home
+  /// screen's progress row uses. Reading the wall clock here instead put the
+  /// two screens on different days between midnight and Fajr, so a prayer
+  /// ticked off in that window landed in a different bucket depending on
+  /// which screen it was ticked off from.
+  DateTime get _logicalToday => _dayOf(ref.read(logicalDateProvider));
 
   @override
   void initState() {
@@ -38,25 +74,28 @@ class _PrayersScreenState extends ConsumerState<PrayersScreen> {
     super.dispose();
   }
 
-  bool get _isToday {
-    final now = DateTime.now();
-    return _selectedDate.year == now.year &&
-        _selectedDate.month == now.month &&
-        _selectedDate.day == now.day;
-  }
-
+  /// Calendar arithmetic, not `Duration(days: 1)`: adding 24 hours across a
+  /// daylight-saving boundary can land on the same calendar day twice or skip
+  /// one, and the tracker keys are built from year/month/day.
+  ///
+  /// Days ahead of today are not reachable — a prayer that has not happened
+  /// yet cannot have been performed, so there is nothing to record there.
   void _shiftDate(int days) {
-    setState(() {
-      _selectedDate = _selectedDate.add(Duration(days: days));
-    });
+    final today = _logicalToday;
+    final current = _pickedDate ?? today;
+    final next = DateTime(current.year, current.month, current.day + days);
+    if (next.isAfter(today)) return;
+    setState(() => _pickedDate = next == today ? null : next);
   }
 
   void _pickDate() async {
+    final today = _logicalToday;
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
+      initialDate: _pickedDate ?? today,
       firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      // Same reason as [_shiftDate]: there is nothing to record ahead of today.
+      lastDate: today,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -71,9 +110,8 @@ class _PrayersScreenState extends ConsumerState<PrayersScreen> {
       },
     );
     if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
+      final day = _dayOf(picked);
+      setState(() => _pickedDate = day == today ? null : day);
     }
   }
 
@@ -121,14 +159,20 @@ class _PrayersScreenState extends ConsumerState<PrayersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final prayers = ref.watch(prayerTimesForDateProvider(_selectedDate));
+    // Watched, not read: the day turning has to rebuild the screen, or a
+    // screen left open overnight keeps showing the day that just ended.
+    final logicalToday = _dayOf(ref.watch(logicalDateProvider));
+    final selectedDate = _pickedDate ?? logicalToday;
+    final isToday = selectedDate == logicalToday;
+
+    final prayers = ref.watch(prayerTimesForDateProvider(selectedDate));
     final notifications = ref.watch(prayerNotificationsProvider);
     final tracker = ref.watch(prayerTrackerProvider);
     final streak = ref.watch(currentStreakProvider);
     final longestStreak = ref.watch(longestStreakProvider);
 
-    final activeIndex = _isToday ? _computeActiveIndex(prayers) : -1;
-    final next = _isToday ? _computeNext(prayers) : null;
+    final activeIndex = isToday ? _computeActiveIndex(prayers) : -1;
+    final next = isToday ? _computeNext(prayers) : null;
 
     return SafeArea(
       child: Column(
@@ -154,8 +198,8 @@ class _PrayersScreenState extends ConsumerState<PrayersScreen> {
                     child: GestureDetector(
                       onTap: _pickDate,
                       child: _DateSelector(
-                        date: _selectedDate,
-                        isToday: _isToday,
+                        date: selectedDate,
+                        isToday: isToday,
                         onPrev: () => _shiftDate(-1),
                         onNext: () => _shiftDate(1),
                       ),
@@ -181,13 +225,14 @@ class _PrayersScreenState extends ConsumerState<PrayersScreen> {
                       activeIndex: activeIndex,
                       notifications: notifications,
                       tracker: tracker,
-                      date: _selectedDate,
+                      date: selectedDate,
+                      isToday: isToday,
                       onToggleNotification: (name) => ref
                           .read(prayerNotificationsProvider.notifier)
                           .toggle(name),
                       onToggleTracker: (name) => ref
                           .read(prayerTrackerProvider.notifier)
-                          .toggle(_selectedDate, name),
+                          .toggle(selectedDate, name),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -466,6 +511,7 @@ class _PrayersList extends StatelessWidget {
   final Set<String> notifications;
   final Map<String, bool> tracker;
   final DateTime date;
+  final bool isToday;
   final ValueChanged<String> onToggleNotification;
   final ValueChanged<String> onToggleTracker;
 
@@ -475,12 +521,15 @@ class _PrayersList extends StatelessWidget {
     required this.notifications,
     required this.tracker,
     required this.date,
+    required this.isToday,
     required this.onToggleNotification,
     required this.onToggleTracker,
   });
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+
     // Only use the 6 main prayers for the list
     final filteredPrayers = prayers
         .where(
@@ -517,7 +566,14 @@ class _PrayersList extends StatelessWidget {
                 _PrayerRow(
                   prayer: filteredPrayers[i],
                   isActive: i == adjustedActiveIndex,
-                  isPast: i < adjustedActiveIndex,
+                  // A day already behind us is past in full, not from an
+                  // active index it has no business having.
+                  isPast: !isToday || i < adjustedActiveIndex,
+                  canTrack: canTrackPrayer(
+                    prayer: filteredPrayers[i],
+                    isSelectedDayToday: isToday,
+                    now: now,
+                  ),
                   notificationOn: notifications.contains(
                     filteredPrayers[i].name,
                   ),
@@ -543,6 +599,9 @@ class _PrayerRow extends StatelessWidget {
   final PrayerTime prayer;
   final bool isActive;
   final bool isPast;
+
+  /// Whether this row offers the tracker checkmark rather than the bell.
+  final bool canTrack;
   final bool notificationOn;
   final bool isCompleted;
   final VoidCallback onToggleNotification;
@@ -552,6 +611,7 @@ class _PrayerRow extends StatelessWidget {
     required this.prayer,
     required this.isActive,
     required this.isPast,
+    required this.canTrack,
     required this.notificationOn,
     required this.isCompleted,
     required this.onToggleNotification,
@@ -763,11 +823,11 @@ class _PrayerRow extends StatelessWidget {
                 // Action Icon (Checkmark or Bell)
                 if (canComplete)
                   GestureDetector(
-                    onTap: isPast ? onToggleTracker : onToggleNotification,
+                    onTap: canTrack ? onToggleTracker : onToggleNotification,
                     behavior: HitTestBehavior.opaque,
                     child: Container(
                       padding: const EdgeInsets.all(4),
-                      child: isPast
+                      child: canTrack
                           ? Icon(
                               isCompleted
                                   ? Icons.check_circle
