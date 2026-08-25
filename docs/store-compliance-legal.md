@@ -40,13 +40,18 @@ Datenschutz-URL, die nur eingeloggt erreichbar ist, ist ein Rejection-Grund.
   werden: Standort, User ID/Auth-ID, E-Mail-Adresse bei Login, Name/Tracker/
   Lesefortschritt/Einstellungen bei Sync, Diagnosedaten nur falls spaeter ein
   SDK hinzukommt.
-- **Guideline 4.8 — offen.** Sobald neben Google ein Login angeboten wird,
-  verlangt Apple Sign in with Apple als gleichwertige Option. Der Code dafuer
-  steht (`AuthService.signInWithApple`, Entitlement gesetzt), ist aber ueber
-  `FeatureFlags.appleSignInEnabled = false` abgeschaltet, weil er ohne Mac
-  nicht testbar war. Vor einer iOS-Einreichung: Flag auf `true`, Apple als
-  Provider im Firebase-Projekt aktivieren, Service-ID im Apple-Developer-
-  Portal anlegen, Flow auf einem Geraet durchspielen.
+- **Guideline 4.8 — App-Seite erledigt, Backend-Seite offen.** Neben Google
+  wird auf iOS jetzt Sign in with Apple angeboten
+  (`FeatureFlags.appleSignInEnabled = true`); das Entitlement steht in
+  `ios/Runner/Runner.entitlements` und ist in allen drei
+  Build-Konfigurationen verdrahtet. Damit der Knopf nicht schlimmer ist als
+  gar keiner, muss vor der Einreichung noch:
+  Apple als Sign-in-Provider in der Firebase-Konsole aktiviert sein, eine
+  Services-ID samt Key unter Sign in with Apple im Apple-Developer-Portal
+  angelegt sein (mit der Firebase-Callback-URL), die Capability an der App-ID
+  haengen — und der Flow einmal auf einem echten Geraet gelaufen sein, wofuer
+  es einen Mac braucht. Ohne das scheitert er an `signInWithCredential` und
+  zeigt nur die generische Anmeldefehler-Meldung.
 - Die fuenf `ios/Runner/<lang>.lproj/InfoPlist.strings` muessen in Xcode dem
   Runner-Target hinzugefuegt werden, sonst liest iOS sie nicht und der
   Standort-Dialog bleibt bei der deutschen Fassung aus der Info.plist.
@@ -85,8 +90,7 @@ Datenschutz-URL, die nur eingeloggt erreichbar ist, ist ein Rejection-Grund.
 - Qur'an: Surah-Liste, Texte, Uebersetzungen, Transliteration und Audio von
   `https://api.alquran.cloud/v1`.
 - Konto: optional Google Sign-In oder Sign in with Apple, beides ueber
-  Firebase Auth. Sign in with Apple haengt an
-  `FeatureFlags.appleSignInEnabled` und ist derzeit AUS — siehe unten.
+  Firebase Auth. Sign in with Apple erscheint nur auf iOS.
 - Sync: Firebase Cloud Firestore speichert Tracker, Tasbih-Gesamtzahl,
   Qur'an-Lesefortschritt, Name, Sprache, updatedAt.
 - Benachrichtigungen: lokal geplant, keine eigenen Push-Inhalte an Server.
