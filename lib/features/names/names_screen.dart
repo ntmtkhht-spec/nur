@@ -91,7 +91,7 @@ class _NamesScreenState extends State<NamesScreen> {
             child: results.isEmpty
                 ? Center(
                     child: Text(
-                      'Kein Name gefunden.',
+                      AppLocalizations.of(context).namesNoMatch,
                       style: TextStyle(color: colors.textMuted),
                     ),
                   )

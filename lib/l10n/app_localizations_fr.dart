@@ -745,4 +745,128 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsLicensesHint =>
       'Textes de licence des bibliothèques utilisées';
+
+  @override
+  String get mosqueConsentHeading => 'Trouver des mosquées à proximité';
+
+  @override
+  String get mosqueConsentBody =>
+      'Votre position actuelle est envoyée à l\'API Overpass (exploitée par FOSSGIS e.V.) pour effectuer la recherche de proximité dans les données OpenStreetMap.\n\nC\'est la seule fonction où votre position quitte l\'appareil. Aucune autre donnée ni identifiant n\'est transmis.';
+
+  @override
+  String get mosqueConsentAccept => 'Accepter et rechercher des mosquées';
+
+  @override
+  String get mosqueConsentRevocable =>
+      'Vous pouvez révoquer cela à tout moment.';
+
+  @override
+  String get mosqueSearching => 'Recherche de mosquées …';
+
+  @override
+  String get mosqueUnnamed => 'Mosquée (sans nom)';
+
+  @override
+  String get qiblaCalibrateAction => 'Calibrer la boussole';
+
+  @override
+  String get qiblaCalibrateHint =>
+      'Déplacez votre appareil en formant un huit (∞) pour calibrer la boussole.';
+
+  @override
+  String get qiblaNeedsLocation =>
+      'Une qibla précise nécessite votre position actuelle.';
+
+  @override
+  String get qiblaLocationUnavailable =>
+      'La position est indisponible. Activez-la dans les réglages.';
+
+  @override
+  String get qiblaCompassUnsupported =>
+      'Aucune boussole disponible sur cet appareil.';
+
+  @override
+  String get qiblaInaccurate =>
+      'La direction est imprécise. Déplacez votre appareil en formant un huit (∞).';
+
+  @override
+  String get locationServicesDisabled =>
+      'Les services de localisation sont désactivés.';
+
+  @override
+  String get locationPermissionDenied => 'L\'accès à la position a été refusé.';
+
+  @override
+  String get locationNoFix =>
+      'Aucune position actuelle disponible. Recherchez une ville manuellement.';
+
+  @override
+  String get locationDetecting => 'Détection de la position …';
+
+  @override
+  String get locationUnavailableShort => 'indisponible';
+
+  @override
+  String get settingsNamePlaceholder => 'Votre nom';
+
+  @override
+  String get commonLoadFailed => 'Échec du chargement.';
+
+  @override
+  String get commonRetry => 'Réessayer';
+
+  @override
+  String get surahSearchOpen => 'Rechercher des sourates';
+
+  @override
+  String get surahSearchClose => 'Fermer la recherche';
+
+  @override
+  String get surahSearchClear => 'Effacer la recherche';
+
+  @override
+  String get quranProgressHeading => 'Votre progression';
+
+  @override
+  String get quranProgressEmpty =>
+      'Votre progression apparaît ici dès que vous avez lu un verset.';
+
+  @override
+  String get quranArabicTextSize => 'Taille du texte (arabe)';
+
+  @override
+  String get namesNoMatch => 'Aucun nom trouvé.';
+
+  @override
+  String get adviceTomorrow => 'Demain, le prochain conseil apparaîtra ici.';
+
+  @override
+  String get locationLabelFallback => 'Position';
+
+  @override
+  String get mosqueSearchBusy =>
+      'Le service de recherche est surchargé. Réessayez dans quelques minutes.';
+
+  @override
+  String get mosqueSearchFailed => 'La recherche de mosquées a échoué.';
+
+  @override
+  String get quranShowTranslation => 'Afficher la traduction';
+
+  @override
+  String get adviceSectionLabel => 'CONSEIL DU JOUR';
+
+  @override
+  String get adviceReadMore => 'Lire la suite';
+
+  @override
+  String get adviceActionLabel => 'À FAIRE AUJOURD’HUI';
+
+  @override
+  String get surahSearchHint => 'Rechercher une sourate';
+
+  @override
+  String dateToday(String date) {
+    return 'Aujourd\'hui, $date';
+  }
 }

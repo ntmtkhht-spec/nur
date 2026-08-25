@@ -4,6 +4,7 @@ import '../../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 
+import '../../../core/i18n/failure_messages.dart';
 import '../../../core/providers/providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../onboarding_state.dart';
@@ -58,7 +59,10 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
       // or a device with no fix resolves late. Without this guard setState
       // runs against a disposed State and throws.
       if (!mounted) return;
-      setState(() => _errorText = e.toString().replaceFirst('Exception: ', ''));
+      setState(() => _errorText = describeLocationFailure(
+            AppLocalizations.of(context),
+            e,
+          ));
     } finally {
       if (mounted) setState(() => _isDetecting = false);
     }
@@ -154,7 +158,11 @@ class _LocationScreenState extends ConsumerState<LocationScreen> {
                     ),
                   )
                 : const Icon(Icons.my_location, size: 20),
-            label: Text(_isDetecting ? 'Suche Standort…' : l10n.onboardingLocationDetect),
+            label: Text(
+              _isDetecting
+                  ? l10n.locationDetecting
+                  : l10n.onboardingLocationDetect,
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.darkGreen,
               foregroundColor: AppColors.white,

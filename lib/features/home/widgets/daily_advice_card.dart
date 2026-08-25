@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/app_localizations.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../data/daily_advice.dart';
@@ -63,7 +65,7 @@ class DailyAdviceCard extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'RATGEBER DES TAGES',
+                              AppLocalizations.of(context).adviceSectionLabel,
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
@@ -100,7 +102,7 @@ class DailyAdviceCard extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Text(
-                        'Weiterlesen',
+                        AppLocalizations.of(context).adviceReadMore,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -168,7 +170,7 @@ Future<void> showDailyAdviceSheet(BuildContext context, DailyAdvice advice) {
                     ),
                     children: [
                       Text(
-                        'RATGEBER DES TAGES',
+                        AppLocalizations.of(context).adviceSectionLabel,
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -220,7 +222,7 @@ Future<void> showDailyAdviceSheet(BuildContext context, DailyAdvice advice) {
                       // The entry changes on its own tomorrow — saying so
                       // stops the card from looking like a stuck banner.
                       Text(
-                        'Morgen wartet hier der nächste Ratgeber.',
+                        AppLocalizations.of(context).adviceTomorrow,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,
@@ -268,7 +270,7 @@ class _ActionBox extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.xs),
               Text(
-                'HEUTE UMSETZEN',
+                AppLocalizations.of(context).adviceActionLabel,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,

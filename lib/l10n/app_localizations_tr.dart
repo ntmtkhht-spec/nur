@@ -741,4 +741,126 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get settingsLicensesHint =>
       'Kullanılan kütüphanelerin lisans metinleri';
+
+  @override
+  String get mosqueConsentHeading => 'Yakındaki camileri bul';
+
+  @override
+  String get mosqueConsentBody =>
+      'Bunun için geçerli konumunuz, OpenStreetMap verilerinde çevre aramasını yapmak üzere Overpass API\'ye (FOSSGIS e.V. tarafından işletilir) gönderilir.\n\nKonumunuzun cihazdan ayrıldığı tek işlev budur. Başka hiçbir veri ve hiçbir tanımlayıcı iletilmez.';
+
+  @override
+  String get mosqueConsentAccept => 'Kabul et ve camileri ara';
+
+  @override
+  String get mosqueConsentRevocable =>
+      'Bunu istediğiniz zaman geri alabilirsiniz.';
+
+  @override
+  String get mosqueSearching => 'Camiler aranıyor …';
+
+  @override
+  String get mosqueUnnamed => 'Cami (adsız)';
+
+  @override
+  String get qiblaCalibrateAction => 'Pusulayı kalibre et';
+
+  @override
+  String get qiblaCalibrateHint =>
+      'Pusulayı kalibre etmek için cihazınızı sekiz (∞) çizerek hareket ettirin.';
+
+  @override
+  String get qiblaNeedsLocation =>
+      'Doğru bir kıble için geçerli konumunuz gerekir.';
+
+  @override
+  String get qiblaLocationUnavailable =>
+      'Konum kullanılamıyor. Lütfen ayarlardan etkinleştirin.';
+
+  @override
+  String get qiblaCompassUnsupported => 'Bu cihazda pusula yok.';
+
+  @override
+  String get qiblaInaccurate =>
+      'Yön hassas değil. Cihazınızı sekiz (∞) çizerek hareket ettirin.';
+
+  @override
+  String get locationServicesDisabled => 'Konum servisleri kapalı.';
+
+  @override
+  String get locationPermissionDenied => 'Konum erişimi reddedildi.';
+
+  @override
+  String get locationNoFix =>
+      'Geçerli konum alınamadı. Lütfen şehri elle arayın.';
+
+  @override
+  String get locationDetecting => 'Konum belirleniyor …';
+
+  @override
+  String get locationUnavailableShort => 'kullanılamıyor';
+
+  @override
+  String get settingsNamePlaceholder => 'Adınız';
+
+  @override
+  String get commonLoadFailed => 'Yüklenemedi.';
+
+  @override
+  String get commonRetry => 'Yeniden dene';
+
+  @override
+  String get surahSearchOpen => 'Sure ara';
+
+  @override
+  String get surahSearchClose => 'Aramayı kapat';
+
+  @override
+  String get surahSearchClear => 'Aramayı temizle';
+
+  @override
+  String get quranProgressHeading => 'İlerlemeniz';
+
+  @override
+  String get quranProgressEmpty =>
+      'Bir ayet okuduğunuzda ilerlemeniz burada görünür.';
+
+  @override
+  String get quranArabicTextSize => 'Yazı boyutu (Arapça)';
+
+  @override
+  String get namesNoMatch => 'Ad bulunamadı.';
+
+  @override
+  String get adviceTomorrow => 'Yarın burada bir sonraki öneri olacak.';
+
+  @override
+  String get locationLabelFallback => 'Konum';
+
+  @override
+  String get mosqueSearchBusy =>
+      'Cami servisi şu anda yoğun. Lütfen birkaç dakika sonra tekrar deneyin.';
+
+  @override
+  String get mosqueSearchFailed => 'Cami araması başarısız oldu.';
+
+  @override
+  String get quranShowTranslation => 'Çeviriyi göster';
+
+  @override
+  String get adviceSectionLabel => 'GÜNÜN ÖNERİSİ';
+
+  @override
+  String get adviceReadMore => 'Devamını oku';
+
+  @override
+  String get adviceActionLabel => 'BUGÜN UYGULA';
+
+  @override
+  String get surahSearchHint => 'Sure ara';
+
+  @override
+  String dateToday(String date) {
+    return 'Bugün, $date';
+  }
 }

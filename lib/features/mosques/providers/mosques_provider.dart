@@ -59,6 +59,11 @@ class NearbyMosquesNotifier extends AsyncNotifier<List<Mosque>> {
   static const _cacheTtl = Duration(hours: 24);
   static const _cacheKeyPrefix = 'mosque_cache_v1_';
 
+  /// Stand-in name for a mosque OpenStreetMap has no name for. Set from the
+  /// screen, which is where a BuildContext and therefore the active language
+  /// is available.
+  static String unnamedLabel = 'Mosque';
+
   @override
   Future<List<Mosque>> build() async {
     // ref.watch belongs in build(): it's what makes this rebuild when the
@@ -104,6 +109,7 @@ class NearbyMosquesNotifier extends AsyncNotifier<List<Mosque>> {
           lat: location.lat,
           lng: location.lng,
           radiusMeters: radius,
+          unnamedLabel: unnamedLabel,
         );
     _writeCache(location, radius, mosques);
     return mosques;

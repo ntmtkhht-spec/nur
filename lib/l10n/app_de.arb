@@ -433,9 +433,57 @@
   "commonLater": "Später",
   "quranTranslationCredit": "Übersetzung: {translator}",
   "@quranTranslationCredit": {
-    "placeholders": { "translator": { "type": "String" } }
+    "placeholders": {
+      "translator": {
+        "type": "String"
+      }
+    }
   },
   "quranSourceCredit": "Arabischer Text, Transliteration und Rezitation über alquran.cloud",
   "settingsLicenses": "Open-Source-Lizenzen",
-  "settingsLicensesHint": "Lizenztexte der verwendeten Bibliotheken"
+  "settingsLicensesHint": "Lizenztexte der verwendeten Bibliotheken",
+  "mosqueConsentHeading": "Moscheen in der Nähe finden",
+  "mosqueConsentBody": "Dafür wird dein aktueller Standort an die Overpass-API (betrieben vom FOSSGIS e.V.) gesendet, um die Umgebungssuche in den OpenStreetMap-Daten auszuführen.\n\nDas ist die einzige Funktion der App, bei der dein Standort das Gerät verlässt. Es werden keine weiteren Daten und keine Kennung übertragen.",
+  "mosqueConsentAccept": "Einverstanden, Moscheen suchen",
+  "mosqueConsentRevocable": "Du kannst das jederzeit widerrufen.",
+  "mosqueSearching": "Moscheen werden gesucht …",
+  "mosqueUnnamed": "Moschee (ohne Namen)",
+  "qiblaCalibrateAction": "Kompass kalibrieren",
+  "qiblaCalibrateHint": "Bewege dein Gerät in einer Acht (∞), um den Kompass zu kalibrieren.",
+  "qiblaNeedsLocation": "Für eine genaue Qibla benötigst du deinen aktuellen Standort.",
+  "qiblaLocationUnavailable": "Der Standort ist nicht verfügbar. Bitte aktiviere ihn in den Einstellungen.",
+  "qiblaCompassUnsupported": "Kompass nicht verfügbar auf diesem Gerät.",
+  "qiblaInaccurate": "Richtung ist ungenau. Bewege dein Gerät in einer Acht (∞).",
+  "locationServicesDisabled": "Standortdienste sind deaktiviert.",
+  "locationPermissionDenied": "Standortzugriff wurde verweigert.",
+  "locationNoFix": "Kein aktueller Standort verfügbar. Bitte Stadt manuell suchen.",
+  "locationDetecting": "Standort wird ermittelt …",
+  "locationUnavailableShort": "nicht verfügbar",
+  "settingsNamePlaceholder": "Dein Name",
+  "commonLoadFailed": "Laden fehlgeschlagen.",
+  "commonRetry": "Erneut versuchen",
+  "surahSearchOpen": "Suren suchen",
+  "surahSearchClose": "Suche schließen",
+  "surahSearchClear": "Suche leeren",
+  "quranProgressHeading": "Dein Fortschritt",
+  "quranProgressEmpty": "Dein Fortschritt erscheint hier, sobald du einen Vers gelesen hast.",
+  "quranArabicTextSize": "Textgröße (Arabisch)",
+  "namesNoMatch": "Kein Name gefunden.",
+  "adviceTomorrow": "Morgen wartet hier der nächste Ratgeber.",
+  "locationLabelFallback": "Standort",
+  "mosqueSearchBusy": "Der Moschee-Dienst ist gerade überlastet. Bitte in ein paar Minuten erneut versuchen.",
+  "mosqueSearchFailed": "Die Moschee-Suche ist fehlgeschlagen.",
+  "quranShowTranslation": "Übersetzung anzeigen",
+  "adviceSectionLabel": "RATGEBER DES TAGES",
+  "adviceReadMore": "Weiterlesen",
+  "adviceActionLabel": "HEUTE UMSETZEN",
+  "surahSearchHint": "Sura suchen",
+  "dateToday": "Heute, {date}",
+  "@dateToday": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  }
 }

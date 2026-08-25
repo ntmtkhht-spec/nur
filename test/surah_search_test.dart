@@ -1,13 +1,30 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:munir/core/providers/providers.dart';
 import 'package:munir/features/surah/models/ayah_model.dart';
 import 'package:munir/features/surah/providers/surah_provider.dart';
 import 'package:munir/features/surah/screens/surah_list_screen.dart';
+import 'package:munir/l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+/// The screen reads its labels off AppLocalizations, so the delegates have to
+/// be supplied here the way MunirApp supplies them. Pinned to German so the
+/// expectations below stay independent of the host's locale.
+Widget _app() => MaterialApp(
+  locale: const Locale('de'),
+  supportedLocales: AppLocalizations.supportedLocales,
+  localizationsDelegates: const [
+    AppLocalizations.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
+  home: const SurahListScreen(),
+);
 
 void main() {
   Finder searchField() => find.byWidgetPredicate(
@@ -47,7 +64,7 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
           surahListProvider.overrideWith((ref) async => surahs),
         ],
-        child: const MaterialApp(home: SurahListScreen()),
+        child: _app(),
       ),
     );
     await tester.pumpAndSettle();
@@ -121,7 +138,7 @@ void main() {
             surahListProvider.overrideWith((ref) async => [surahInfo]),
             surahProvider(1).overrideWith((ref) async => surah),
           ],
-          child: const MaterialApp(home: SurahListScreen()),
+          child: _app(),
         ),
       );
       await tester.pumpAndSettle();
@@ -160,7 +177,7 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
             surahListProvider.overrideWith((ref) async => [surahInfo]),
           ],
-          child: const MaterialApp(home: SurahListScreen()),
+          child: _app(),
         ),
       );
       await tester.pumpAndSettle();

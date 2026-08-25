@@ -5,6 +5,26 @@ import 'package:http/http.dart' as http;
 
 import '../models/mosque.dart';
 
+/// Overpass answered, but not with results.
+///
+/// Carries the status code instead of a ready-made sentence: 429 (too many
+/// requests) and 504 (the public instance is overloaded) are the two the
+/// user actually meets, and the screen is the place that knows which
+/// language to say so in.
+class OverpassException implements Exception {
+  final int statusCode;
+
+  const OverpassException(this.statusCode);
+
+  /// The public instance is shared between tens of thousands of daily users
+  /// and sheds load rather than queueing.
+  bool get isOverloaded =>
+      statusCode == 429 || statusCode == 503 || statusCode == 504;
+
+  @override
+  String toString() => 'OverpassException($statusCode)';
+}
+
 /// Looks up nearby mosques in OpenStreetMap via the Overpass API.
 ///
 /// Note this is the one place in the app where the user's coordinates leave the
@@ -20,9 +40,13 @@ class OverpassService {
 
   OverpassService({http.Client? client}) : _client = client ?? http.Client();
 
+  /// [unnamedLabel] is the caller's localized stand-in for a mosque that
+  /// OpenStreetMap has no name for. Passed in rather than hardcoded so this
+  /// service stays free of UI language.
   Future<List<Mosque>> findNearby({
     required double lat,
     required double lng,
+    required String unnamedLabel,
     int radiusMeters = 5000,
     int limit = 50,
   }) async {
@@ -50,9 +74,7 @@ out center $limit;
         .timeout(const Duration(seconds: 30));
 
     if (response.statusCode != 200) {
-      throw Exception(
-        'Overpass antwortete mit ${response.statusCode}.',
-      );
+      throw OverpassException(response.statusCode);
     }
 
     final decoded = jsonDecode(utf8.decode(response.bodyBytes));
@@ -72,10 +94,7 @@ out center $limit;
       results.add(
         Mosque(
           id: (element['id'] as num).toInt(),
-          name: (tags['name'] ??
-                  tags['name:de'] ??
-                  tags['alt_name'] ??
-                  'Moschee (ohne Namen)') as String,
+          name: (tags['name'] ?? tags['alt_name'] ?? unnamedLabel) as String,
           lat: elementLat.toDouble(),
           lng: elementLng.toDouble(),
           distanceMeters: _haversineMeters(

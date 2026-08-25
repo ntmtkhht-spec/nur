@@ -741,4 +741,126 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLicensesHint => 'Licence texts of the bundled libraries';
+
+  @override
+  String get mosqueConsentHeading => 'Find mosques nearby';
+
+  @override
+  String get mosqueConsentBody =>
+      'Your current location is sent to the Overpass API (operated by FOSSGIS e.V.) to run the area search against OpenStreetMap data.\n\nThis is the only feature where your location leaves the device. Nothing else about you and no identifier is sent with it.';
+
+  @override
+  String get mosqueConsentAccept => 'Agree and search for mosques';
+
+  @override
+  String get mosqueConsentRevocable => 'You can withdraw this at any time.';
+
+  @override
+  String get mosqueSearching => 'Searching for mosques …';
+
+  @override
+  String get mosqueUnnamed => 'Mosque (unnamed)';
+
+  @override
+  String get qiblaCalibrateAction => 'Calibrate compass';
+
+  @override
+  String get qiblaCalibrateHint =>
+      'Move your device in a figure of eight (∞) to calibrate the compass.';
+
+  @override
+  String get qiblaNeedsLocation =>
+      'An accurate Qibla needs your current location.';
+
+  @override
+  String get qiblaLocationUnavailable =>
+      'Location is unavailable. Please enable it in Settings.';
+
+  @override
+  String get qiblaCompassUnsupported => 'No compass available on this device.';
+
+  @override
+  String get qiblaInaccurate =>
+      'The direction is imprecise. Move your device in a figure of eight (∞).';
+
+  @override
+  String get locationServicesDisabled => 'Location services are turned off.';
+
+  @override
+  String get locationPermissionDenied => 'Location access was denied.';
+
+  @override
+  String get locationNoFix =>
+      'No current location available. Please search for a city manually.';
+
+  @override
+  String get locationDetecting => 'Detecting location …';
+
+  @override
+  String get locationUnavailableShort => 'unavailable';
+
+  @override
+  String get settingsNamePlaceholder => 'Your name';
+
+  @override
+  String get commonLoadFailed => 'Could not load.';
+
+  @override
+  String get commonRetry => 'Try again';
+
+  @override
+  String get surahSearchOpen => 'Search surahs';
+
+  @override
+  String get surahSearchClose => 'Close search';
+
+  @override
+  String get surahSearchClear => 'Clear search';
+
+  @override
+  String get quranProgressHeading => 'Your progress';
+
+  @override
+  String get quranProgressEmpty =>
+      'Your progress appears here once you have read a verse.';
+
+  @override
+  String get quranArabicTextSize => 'Text size (Arabic)';
+
+  @override
+  String get namesNoMatch => 'No name found.';
+
+  @override
+  String get adviceTomorrow =>
+      'Tomorrow the next piece of guidance appears here.';
+
+  @override
+  String get locationLabelFallback => 'Location';
+
+  @override
+  String get mosqueSearchBusy =>
+      'The mosque service is busy right now. Please try again in a few minutes.';
+
+  @override
+  String get mosqueSearchFailed => 'The mosque search failed.';
+
+  @override
+  String get quranShowTranslation => 'Show translation';
+
+  @override
+  String get adviceSectionLabel => 'GUIDANCE OF THE DAY';
+
+  @override
+  String get adviceReadMore => 'Read more';
+
+  @override
+  String get adviceActionLabel => 'DO THIS TODAY';
+
+  @override
+  String get surahSearchHint => 'Search surah';
+
+  @override
+  String dateToday(String date) {
+    return 'Today, $date';
+  }
 }

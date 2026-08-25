@@ -265,8 +265,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final madhab = ref.watch(madhabProvider);
     final city = switch (ref.watch(locationProvider)) {
       AsyncData(:final value) => value.city,
-      AsyncError() => 'nicht verfügbar',
-      _ => 'wird ermittelt …',
+      AsyncError() => l10n.locationUnavailableShort,
+      _ => l10n.locationDetecting,
     };
 
     return SettingsSection(
@@ -460,7 +460,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           controller: controller,
           autofocus: true,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(hintText: 'Dein Name'),
+          decoration: InputDecoration(hintText: l10n.settingsNamePlaceholder),
         ),
         actions: [
           TextButton(

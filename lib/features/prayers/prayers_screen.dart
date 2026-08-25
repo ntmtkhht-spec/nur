@@ -7,6 +7,7 @@ import '../../core/i18n/prayer_names.dart';
 import '../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hijri/hijri_calendar.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/models/prayer.dart';
 import '../../core/providers/providers.dart';
@@ -376,27 +377,20 @@ class _DateSelector extends StatelessWidget {
     required this.onNext,
   });
 
-  static const _months = [
-    'Jan.',
-    'Feb.',
-    'März',
-    'Apr.',
-    'Mai',
-    'Jun.',
-    'Jul.',
-    'Aug.',
-    'Sep.',
-    'Okt.',
-    'Nov.',
-    'Dez.',
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final label = isToday
-        ? 'Heute, ${date.day}. ${_months[date.month - 1]}'
-        : '${date.day}. ${_months[date.month - 1]}';
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).toLanguageTag();
 
+    // Was a hardcoded list of abbreviated German month names, which every
+    // non-German user saw too. intl already ships the abbreviations for all
+    // five locales.
+    final dayAndMonth = DateFormat.MMMd(locale).format(date);
+    final label = isToday ? l10n.dateToday(dayAndMonth) : dayAndMonth;
+
+    // The Hijri month names follow the app language the same way; the
+    // package keys off the locale set here.
+    HijriCalendar.setLocal(_hijriLocaleFor(locale));
     final hijri = HijriCalendar.fromDate(date);
     final hijriLabel = '${hijri.hDay} ${hijri.longMonthName} ${hijri.hYear}';
 
@@ -881,4 +875,14 @@ class _StreakBanner extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Maps the app locale onto a locale the hijri package knows.
+///
+/// It ships Arabic, English, French, Turkish, Bengali and Indonesian; German
+/// is not among them, so German falls back to English transliterations rather
+/// than to whatever was set last.
+String _hijriLocaleFor(String languageTag) {
+  final code = languageTag.toLowerCase().split('-').first;
+  return const {'ar': 'ar', 'en': 'en', 'fr': 'fr', 'tr': 'tr'}[code] ?? 'en';
 }

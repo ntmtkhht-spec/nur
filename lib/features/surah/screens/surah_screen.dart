@@ -254,7 +254,7 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
                 ],
               ),
               loading: () => const Text('Laden...'),
-              error: (_, _) => const Text('Fehler'),
+              error: (_, _) => Text(AppLocalizations.of(context).commonLoadFailed),
             ),
           ),
         ),
@@ -372,7 +372,7 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
           child: CircularProgressIndicator(color: AppColors.darkGreen),
         ),
         error: (error, stack) =>
-            Center(child: Text('Fehler beim Laden: $error')),
+            Center(child: Text(AppLocalizations.of(context).commonLoadFailed)),
       ),
     );
   }
@@ -518,7 +518,11 @@ class _SurahPickerSheetState extends ConsumerState<_SurahPickerSheet> {
                   child: CircularProgressIndicator(color: AppColors.darkGreen),
                 ),
                 error: (error, stack) =>
-                    Center(child: Text('Fehler beim Laden: $error')),
+                    Center(
+                      child: Text(
+                        AppLocalizations.of(context).commonLoadFailed,
+                      ),
+                    ),
               ),
             ),
           ],
@@ -614,14 +618,16 @@ class _ReadingSettingsSheet extends ConsumerWidget {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               activeThumbColor: AppColors.primaryGreen,
-              title: const Text('Übersetzung anzeigen'),
+              title: Text(
+                AppLocalizations.of(context).quranShowTranslation,
+              ),
               value: prefs.showTranslation,
               onChanged: notifier.setShowTranslation,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Textgröße (Arabisch)',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context).quranArabicTextSize,
+              style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textMuted,
