@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/providers/providers.dart';
 import '../models/mosque.dart';
@@ -147,9 +148,51 @@ class NearbyMosquesNotifier extends AsyncNotifier<List<Mosque>> {
       'fetchedAt': DateTime.now().toIso8601String(),
       'mosques': mosques.map((m) => m.toJson()).toList(),
     });
-    ref
-        .read(sharedPreferencesProvider)
-        .setString(_cacheKey(location, radius), payload);
+    final prefs = ref.read(sharedPreferencesProvider);
+    prefs.setString(_cacheKey(location, radius), payload);
+    _pruneCache(prefs);
+  }
+
+  /// How many (place, radius) results to keep.
+  ///
+  /// Every distinct rounded position and radius used to add a key that
+  /// nothing ever removed — the 24-hour TTL stops a stale entry being *used*,
+  /// not stored. SharedPreferences is read into memory in full at launch, so
+  /// somebody who travels was paying for every town they had passed through,
+  /// on every start, forever.
+  static const _maxCachedSearches = 12;
+
+  void _pruneCache(SharedPreferences prefs) {
+    final keys = prefs.getKeys().where((k) => k.startsWith(_cacheKeyPrefix));
+    if (keys.length <= _maxCachedSearches) return;
+
+    // Oldest first, by the timestamp already stored in each entry. An entry
+    // that will not parse has no usable timestamp and no usable content, so
+    // it sorts to the front and goes first.
+    final dated = <({String key, DateTime fetchedAt})>[];
+    for (final key in keys) {
+      DateTime fetchedAt;
+      try {
+        final decoded = jsonDecode(prefs.getString(key)!) as Map;
+        fetchedAt = DateTime.parse(decoded['fetchedAt'] as String);
+      } catch (_) {
+        fetchedAt = DateTime.fromMillisecondsSinceEpoch(0);
+      }
+      dated.add((key: key, fetchedAt: fetchedAt));
+    }
+    dated.sort((a, b) => a.fetchedAt.compareTo(b.fetchedAt));
+
+    for (final entry in dated.take(dated.length - _maxCachedSearches)) {
+      prefs.remove(entry.key);
+    }
+  }
+
+  /// Drops every stored search. Offered next to the map-tile cache in
+  /// settings, which used to clear the tiles alone and leave these behind.
+  static void clearCache(SharedPreferences prefs) {
+    for (final key in prefs.getKeys().toList()) {
+      if (key.startsWith(_cacheKeyPrefix)) prefs.remove(key);
+    }
   }
 }
 

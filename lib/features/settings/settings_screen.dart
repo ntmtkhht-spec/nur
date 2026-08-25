@@ -518,11 +518,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  /// Clears both halves of what the mosque screen stores: the map tiles on
+  /// disk and the search results in preferences. Only the tiles used to go.
   Future<void> _clearMapCache() async {
     final dir = Directory('${(await getTemporaryDirectory()).path}/map_tiles');
     if (await dir.exists()) {
       await dir.delete(recursive: true);
     }
+    NearbyMosquesNotifier.clearCache(ref.read(sharedPreferencesProvider));
+    ref.invalidate(nearbyMosquesProvider);
     if (!mounted) return;
     _toast(l10n.settingsClearMapCacheDone);
   }
