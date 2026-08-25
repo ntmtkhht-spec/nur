@@ -632,12 +632,6 @@ abstract class AppLocalizations {
   /// **'Benachrichtigungen'**
   String get settingsNotifications;
 
-  /// No description provided for @settingsAdhanVoice.
-  ///
-  /// In de, this message translates to:
-  /// **'Adhan-Stimme'**
-  String get settingsAdhanVoice;
-
   /// No description provided for @settingsName.
   ///
   /// In de, this message translates to:
@@ -950,12 +944,6 @@ abstract class AppLocalizations {
   /// **'Späteres Asr'**
   String get settingsMadhabHanafiHint;
 
-  /// No description provided for @muezzinSilent.
-  ///
-  /// In de, this message translates to:
-  /// **'Nur Vibration / stumm'**
-  String get muezzinSilent;
-
   /// No description provided for @settingsNotSet.
   ///
   /// In de, this message translates to:
@@ -1093,12 +1081,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Berechtigung wurde nicht erteilt.'**
   String get onboardingAdhanDenied;
-
-  /// No description provided for @onboardingMuezzinSection.
-  ///
-  /// In de, this message translates to:
-  /// **'MUEZZIN-STIMME'**
-  String get onboardingMuezzinSection;
 
   /// No description provided for @onboardingDoneHeading.
   ///
@@ -1357,6 +1339,30 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Später'**
   String get commonLater;
+
+  /// No description provided for @quranTranslationCredit.
+  ///
+  /// In de, this message translates to:
+  /// **'Übersetzung: {translator}'**
+  String quranTranslationCredit(String translator);
+
+  /// No description provided for @quranSourceCredit.
+  ///
+  /// In de, this message translates to:
+  /// **'Arabischer Text, Transliteration und Rezitation über alquran.cloud'**
+  String get quranSourceCredit;
+
+  /// No description provided for @settingsLicenses.
+  ///
+  /// In de, this message translates to:
+  /// **'Open-Source-Lizenzen'**
+  String get settingsLicenses;
+
+  /// No description provided for @settingsLicensesHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Lizenztexte der verwendeten Bibliotheken'**
+  String get settingsLicensesHint;
 }
 
 class _AppLocalizationsDelegate

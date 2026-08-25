@@ -775,29 +775,12 @@ final hijriDateProvider = Provider<String>((ref) {
 // Adhan notification settings
 // ---------------------------------------------------------------------------
 
-enum MuezzinVoice { misharyAlafasy, makkahAdhan, silent }
-
-class MuezzinVoiceNotifier extends Notifier<MuezzinVoice> {
-  @override
-  MuezzinVoice build() {
-    final prefs = ref.read(sharedPreferencesProvider);
-    final stored = prefs.getString('muezzin_voice');
-    return MuezzinVoice.values.firstWhere(
-      (v) => v.name == stored,
-      orElse: () => MuezzinVoice.misharyAlafasy,
-    );
-  }
-
-  void update(MuezzinVoice voice) {
-    ref.read(sharedPreferencesProvider).setString('muezzin_voice', voice.name);
-    state = voice;
-  }
-}
-
-final muezzinVoiceProvider =
-    NotifierProvider<MuezzinVoiceNotifier, MuezzinVoice>(
-      MuezzinVoiceNotifier.new,
-    );
+// A muezzin-voice picker used to sit here. It offered two reciters and a
+// silent option, stored the choice — and nothing ever read it: the app ships
+// no adhan audio, and NotificationService never set a per-channel sound, so
+// every option produced the system default. Removed rather than left in
+// place; the setting is worth having, but only once the audio behind it
+// exists.
 
 class NotificationsEnabledNotifier extends Notifier<bool> {
   @override

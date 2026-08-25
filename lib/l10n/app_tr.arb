@@ -88,7 +88,6 @@
   "settingsCalculationMethod": "Hesaplama yöntemi",
   "settingsMadhab": "Mezhep",
   "settingsNotifications": "Bildirimler",
-  "settingsAdhanVoice": "Ezan sesi",
   "settingsName": "İsim",
   "settingsNameHint": "Sana nasıl hitap edelim?",
   "settingsLanguage": "Dil",
@@ -141,7 +140,6 @@
   "settingsCatchUpRemindersHint": "Henüz kayıt yoksa, sonraki namazdan 30 dakika önce",
   "settingsMadhabShafiHint": "Maliki ve Hanbeli de — daha erken ikindi",
   "settingsMadhabHanafiHint": "Daha geç ikindi",
-  "muezzinSilent": "Sadece titreşim / sessiz",
   "settingsNotSet": "ayarlanmadı",
   "qiblaAligned": "Hizalandı — Mekke yönünde",
   "settingsDataSources": "Veri kaynakları",
@@ -165,7 +163,6 @@
   "onboardingAdhanEnable": "Bildirimleri etkinleştir",
   "onboardingAdhanEnabled": "Bildirimler etkinleştirildi.",
   "onboardingAdhanDenied": "İzin verilmedi.",
-  "onboardingMuezzinSection": "MÜEZZİN SESİ",
   "onboardingDoneHeading": "Her şey hazır",
   "onboardingDoneHeadingNamed": "Her şey hazır, {name}",
   "onboardingDoneCompanion": "Munir gününde sana eşlik etsin.",
@@ -208,5 +205,9 @@
   "settingsAccountDeleted": "Hesap silindi.",
   "onboardingAccountTitle": "İlerlemeni koru",
   "onboardingAccountBody": "Hesapla namaz geçmişin korunur — cihaz değiştirsen bile. Hesapsız her şey yalnızca bu cihazda kalır.",
-  "commonLater": "Daha sonra"
+  "commonLater": "Daha sonra",
+  "quranTranslationCredit": "Çeviri: {translator}",
+  "quranSourceCredit": "Arapça metin, transkripsiyon ve tilavet alquran.cloud üzerinden",
+  "settingsLicenses": "Açık kaynak lisansları",
+  "settingsLicensesHint": "Kullanılan kütüphanelerin lisans metinleri"
 }

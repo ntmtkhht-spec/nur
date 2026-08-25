@@ -89,7 +89,6 @@
   "settingsCalculationMethod": "Méthode de calcul",
   "settingsMadhab": "École juridique",
   "settingsNotifications": "Notifications",
-  "settingsAdhanVoice": "Voix de l'adhan",
   "settingsName": "Nom",
   "settingsNameHint": "Comment devons-nous vous appeler ?",
   "settingsLanguage": "Langue",
@@ -109,7 +108,6 @@
   "settingsDataSources": "Sources des données",
   "settingsMadhabShafiHint": "Aussi Maliki et Hanbali — Asr plus tôt",
   "settingsMadhabHanafiHint": "Asr plus tard",
-  "muezzinSilent": "Vibration seule / silencieux",
   "settingsNotSet": "non défini",
   "commonCancel": "Annuler",
   "commonDelete": "Supprimer",
@@ -165,7 +163,6 @@
   "onboardingAdhanEnable": "Activer les notifications",
   "onboardingAdhanEnabled": "Notifications activées.",
   "onboardingAdhanDenied": "Autorisation refusée.",
-  "onboardingMuezzinSection": "VOIX DU MUEZZIN",
   "onboardingDoneHeading": "Tout est prêt",
   "onboardingDoneHeadingNamed": "Tout est prêt, {name}",
   "onboardingDoneCompanion": "Que Munir vous accompagne tout au long de la journée.",
@@ -208,5 +205,9 @@
   "settingsAccountDeleted": "Compte supprimé.",
   "onboardingAccountTitle": "Conservez votre progression",
   "onboardingAccountBody": "Avec un compte, votre historique de prières est conservé — même en changeant d'appareil. Sans compte, tout reste uniquement sur cet appareil.",
-  "commonLater": "Plus tard"
+  "commonLater": "Plus tard",
+  "quranTranslationCredit": "Traduction : {translator}",
+  "quranSourceCredit": "Texte arabe, translittération et récitation via alquran.cloud",
+  "settingsLicenses": "Licences open source",
+  "settingsLicensesHint": "Textes de licence des bibliothèques utilisées"
 }

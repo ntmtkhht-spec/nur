@@ -88,7 +88,6 @@
   "settingsCalculationMethod": "طريقة الحساب",
   "settingsMadhab": "المذهب",
   "settingsNotifications": "الإشعارات",
-  "settingsAdhanVoice": "صوت الأذان",
   "settingsName": "الاسم",
   "settingsNameHint": "بماذا نناديك؟",
   "settingsLanguage": "اللغة",
@@ -141,7 +140,6 @@
   "settingsCatchUpRemindersHint": "قبل الصلاة التالية بثلاثين دقيقة، إذا لم يُسجَّل شيء بعد",
   "settingsMadhabShafiHint": "وكذلك المالكي والحنبلي — العصر مبكراً",
   "settingsMadhabHanafiHint": "العصر متأخراً",
-  "muezzinSilent": "اهتزاز فقط / صامت",
   "settingsNotSet": "غير محدد",
   "qiblaAligned": "في الاتجاه الصحيح — نحو مكة",
   "settingsDataSources": "مصادر البيانات",
@@ -165,7 +163,6 @@
   "onboardingAdhanEnable": "تفعيل الإشعارات",
   "onboardingAdhanEnabled": "تم تفعيل الإشعارات.",
   "onboardingAdhanDenied": "لم يتم منح الإذن.",
-  "onboardingMuezzinSection": "صوت المؤذن",
   "onboardingDoneHeading": "كل شيء جاهز",
   "onboardingDoneHeadingNamed": "كل شيء جاهز، {name}",
   "onboardingDoneCompanion": "عسى أن يرافقك منير في يومك.",
@@ -208,5 +205,9 @@
   "settingsAccountDeleted": "تم حذف الحساب.",
   "onboardingAccountTitle": "احفظ تقدمك",
   "onboardingAccountBody": "مع حساب يبقى سجل صلاتك محفوظاً — حتى عند تغيير الجهاز. بدون حساب يبقى كل شيء على هذا الجهاز فقط.",
-  "commonLater": "لاحقاً"
+  "commonLater": "لاحقاً",
+  "quranTranslationCredit": "الترجمة: {translator}",
+  "quranSourceCredit": "النص العربي والنقحرة والتلاوة عبر alquran.cloud",
+  "settingsLicenses": "تراخيص المصادر المفتوحة",
+  "settingsLicensesHint": "نصوص تراخيص المكتبات المستخدمة"
 }

@@ -230,7 +230,6 @@
   "settingsCalculationMethod": "Berechnungsmethode",
   "settingsMadhab": "Rechtsschule",
   "settingsNotifications": "Benachrichtigungen",
-  "settingsAdhanVoice": "Adhan-Stimme",
   "settingsName": "Name",
   "settingsNameHint": "Wie sollen wir dich ansprechen?",
   "settingsLanguage": "Sprache",
@@ -331,7 +330,6 @@
   "settingsCatchUpRemindersHint": "30 Minuten vor dem nächsten Gebet, wenn noch nichts eingetragen ist",
   "settingsMadhabShafiHint": "Auch Maliki und Hanbali — früheres Asr",
   "settingsMadhabHanafiHint": "Späteres Asr",
-  "muezzinSilent": "Nur Vibration / stumm",
   "settingsNotSet": "nicht gesetzt",
   "qiblaAligned": "Ausgerichtet — Richtung Mekka",
   "settingsDataSources": "Datenquellen",
@@ -369,7 +367,6 @@
   "onboardingAdhanEnable": "Benachrichtigungen aktivieren",
   "onboardingAdhanEnabled": "Benachrichtigungen aktiviert.",
   "onboardingAdhanDenied": "Berechtigung wurde nicht erteilt.",
-  "onboardingMuezzinSection": "MUEZZIN-STIMME",
   "onboardingDoneHeading": "Alles bereit",
   "onboardingDoneHeadingNamed": "Alles bereit, {name}",
   "@onboardingDoneHeadingNamed": {
@@ -433,5 +430,12 @@
   },
   "onboardingAccountTitle": "Fortschritt sichern",
   "onboardingAccountBody": "Mit einem Konto bleibt dein Gebets-Verlauf erhalten — auch bei einem Gerätewechsel. Ohne Konto wird alles nur auf diesem Gerät gespeichert.",
-  "commonLater": "Später"
+  "commonLater": "Später",
+  "quranTranslationCredit": "Übersetzung: {translator}",
+  "@quranTranslationCredit": {
+    "placeholders": { "translator": { "type": "String" } }
+  },
+  "quranSourceCredit": "Arabischer Text, Transliteration und Rezitation über alquran.cloud",
+  "settingsLicenses": "Open-Source-Lizenzen",
+  "settingsLicensesHint": "Lizenztexte der verwendeten Bibliotheken"
 }

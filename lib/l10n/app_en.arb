@@ -88,7 +88,6 @@
   "settingsCalculationMethod": "Calculation method",
   "settingsMadhab": "School of thought",
   "settingsNotifications": "Notifications",
-  "settingsAdhanVoice": "Adhan voice",
   "settingsName": "Name",
   "settingsNameHint": "What should we call you?",
   "settingsLanguage": "Language",
@@ -141,7 +140,6 @@
   "settingsCatchUpRemindersHint": "30 minutes before the next prayer, if nothing is logged yet",
   "settingsMadhabShafiHint": "Also Maliki and Hanbali — earlier Asr",
   "settingsMadhabHanafiHint": "Later Asr",
-  "muezzinSilent": "Vibration only / silent",
   "settingsNotSet": "not set",
   "qiblaAligned": "Aligned — facing Mecca",
   "settingsDataSources": "Data sources",
@@ -165,7 +163,6 @@
   "onboardingAdhanEnable": "Enable notifications",
   "onboardingAdhanEnabled": "Notifications enabled.",
   "onboardingAdhanDenied": "Permission was not granted.",
-  "onboardingMuezzinSection": "MUEZZIN VOICE",
   "onboardingDoneHeading": "All set",
   "onboardingDoneHeadingNamed": "All set, {name}",
   "onboardingDoneCompanion": "May Munir accompany you through your day.",
@@ -208,5 +205,9 @@
   "settingsAccountDeleted": "Account deleted.",
   "onboardingAccountTitle": "Keep your progress",
   "onboardingAccountBody": "With an account your prayer history is kept — even when you change devices. Without one, everything stays on this device only.",
-  "commonLater": "Later"
+  "commonLater": "Later",
+  "quranTranslationCredit": "Translation: {translator}",
+  "quranSourceCredit": "Arabic text, transliteration and recitation via alquran.cloud",
+  "settingsLicenses": "Open source licences",
+  "settingsLicensesHint": "Licence texts of the bundled libraries"
 }

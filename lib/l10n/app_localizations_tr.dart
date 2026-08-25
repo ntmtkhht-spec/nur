@@ -324,9 +324,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsNotifications => 'Bildirimler';
 
   @override
-  String get settingsAdhanVoice => 'Ezan sesi';
-
-  @override
   String get settingsName => 'İsim';
 
   @override
@@ -507,9 +504,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsMadhabHanafiHint => 'Daha geç ikindi';
 
   @override
-  String get muezzinSilent => 'Sadece titreşim / sessiz';
-
-  @override
   String get settingsNotSet => 'ayarlanmadı';
 
   @override
@@ -584,9 +578,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get onboardingAdhanDenied => 'İzin verilmedi.';
-
-  @override
-  String get onboardingMuezzinSection => 'MÜEZZİN SESİ';
 
   @override
   String get onboardingDoneHeading => 'Her şey hazır';
@@ -734,4 +725,20 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get commonLater => 'Daha sonra';
+
+  @override
+  String quranTranslationCredit(String translator) {
+    return 'Çeviri: $translator';
+  }
+
+  @override
+  String get quranSourceCredit =>
+      'Arapça metin, transkripsiyon ve tilavet alquran.cloud üzerinden';
+
+  @override
+  String get settingsLicenses => 'Açık kaynak lisansları';
+
+  @override
+  String get settingsLicensesHint =>
+      'Kullanılan kütüphanelerin lisans metinleri';
 }

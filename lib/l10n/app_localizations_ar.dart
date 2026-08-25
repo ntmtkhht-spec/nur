@@ -333,9 +333,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsNotifications => 'الإشعارات';
 
   @override
-  String get settingsAdhanVoice => 'صوت الأذان';
-
-  @override
   String get settingsName => 'الاسم';
 
   @override
@@ -511,9 +508,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsMadhabHanafiHint => 'العصر متأخراً';
 
   @override
-  String get muezzinSilent => 'اهتزاز فقط / صامت';
-
-  @override
   String get settingsNotSet => 'غير محدد';
 
   @override
@@ -586,9 +580,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get onboardingAdhanDenied => 'لم يتم منح الإذن.';
-
-  @override
-  String get onboardingMuezzinSection => 'صوت المؤذن';
 
   @override
   String get onboardingDoneHeading => 'كل شيء جاهز';
@@ -731,4 +722,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get commonLater => 'لاحقاً';
+
+  @override
+  String quranTranslationCredit(String translator) {
+    return 'الترجمة: $translator';
+  }
+
+  @override
+  String get quranSourceCredit =>
+      'النص العربي والنقحرة والتلاوة عبر alquran.cloud';
+
+  @override
+  String get settingsLicenses => 'تراخيص المصادر المفتوحة';
+
+  @override
+  String get settingsLicensesHint => 'نصوص تراخيص المكتبات المستخدمة';
 }
