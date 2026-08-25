@@ -12,10 +12,19 @@
          33+ the user grants it via Settings, requested from
          NotificationService.requestExactAlarmPermission(). -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <!-- allowBackup: the prayer history, the name, the last known position
+         and the signed-in account's uid all live in SharedPreferences. With
+         the platform default (true) they travel into Google Drive backups
+         and device-to-device transfers, which is more than the privacy
+         policy promises — it says local data is gone once the app is
+         uninstalled. Cross-device continuity is what the optional account
+         is for. -->
     <application
         android:label="Munir"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:fullBackupContent="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"
