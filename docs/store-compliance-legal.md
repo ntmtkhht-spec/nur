@@ -1,6 +1,6 @@
 # Munir Store- und Rechts-Checkliste
 
-Stand: 20. August 2026
+Stand: 25. August 2026
 
 Diese Datei ist keine Rechtsberatung. Sie dokumentiert, was vor der Einreichung
 bei Apple App Store und Google Play noch auszufuellen oder im Store-Backend
@@ -38,7 +38,18 @@ Datenschutz-URL, die nur eingeloggt erreichbar ist, ist ein Rejection-Grund.
   `Einstellungen > Konto > Konto loeschen` vorhanden.
 - In App Privacy Details muessen die tatsaechlichen Datenfluesse deklariert
   werden: Standort, User ID/Auth-ID, E-Mail-Adresse bei Login, Name/Tracker/
-  Einstellungen bei Sync, Diagnosedaten nur falls spaeter ein SDK hinzukommt.
+  Lesefortschritt/Einstellungen bei Sync, Diagnosedaten nur falls spaeter ein
+  SDK hinzukommt.
+- **Guideline 4.8 — offen.** Sobald neben Google ein Login angeboten wird,
+  verlangt Apple Sign in with Apple als gleichwertige Option. Der Code dafuer
+  steht (`AuthService.signInWithApple`, Entitlement gesetzt), ist aber ueber
+  `FeatureFlags.appleSignInEnabled = false` abgeschaltet, weil er ohne Mac
+  nicht testbar war. Vor einer iOS-Einreichung: Flag auf `true`, Apple als
+  Provider im Firebase-Projekt aktivieren, Service-ID im Apple-Developer-
+  Portal anlegen, Flow auf einem Geraet durchspielen.
+- Die fuenf `ios/Runner/<lang>.lproj/InfoPlist.strings` muessen in Xcode dem
+  Runner-Target hinzugefuegt werden, sonst liest iOS sie nicht und der
+  Standort-Dialog bleibt bei der deutschen Fassung aus der Info.plist.
 
 ## Google Play
 
@@ -48,10 +59,12 @@ Datenschutz-URL, die nur eingeloggt erreichbar ist, ist ein Rejection-Grund.
 - Wenn eine App Konten erstellen laesst, muss es in der App und ueber eine
   oeffentliche Webseite eine Moeglichkeit zur Konto- und Datenloeschung geben.
 - Die Play-Console-Antworten sollten aktuell ungefaehr so aussehen:
-  - Standort: erfasst, fuer App-Funktionalitaet, nicht fuer Werbung, nicht
-    verkauft.
+  - Standort: erfasst, **ungefaehrer Standort** (nicht praezise), fuer
+    App-Funktionalitaet, nicht fuer Werbung, nicht verkauft. Die App
+    deklariert unter Android nur `ACCESS_COARSE_LOCATION`.
   - Personenbezogene Daten: E-Mail/Name nur bei optionalem Login bzw. Sync.
-  - App-Aktivitaet: Gebets-Tracker nur bei optionalem Sync in Firebase.
+  - App-Aktivitaet: Gebets-Tracker, Tasbih-Zahl und Qur'an-Lesefortschritt,
+    nur bei optionalem Sync in Firebase.
   - Keine Werbung, kein Analytics-SDK, kein Verkauf von Daten.
   - Datenloeschung: In-App-Pfad und oeffentliche Loesch-URL angeben.
 
@@ -59,15 +72,23 @@ Datenschutz-URL, die nur eingeloggt erreichbar ist, ist ein Rejection-Grund.
 
 - Lokal: Sprache, Name, Standort, Berechnungsmethode, Madhhab,
   Benachrichtigungseinstellungen, Gebets-Tracker, Moschee-Cache.
-- Standort: GPS per `geolocator`; Gebetszeiten und Qibla werden lokal berechnet.
+- Standort: nur ungefaehr (`LocationAccuracy.low`, Android fordert
+  ausschliesslich `ACCESS_COARSE_LOCATION`). Gebetszeiten und Qibla-Peilung
+  werden lokal berechnet. Ausnahme iOS: der Qibla-Kompass laesst Core
+  Location mit `kCLLocationAccuracyBest` laufen, weil `trueHeading` sonst
+  ungueltig bleibt — deshalb deklariert `PrivacyInfo.xcprivacy` weiterhin
+  `PreciseLocation`. Unter Android kommt die Richtung aus dem
+  Rotationsvektor-Sensor, ganz ohne Standortabfrage.
 - Moschee-Suche: nur nach Zustimmung; Koordinaten und Radius an Overpass API.
 - Karten: CARTO-Kacheln werden geladen; Karten-Cache kann in Einstellungen
   geloescht werden.
 - Qur'an: Surah-Liste, Texte, Uebersetzungen, Transliteration und Audio von
   `https://api.alquran.cloud/v1`.
-- Konto: optional Google Sign-In/Firebase Auth.
-- Sync: Firebase Cloud Firestore speichert Tracker, Tasbih-Gesamtzahl, Name,
-  Sprache, updatedAt.
+- Konto: optional Google Sign-In oder Sign in with Apple, beides ueber
+  Firebase Auth. Sign in with Apple haengt an
+  `FeatureFlags.appleSignInEnabled` und ist derzeit AUS — siehe unten.
+- Sync: Firebase Cloud Firestore speichert Tracker, Tasbih-Gesamtzahl,
+  Qur'an-Lesefortschritt, Name, Sprache, updatedAt.
 - Benachrichtigungen: lokal geplant, keine eigenen Push-Inhalte an Server.
 
 ## Quellen
@@ -79,3 +100,50 @@ Datenschutz-URL, die nur eingeloggt erreichbar ist, ist ein Rejection-Grund.
 - Google Play account deletion: https://support.google.com/googleplay/android-developer/answer/13327111
 - § 5 Digitale-Dienste-Gesetz: https://www.gesetze-im-internet.de/ddg/__5.html
 - DSGVO Art. 13: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+
+## Lizenzen der eingebundenen Dienste
+
+Diese Punkte betreffen vor allem die geplante monetarisierte Version.
+
+- **Qur'an-Text:** frei, auch kommerziell. Al Quran Cloud bittet um eine
+  Quellenangabe im Kolophon — steht jetzt am Ende jeder Sure.
+- **Uebersetzungen:** Al Quran Cloud verlangt die namentliche Nennung des
+  Uebersetzers. Ebenfalls im Kolophon.
+- **Rezitationen:** duerfen laut Al Quran Cloud in ein kommerzielles Produkt
+  gebuendelt werden, die Rechte liegen aber bei den Rezitatoren, die eine
+  Entfernung verlangen koennen. Fuer ein bezahltes Produkt einen Plan B
+  vorsehen.
+- **Suren-Namen-Font (QUL V4):** auf der Quellseite ist keine Lizenz
+  ausgewiesen. Die V4-Typografie geht auf den King-Fahd-Komplex zurueck, und
+  Schriften aus diesem Umfeld sind ueblicherweise auf nicht-kommerzielle
+  Nutzung beschraenkt. **Vor einer Monetarisierung schriftlich klaeren oder
+  ersetzen.**
+- **CARTO-Kacheln:** Free Tier erlaubt kommerzielle Nutzung bis 5 Mio.
+  Kachelabrufe pro Monat gegen Attribution. Die App nutzt jedoch die
+  Raster-Endpunkte ohne API-Key, und CARTO dokumentiert diese als
+  schluesselpflichtig und auslaufend. Konto anlegen und Key eintragen.
+- **Overpass:** das Projekt nennt es ausdruecklich unerwuenscht, die
+  oeffentlichen Instanzen als Backend einer App zu nutzen (Richtwert 10.000
+  Anfragen/Tag fuer alle Nutzer zusammen). Der 24-Stunden-Cache daempft das;
+  vor Reichweite eigene Instanz oder kommerzieller POI-Anbieter.
+- **Firebase Spark:** kommerziell erlaubt, aber 20.000 Schreibvorgaenge pro
+  Tag. Der SyncScheduler schreibt grob 10-20 mal pro aktivem Nutzer und Tag,
+  also Deckel bei etwa 1.000-2.000 taeglich aktiven Nutzern. Danach schlagen
+  alle Syncs fehl. Rechtzeitig auf Blaze mit Budget-Alarm.
+
+## Offen
+
+- **Firestore-Regeln ohne Groessenvalidierung.** Owner-only und Default-Deny
+  stehen korrekt. Was fehlt, ist eine Begrenzung von Form und Groesse: ein
+  angemeldeter Nutzer kann beliebig grosse Dokumente in sein eigenes
+  Verzeichnis schreiben. Kein Datenleck, aber ein Kostenvektor, sobald nach
+  Nutzung abgerechnet wird.
+- **Keine Hintergrundwiedergabe.** Die Rezitation stoppt, sobald der
+  Bildschirm sperrt: kein `UIBackgroundModes`, kein `just_audio_background`.
+  Kein Ablehnungsgrund, aber die Erwartung an jede Qur'an-App. Wichtig beim
+  Nachruesten: `UIBackgroundModes: audio` ohne echte Hintergrundwiedergabe
+  ist seinerseits ein Ablehnungsgrund — beides gehoert zusammen.
+- **Inhalte nur auf Deutsch.** Bittgebete, die 99 Namen und der
+  Tagesratgeber liegen einsprachig vor. Die Oberflaeche ist in allen fuenf
+  Sprachen; diese drei Datensaetze nicht. In der Store-Beschreibung deshalb
+  nicht mit fuenf vollstaendigen Sprachen werben.
