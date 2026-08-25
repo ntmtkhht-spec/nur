@@ -3,6 +3,41 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 
 import '../../core/providers/providers.dart';
+import '../../l10n/app_localizations.dart';
+
+/// Why the platform compass has nothing to show.
+///
+/// The platform code sends one of these codes rather than a sentence: it used
+/// to send German text that Dart rendered unchanged, so an English, French,
+/// Turkish or Arabic device got a German message. [describeQiblaUnavailable]
+/// owns the wording.
+enum QiblaUnavailableReason {
+  unsupported,
+  noLocationPermission,
+  calibrating,
+  noLocation;
+
+  static QiblaUnavailableReason? fromCode(Object? code) {
+    if (code is! String) return null;
+    for (final reason in values) {
+      if (reason.name == code) return reason;
+    }
+    return null;
+  }
+}
+
+String describeQiblaUnavailable(
+  AppLocalizations l10n,
+  QiblaUnavailableReason reason,
+) {
+  return switch (reason) {
+    QiblaUnavailableReason.unsupported => l10n.qiblaCompassUnsupported,
+    QiblaUnavailableReason.noLocationPermission =>
+      l10n.qiblaNoLocationForCompass,
+    QiblaUnavailableReason.calibrating => l10n.qiblaCalibrating,
+    QiblaUnavailableReason.noLocation => l10n.qiblaNoLocationFix,
+  };
+}
 
 /// A true-north heading from the platform compass.
 ///
@@ -13,7 +48,7 @@ import '../../core/providers/providers.dart';
 class QiblaCompassReading {
   final double? trueHeading;
   final double? accuracyDegrees;
-  final String? unavailableReason;
+  final QiblaUnavailableReason? unavailableReason;
 
   const QiblaCompassReading({
     required this.trueHeading,
@@ -154,7 +189,9 @@ class QiblaCompass {
                 ? heading.toDouble()
                 : null,
             accuracyDegrees: accuracy is num ? accuracy.toDouble() : null,
-            unavailableReason: data['reason'] as String?,
+            unavailableReason: QiblaUnavailableReason.fromCode(
+              data['reason'],
+            ),
           );
         });
   }

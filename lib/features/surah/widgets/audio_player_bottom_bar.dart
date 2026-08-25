@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
+
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/ayah_model.dart';
 import '../providers/audio_player_provider.dart';
@@ -41,11 +43,11 @@ class AudioPlayerBottomBar extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
-                      'Wiedergabegeschwindigkeit',
-                      style: TextStyle(
+                      AppLocalizations.of(sheetContext).quranPlaybackSpeed,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.darkGreen,
@@ -86,6 +88,11 @@ class AudioPlayerBottomBar extends ConsumerWidget {
     final ayahNumber = (index != null && index < ayahs.length)
         ? ayahs[index].numberInSurah
         : 1;
+
+    // A failed load used to leave the bar looking idle and doing nothing.
+    if (audioState.hasError) {
+      return _ErrorBar(onRetry: () => notifier.retry(ayahs));
+    }
 
     return Container(
       margin: const EdgeInsets.only(left: 16, right: 16, bottom: 34),
@@ -220,6 +227,60 @@ class AudioPlayerBottomBar extends ConsumerWidget {
         child: Center(
           child: child ?? Icon(icon, color: AppColors.white, size: 26),
         ),
+      ),
+    );
+  }
+}
+
+/// Replaces the player bar once the recitation could not be loaded.
+///
+/// Every ayah is streamed, so this is an ordinary outcome on a weak
+/// connection — worth saying, and worth offering a second try for, rather
+/// than leaving a bar that quietly refuses to play.
+class _ErrorBar extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _ErrorBar({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return Container(
+      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 34),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.goldLight,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.darkGreen.withValues(alpha: 0.15),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.cloud_off, size: 20, color: AppColors.darkGreen),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              l10n.quranAudioFailed,
+              style: const TextStyle(fontSize: 13, color: AppColors.textDark),
+            ),
+          ),
+          TextButton(
+            onPressed: onRetry,
+            child: Text(
+              l10n.commonRetry,
+              style: const TextStyle(
+                color: AppColors.darkGreen,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

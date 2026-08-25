@@ -42,7 +42,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            tooltip: 'Kompass kalibrieren',
+            tooltip: l10n.qiblaCalibrateAction,
             icon: Icon(Icons.gps_fixed, size: 22, color: colors.primaryGreen),
             onPressed: _showCalibrateHint,
           ),
@@ -54,12 +54,10 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
             location: value,
           ),
           AsyncData() => _CompassUnavailable(
-            message:
-                'Für eine genaue Qibla benötigst du deinen aktuellen Standort.',
+            message: l10n.qiblaNeedsLocation,
           ),
           AsyncError() => _CompassUnavailable(
-            message:
-                'Der Standort ist nicht verfügbar. Bitte aktiviere ihn in den Einstellungen.',
+            message: l10n.qiblaLocationUnavailable,
           ),
           _ => Center(
             child: CircularProgressIndicator(color: colors.primaryGreen),
@@ -72,9 +70,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen> {
   void _showCalibrateHint() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          'Bewege dein Gerät in einer Acht (∞), um den Kompass zu kalibrieren.',
-        ),
+        content: Text(AppLocalizations.of(context).qiblaCalibrateHint),
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 3),
       ),
@@ -106,7 +102,7 @@ class _QiblaCompassViewState extends State<_QiblaCompassView> {
   QiblaCompassReading? _lastUsable;
 
   Object? _error;
-  String? _unavailableReason;
+  QiblaUnavailableReason? _unavailableReason;
 
   @override
   void initState() {
@@ -176,8 +172,8 @@ class _QiblaCompassViewState extends State<_QiblaCompassView> {
     final colors = AppColors.of(context);
 
     if (_error != null && _smoothedHeading == null) {
-      return const _CompassUnavailable(
-        message: 'Kompass nicht verfügbar auf diesem Gerät.',
+      return _CompassUnavailable(
+        message: AppLocalizations.of(context).qiblaCompassUnsupported,
       );
     }
 
@@ -185,7 +181,12 @@ class _QiblaCompassViewState extends State<_QiblaCompassView> {
     final heading = _smoothedHeading;
     if (reading == null || heading == null) {
       if (_unavailableReason != null) {
-        return _CompassUnavailable(message: _unavailableReason!);
+        return _CompassUnavailable(
+          message: describeQiblaUnavailable(
+            AppLocalizations.of(context),
+            _unavailableReason!,
+          ),
+        );
       }
       return Center(child: CircularProgressIndicator(color: colors.primaryGreen));
     }
@@ -572,14 +573,14 @@ class _CalibrationHint extends StatelessWidget {
         color: AppColors.goldLight.withValues(alpha: 0.28),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.gps_not_fixed, size: 18, color: AppColors.textMuted),
-          SizedBox(width: 10),
+          const Icon(Icons.gps_not_fixed, size: 18, color: AppColors.textMuted),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Richtung ist ungenau. Bewege dein Gerät in einer Acht (∞).',
-              style: TextStyle(fontSize: 13, color: AppColors.textDark),
+              AppLocalizations.of(context).qiblaInaccurate,
+              style: const TextStyle(fontSize: 13, color: AppColors.textDark),
             ),
           ),
         ],

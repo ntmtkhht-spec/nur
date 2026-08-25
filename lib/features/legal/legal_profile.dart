@@ -25,5 +25,5 @@ class LegalProfile {
   static const imprintUrl = '${siteUrl}impressum.html';
   static const accountDeletionUrl = '${siteUrl}konto-loeschen.html';
 
-  static const lastUpdated = '23. August 2026';
+  static const lastUpdated = '25. August 2026';
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../models/ayah_model.dart';
@@ -140,6 +142,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final listAsyncValue = ref.watch(surahListProvider);
     final progress = ref.watch(quranReadingProgressProvider);
 
@@ -160,7 +163,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                   onSubmitted: (_) => _searchFocusNode.unfocus(),
                   style: const TextStyle(color: AppColors.textDark),
                   decoration: InputDecoration(
-                    hintText: 'Sura suchen',
+                    hintText: l10n.surahSearchHint,
                     prefixIcon: const Icon(
                       Icons.search,
                       size: 20,
@@ -168,8 +171,8 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                     ),
                     suffixIcon: IconButton(
                       tooltip: _searchController.text.isEmpty
-                          ? 'Suche schließen'
-                          : 'Suche leeren',
+                          ? l10n.surahSearchClose
+                          : l10n.surahSearchClear,
                       onPressed: _searchController.text.isEmpty
                           ? _closeSearch
                           : _clearSearch,
@@ -206,7 +209,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
         actions: [
           if (_tabController.index == 0)
             IconButton(
-              tooltip: _isSearching ? 'Suche schließen' : 'Suren suchen',
+              tooltip: _isSearching ? l10n.surahSearchClose : l10n.surahSearchOpen,
               onPressed: _isSearching ? _closeSearch : _openSearch,
               icon: Icon(
                 _isSearching ? Icons.close : Icons.search,
@@ -247,7 +250,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                     ),
                   ),
                   error: (error, stack) =>
-                      Center(child: Text('Fehler beim Laden: $error')),
+                      Center(child: Text(l10n.commonLoadFailed)),
                 ),
                 listAsyncValue.when(
                   data: (surahs) => _ProgressTab(
@@ -261,7 +264,7 @@ class _SurahListScreenState extends ConsumerState<SurahListScreen>
                     ),
                   ),
                   error: (error, stack) =>
-                      Center(child: Text('Fehler beim Laden: $error')),
+                      Center(child: Text(l10n.commonLoadFailed)),
                 ),
               ],
             ),
@@ -609,9 +612,9 @@ class _ProgressTab extends StatelessWidget {
         120,
       ),
       children: [
-        const Text(
-          'Dein Fortschritt',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context).quranProgressHeading,
+          style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w800,
             color: AppColors.textDark,
@@ -770,13 +773,13 @@ class _NoProgressYet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.only(top: AppSpacing.lg),
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.lg),
       child: Center(
         child: Text(
-          'Dein Fortschritt erscheint hier, sobald du einen Vers gelesen hast.',
+          AppLocalizations.of(context).quranProgressEmpty,
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.textMuted),
+          style: const TextStyle(color: AppColors.textMuted),
         ),
       ),
     );

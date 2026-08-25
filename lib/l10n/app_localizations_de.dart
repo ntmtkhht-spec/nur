@@ -325,9 +325,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsNotifications => 'Benachrichtigungen';
 
   @override
-  String get settingsAdhanVoice => 'Adhan-Stimme';
-
-  @override
   String get settingsName => 'Name';
 
   @override
@@ -510,9 +507,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsMadhabHanafiHint => 'Späteres Asr';
 
   @override
-  String get muezzinSilent => 'Nur Vibration / stumm';
-
-  @override
   String get settingsNotSet => 'nicht gesetzt';
 
   @override
@@ -588,9 +582,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get onboardingAdhanDenied => 'Berechtigung wurde nicht erteilt.';
-
-  @override
-  String get onboardingMuezzinSection => 'MUEZZIN-STIMME';
 
   @override
   String get onboardingDoneHeading => 'Alles bereit';
@@ -739,4 +730,158 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get commonLater => 'Später';
+
+  @override
+  String quranTranslationCredit(String translator) {
+    return 'Übersetzung: $translator';
+  }
+
+  @override
+  String get quranSourceCredit =>
+      'Arabischer Text, Transliteration und Rezitation über alquran.cloud';
+
+  @override
+  String get settingsLicenses => 'Open-Source-Lizenzen';
+
+  @override
+  String get settingsLicensesHint => 'Lizenztexte der verwendeten Bibliotheken';
+
+  @override
+  String get mosqueConsentHeading => 'Moscheen in der Nähe finden';
+
+  @override
+  String get mosqueConsentBody =>
+      'Dafür wird dein aktueller Standort an die Overpass-API (betrieben vom FOSSGIS e.V.) gesendet, um die Umgebungssuche in den OpenStreetMap-Daten auszuführen.\n\nDas ist die einzige Funktion der App, bei der dein Standort das Gerät verlässt. Es werden keine weiteren Daten und keine Kennung übertragen.';
+
+  @override
+  String get mosqueConsentAccept => 'Einverstanden, Moscheen suchen';
+
+  @override
+  String get mosqueConsentRevocable => 'Du kannst das jederzeit widerrufen.';
+
+  @override
+  String get mosqueSearching => 'Moscheen werden gesucht …';
+
+  @override
+  String get mosqueUnnamed => 'Moschee (ohne Namen)';
+
+  @override
+  String get qiblaCalibrateAction => 'Kompass kalibrieren';
+
+  @override
+  String get qiblaCalibrateHint =>
+      'Bewege dein Gerät in einer Acht (∞), um den Kompass zu kalibrieren.';
+
+  @override
+  String get qiblaNeedsLocation =>
+      'Für eine genaue Qibla benötigst du deinen aktuellen Standort.';
+
+  @override
+  String get qiblaLocationUnavailable =>
+      'Der Standort ist nicht verfügbar. Bitte aktiviere ihn in den Einstellungen.';
+
+  @override
+  String get qiblaCompassUnsupported =>
+      'Kompass nicht verfügbar auf diesem Gerät.';
+
+  @override
+  String get qiblaInaccurate =>
+      'Richtung ist ungenau. Bewege dein Gerät in einer Acht (∞).';
+
+  @override
+  String get locationServicesDisabled => 'Standortdienste sind deaktiviert.';
+
+  @override
+  String get locationPermissionDenied => 'Standortzugriff wurde verweigert.';
+
+  @override
+  String get locationNoFix =>
+      'Kein aktueller Standort verfügbar. Bitte Stadt manuell suchen.';
+
+  @override
+  String get locationDetecting => 'Standort wird ermittelt …';
+
+  @override
+  String get locationUnavailableShort => 'nicht verfügbar';
+
+  @override
+  String get settingsNamePlaceholder => 'Dein Name';
+
+  @override
+  String get commonLoadFailed => 'Laden fehlgeschlagen.';
+
+  @override
+  String get commonRetry => 'Erneut versuchen';
+
+  @override
+  String get surahSearchOpen => 'Suren suchen';
+
+  @override
+  String get surahSearchClose => 'Suche schließen';
+
+  @override
+  String get surahSearchClear => 'Suche leeren';
+
+  @override
+  String get quranProgressHeading => 'Dein Fortschritt';
+
+  @override
+  String get quranProgressEmpty =>
+      'Dein Fortschritt erscheint hier, sobald du einen Vers gelesen hast.';
+
+  @override
+  String get quranArabicTextSize => 'Textgröße (Arabisch)';
+
+  @override
+  String get namesNoMatch => 'Kein Name gefunden.';
+
+  @override
+  String get adviceTomorrow => 'Morgen wartet hier der nächste Ratgeber.';
+
+  @override
+  String get locationLabelFallback => 'Standort';
+
+  @override
+  String get mosqueSearchBusy =>
+      'Der Moschee-Dienst ist gerade überlastet. Bitte in ein paar Minuten erneut versuchen.';
+
+  @override
+  String get mosqueSearchFailed => 'Die Moschee-Suche ist fehlgeschlagen.';
+
+  @override
+  String get quranShowTranslation => 'Übersetzung anzeigen';
+
+  @override
+  String get adviceSectionLabel => 'RATGEBER DES TAGES';
+
+  @override
+  String get adviceReadMore => 'Weiterlesen';
+
+  @override
+  String get adviceActionLabel => 'HEUTE UMSETZEN';
+
+  @override
+  String get surahSearchHint => 'Sura suchen';
+
+  @override
+  String dateToday(String date) {
+    return 'Heute, $date';
+  }
+
+  @override
+  String get qiblaCalibrating =>
+      'Kompass wird kalibriert. Halte das Gerät flach und bewege es in einer Acht (∞).';
+
+  @override
+  String get qiblaNoLocationForCompass =>
+      'Aktiviere den Standortzugriff für eine genaue Qibla.';
+
+  @override
+  String get qiblaNoLocationFix => 'Der Standort konnte nicht bestimmt werden.';
+
+  @override
+  String get quranAudioFailed => 'Die Rezitation konnte nicht geladen werden.';
+
+  @override
+  String get quranPlaybackSpeed => 'Wiedergabegeschwindigkeit';
 }

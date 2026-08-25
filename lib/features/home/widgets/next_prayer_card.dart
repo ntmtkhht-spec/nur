@@ -89,7 +89,7 @@ class _NextPrayerCardState extends ConsumerState<NextPrayerCard> {
           children: [
             Positioned.fill(
               child: Image.asset(
-                'assets/images/ChatGPT Image 28. Juli 2026, 19_52_26.png',
+                'assets/images/card_texture.png',
                 fit: BoxFit.cover,
                 // bottomRight, not centerRight: the mosque skyline sits in
                 // the bottom third of the source image. Centering vertically

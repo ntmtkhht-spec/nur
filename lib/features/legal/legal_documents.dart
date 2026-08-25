@@ -83,9 +83,9 @@ class LegalDocument {
         title: 'In der App',
         paragraphs: [
           'Öffne Einstellungen, dann Konto, dann Konto löschen. Damit werden '
-              'dein Gebets-Verlauf, deine Tasbih-Gesamtzahl, dein Name und '
-              'deine Spracheinstellung sowohl im Konto als auch auf dem Gerät '
-              'dauerhaft entfernt.',
+              'dein Gebets-Verlauf, deine Tasbih-Gesamtzahl, dein '
+              'Qur\'an-Lesefortschritt, dein Name und deine Spracheinstellung '
+              'sowohl im Konto als auch auf dem Gerät dauerhaft entfernt.',
           'Der Vorgang ist endgültig und lässt sich nicht rückgängig machen.',
         ],
       ),
@@ -105,6 +105,7 @@ class LegalDocument {
         bullets: [
           'Gebets-Verlauf und Streak.',
           'Tasbih-Gesamtzahl.',
+          'Qur\'an-Lesefortschritt und zuletzt gelesene Stelle.',
           'Name und Spracheinstellung.',
           'Die Anmelde-Kennung und die hinterlegte E-Mail-Adresse.',
         ],
@@ -149,8 +150,9 @@ class LegalDocument {
           'Gebetszeiten und Qibla-Richtung werden auf deinem Gerät berechnet.',
           'Standortdaten verlassen dein Gerät nur, wenn du die Moschee-Suche '
               'ausdrücklich freigibst.',
-          'Ein Konto ist freiwillig und dient allein dazu, deine Einträge auf '
-              'mehreren Geräten gleich zu halten.',
+          'Ein Konto ist freiwillig, läuft über Google oder Apple und dient '
+              'allein dazu, deine Einträge auf mehreren Geräten gleich zu '
+              'halten.',
           'Es gibt keine Werbung, keine Nutzungsanalyse, keine Werbe-Kennungen '
               'und keinen Verkauf deiner Daten.',
         ],
@@ -169,6 +171,7 @@ class LegalDocument {
               'Adhan-Einstellungen.',
           'Welche Gebete du abgehakt hast und wie viele Tage am Stück.',
           'Deine Tasbih-Zählungen einschließlich der Gesamtzahl.',
+          'Deinen Qur\'an-Lesefortschritt und die zuletzt gelesene Stelle.',
           'Deine Zustimmung zur Moschee-Suche und zwischengespeicherte '
               'Moschee- und Kartendaten.',
         ],
@@ -180,11 +183,21 @@ class LegalDocument {
               'deinen tatsächlichen Aufenthaltsort. Ohne Standort verwendet '
               'Munir einen voreingestellten Ort.',
           'Der Zugriff erfolgt nur, wenn du ihn erlaubst, und nur während du '
-              'die App nutzt. Munir fragt dabei einen ungefähren Standort ab, '
-              'keine punktgenaue Position, und greift nicht im Hintergrund auf '
-              'deinen Standort zu.',
-          'Die Berechnung findet auf deinem Gerät statt; für Gebetszeiten und '
-              'Qibla wird dein Standort nicht übermittelt.',
+              'die App nutzt. Im Hintergrund greift Munir nie auf deinen '
+              'Standort zu.',
+          'Für die Gebetszeiten genügt ein ungefährer Standort auf Stadtebene, '
+              'und genau den fragt Munir ab. Unter Android fordert die App '
+              'deshalb ausschließlich die Berechtigung für den ungefähren '
+              'Standort an.',
+          'Eine Ausnahme ist der Qibla-Kompass auf dem iPhone: iOS liefert eine '
+              'Richtung bezogen auf den geografischen Norden nur, solange '
+              'gleichzeitig eine genaue Ortung läuft. Solange der '
+              'Kompass-Bildschirm geöffnet ist, verarbeitet iOS dafür eine '
+              'punktgenaue Position auf dem Gerät. Unter Android entsteht die '
+              'Richtung aus den Bewegungssensoren; dort wird dafür kein '
+              'Standort abgefragt.',
+          'Die Berechnung findet in allen Fällen auf deinem Gerät statt; für '
+              'Gebetszeiten und Qibla wird dein Standort nicht übermittelt.',
           'Suchst du eine Stadt von Hand, wandelt dein Gerät den eingegebenen '
               'Ort in Koordinaten um. Diese Umwandlung übernimmt der Dienst '
               'deines Betriebssystems; welche Daten dabei anfallen, richtet '
@@ -213,12 +226,20 @@ class LegalDocument {
           'Zweck: Anzeige von Moscheen im gewählten Umkreis.',
           'Diese Funktion ist standardmäßig ausgeschaltet. Erst wenn du ihr '
               'zustimmst, übermittelt Munir deinen Standort und den gewählten '
-              'Umkreis an OpenStreetMap, um passende Einträge abzurufen. Ein '
-              'Konto oder eine Werbe-Kennung wird dabei nicht mitgeschickt.',
+              'Umkreis an die Overpass-API, um passende Einträge aus '
+              'OpenStreetMap abzurufen. Betrieben wird der angefragte Server '
+              'overpass-api.de vom FOSSGIS e.V., nicht von der OpenStreetMap '
+              'Foundation. Ein Konto oder eine Werbe-Kennung wird dabei nicht '
+              'mitgeschickt.',
           'Deine Zustimmung kannst du in den Einstellungen jederzeit mit '
               'Wirkung für die Zukunft widerrufen.',
         ],
-        bullets: ['OpenStreetMap Foundation: https://www.openstreetmap.org'],
+        bullets: [
+          'FOSSGIS e.V., Betreiber von overpass-api.de: '
+              'https://www.fossgis.de/datenschutz/',
+          'Kartendaten der OpenStreetMap Foundation: '
+              'https://www.openstreetmap.org',
+        ],
       ),
       LegalSection(
         title: '7. Kartenansicht und Qur’an-Inhalte',
@@ -243,13 +264,18 @@ class LegalDocument {
         paragraphs: [
           'Zweck: Sicherung deiner Einträge und Abgleich zwischen mehreren '
               'Geräten.',
-          'Die Anmeldung erfolgt mit deinem Google-Konto. Munir erhält dabei '
-              'eine Kennung, die dich wiedererkennt, sowie deine E-Mail-Adresse '
-              'und deinen Namen, soweit dein Google-Konto diese herausgibt. '
-              'Dein Passwort erfährt Munir zu keinem Zeitpunkt.',
+          'Die Anmeldung erfolgt mit deinem Google-Konto oder — auf dem '
+              'iPhone — über „Mit Apple anmelden“. Munir erhält dabei eine '
+              'Kennung, die dich wiedererkennt, sowie deine E-Mail-Adresse und '
+              'deinen Namen, soweit der jeweilige Anbieter sie herausgibt. Bei '
+              '„Mit Apple anmelden“ kannst du das Weitergeben deiner '
+              'E-Mail-Adresse ablehnen; Apple hinterlegt dann eine anonyme '
+              'Weiterleitungsadresse. Dein Passwort erfährt Munir in keinem '
+              'Fall.',
           'Ist ein Konto verbunden, werden dein Gebets-Verlauf, deine '
-              'Tasbih-Gesamtzahl, dein Name, deine Spracheinstellung und der '
-              'Zeitpunkt der letzten Änderung in deinem Konto gespeichert. Der '
+              'Tasbih-Gesamtzahl, dein Qur\'an-Lesefortschritt, dein Name, '
+              'deine Spracheinstellung und der Zeitpunkt der letzten Änderung '
+              'in deinem Konto gespeichert. Der '
               'technische Betrieb von Anmeldung und Speicherung erfolgt durch '
               'Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, '
               'Irland.',
@@ -302,8 +328,12 @@ class LegalDocument {
               'Datenschutzhinweisen des jeweiligen Anbieters.',
         ],
         bullets: [
-          'Google Ireland Limited, wenn du dich anmeldest.',
-          'OpenStreetMap Foundation, wenn du der Moschee-Suche zustimmst.',
+          'Google Ireland Limited für Anmeldung mit Google sowie für den '
+              'technischen Betrieb des Kontos.',
+          'Apple Distribution International Ltd., wenn du dich mit Apple '
+              'anmeldest.',
+          'FOSSGIS e.V. als Betreiber von overpass-api.de, wenn du der '
+              'Moschee-Suche zustimmst.',
           'CARTO, wenn du die Kartenansicht öffnest.',
           'alquran.cloud, wenn du Qur’an-Inhalte oder Rezitationen abrufst.',
         ],
@@ -314,7 +344,8 @@ class LegalDocument {
           'Lokale Daten bleiben gespeichert, bis du sie in der App '
               'zurücksetzt, die App-Daten löschst oder die App deinstallierst.',
           'Meldest du dich ab, werden dein Gebets-Verlauf, deine '
-              'Tasbih-Zählungen und dein Name zuvor in deinem Konto gesichert '
+              'Tasbih-Zählungen, dein Qur\'an-Lesefortschritt und dein Name '
+              'zuvor in deinem Konto gesichert '
               'und anschließend von diesem Gerät entfernt. Bei der nächsten '
               'Anmeldung stehen sie wieder zur Verfügung. Geräteeinstellungen '
               'wie Sprache, Berechnungsmethode und Erinnerungen bleiben '

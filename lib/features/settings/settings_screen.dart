@@ -21,6 +21,7 @@ import '../../core/theme/prayer_icons.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../shared/widgets/adopt_local_data_dialog.dart';
 import '../legal/legal_document_screen.dart';
+import '../legal/legal_profile.dart';
 import '../mosques/providers/mosques_provider.dart';
 import 'widgets/option_picker.dart';
 import 'widgets/settings_tile.dart';
@@ -40,12 +41,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   AppLocalizations get l10n => AppLocalizations.of(context);
-
-  static const _muezzinLabels = {
-    MuezzinVoice.misharyAlafasy: 'Mishary Alafasy',
-    MuezzinVoice.makkahAdhan: 'Makkah Adhan',
-    MuezzinVoice.silent: '',
-  };
 
   /// Methods worth offering. The package knows more, but a list of thirty
   /// entries helps nobody pick the right one.
@@ -270,8 +265,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final madhab = ref.watch(madhabProvider);
     final city = switch (ref.watch(locationProvider)) {
       AsyncData(:final value) => value.city,
-      AsyncError() => 'nicht verfügbar',
-      _ => 'wird ermittelt …',
+      AsyncError() => l10n.locationUnavailableShort,
+      _ => l10n.locationDetecting,
     };
 
     return SettingsSection(
@@ -340,7 +335,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _notificationSection() {
     final enabled = ref.watch(notificationsEnabledProvider);
     final perPrayer = ref.watch(prayerNotificationsProvider);
-    final voice = ref.watch(muezzinVoiceProvider);
     final prayers = ref
         .watch(prayerTimesProvider)
         .where((p) => p.isPrayer)
@@ -390,25 +384,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     .toggle(p.name),
               ),
             ),
-        SettingsTile(
-          icon: Icons.volume_up_outlined,
-          label: l10n.settingsAdhanVoice,
-          value: _muezzinLabels[voice],
-          onTap: () async {
-            final picked = await showOptionPicker<MuezzinVoice>(
-              context: context,
-              title: l10n.settingsAdhanVoice,
-              current: voice,
-              options: [
-                for (final v in MuezzinVoice.values)
-                  (value: v, label: _muezzinLabels[v]!, subtitle: null),
-              ],
-            );
-            if (picked != null) {
-              ref.read(muezzinVoiceProvider.notifier).update(picked);
-            }
-          },
-        ),
       ],
     );
   }
@@ -460,7 +435,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final controller = TextEditingController(text: ref.read(userNameProvider));
     final colors = AppColors.of(context);
 
-    final name = await showDialog<String>(
+    try {
+      final name = await _promptForName(controller, colors);
+      if (name != null) {
+        ref.read(userNameProvider.notifier).update(name);
+      }
+    } finally {
+      // Every open of this dialog built a controller that nothing ever let
+      // go of.
+      controller.dispose();
+    }
+  }
+
+  Future<String?> _promptForName(
+    TextEditingController controller,
+    AppColorsExtension colors,
+  ) {
+    return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colors.background,
@@ -469,7 +460,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           controller: controller,
           autofocus: true,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(hintText: 'Dein Name'),
+          decoration: InputDecoration(hintText: l10n.settingsNamePlaceholder),
         ),
         actions: [
           TextButton(
@@ -483,10 +474,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ],
       ),
     );
-
-    if (name != null) {
-      ref.read(userNameProvider.notifier).update(name);
-    }
   }
 
   // ------------------------------------------------------------------ data
@@ -531,11 +518,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  /// Clears both halves of what the mosque screen stores: the map tiles on
+  /// disk and the search results in preferences. Only the tiles used to go.
   Future<void> _clearMapCache() async {
     final dir = Directory('${(await getTemporaryDirectory()).path}/map_tiles');
     if (await dir.exists()) {
       await dir.delete(recursive: true);
     }
+    NearbyMosquesNotifier.clearCache(ref.read(sharedPreferencesProvider));
+    ref.invalidate(nearbyMosquesProvider);
     if (!mounted) return;
     _toast(l10n.settingsClearMapCacheDone);
   }
@@ -611,6 +602,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onTap: () => launchUrl(
             Uri.parse('https://www.openstreetmap.org/copyright'),
             mode: LaunchMode.externalApplication,
+          ),
+        ),
+        // BSD, MIT and Apache-2.0 all require their text to travel with the
+        // binary. Flutter collects every bundled package's licence itself;
+        // this is the entry point it needs to be reachable from.
+        SettingsTile(
+          icon: Icons.gavel_outlined,
+          label: l10n.settingsLicenses,
+          subtitle: l10n.settingsLicensesHint,
+          onTap: () => showLicensePage(
+            context: context,
+            applicationName: LegalProfile.appName,
+            applicationVersion: _version,
+            applicationLegalese: '© ${DateTime.now().year} ${LegalProfile.operatorName}',
           ),
         ),
       ],

@@ -1,6 +1,6 @@
 # Munir bei Google Play veröffentlichen
 
-Stand: 23. August 2026
+Stand: 25. August 2026
 
 Schritt für Schritt vom Repository zur Veröffentlichung. Die Punkte unter
 "Einmalig" fallen nur beim ersten Release an, danach genügt "Jedes Release".
@@ -163,8 +163,10 @@ Fragebögen:
   [store-compliance-legal.md](store-compliance-legal.md#google-play).
 - **Zielgruppe** — nicht an Kinder gerichtet.
 - **Konto- und Datenlöschung** — die URL aus Schritt 2 angeben.
-- **Berechtigungen** — der genaue Standort wird für Gebetszeiten und Qibla
-  begründet, `SCHEDULE_EXACT_ALARM` mit den zeitgebundenen Erinnerungen.
+- **Berechtigungen** — der *ungefähre* Standort wird für Gebetszeiten und
+  Qibla begründet (die App fordert `ACCESS_COARSE_LOCATION`, nicht
+  `ACCESS_FINE_LOCATION`), `SCHEDULE_EXACT_ALARM` mit den zeitgebundenen
+  Erinnerungen.
 
 ---
 

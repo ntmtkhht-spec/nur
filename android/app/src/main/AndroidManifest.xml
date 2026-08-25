@@ -3,7 +3,13 @@
          map tiles all go over the network. Debug builds get this implicitly
          from src/debug/AndroidManifest.xml, release builds do not. -->
     <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <!-- Coarse only. Prayer times and the Qibla bearing are calculated from
+         a city-level position (the Dart side asks for LocationAccuracy.low),
+         and the compass reads the rotation-vector sensor plus
+         GeomagneticField — it never asks the location services for a fix.
+         Declaring ACCESS_FINE_LOCATION would have Android offer a precise
+         position the app has no use for, and would contradict what the
+         privacy policy says it collects. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
@@ -12,10 +18,19 @@
          33+ the user grants it via Settings, requested from
          NotificationService.requestExactAlarmPermission(). -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <!-- allowBackup: the prayer history, the name, the last known position
+         and the signed-in account's uid all live in SharedPreferences. With
+         the platform default (true) they travel into Google Drive backups
+         and device-to-device transfers, which is more than the privacy
+         policy promises — it says local data is gone once the app is
+         uninstalled. Cross-device continuity is what the optional account
+         is for. -->
     <application
         android:label="Munir"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:fullBackupContent="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"

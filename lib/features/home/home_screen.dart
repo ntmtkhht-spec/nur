@@ -4,8 +4,8 @@ import '../../l10n/app_localizations.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/providers/providers.dart';
-import '../../../core/theme/app_tokens.dart';
+import '../../core/providers/providers.dart';
+import '../../core/theme/app_tokens.dart';
 import 'widgets/daily_advice_card.dart';
 import 'widgets/greeting_header.dart';
 import 'widgets/home_hero_carousel.dart';

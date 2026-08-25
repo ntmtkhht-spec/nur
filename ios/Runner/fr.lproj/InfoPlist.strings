@@ -1,0 +1,4 @@
+/* Shown in the iOS location prompt. Info.plist carries only one
+   language; without these files every user, and every App Review
+   session, saw the German sentence. */
+"NSLocationWhenInUseUsageDescription" = "Munir utilise votre position approximative pour calculer les heures de prière et, tant que la boussole qibla est ouverte, une position précise afin qu'iOS puisse indiquer la direction du nord géographique.";

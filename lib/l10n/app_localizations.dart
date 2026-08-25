@@ -632,12 +632,6 @@ abstract class AppLocalizations {
   /// **'Benachrichtigungen'**
   String get settingsNotifications;
 
-  /// No description provided for @settingsAdhanVoice.
-  ///
-  /// In de, this message translates to:
-  /// **'Adhan-Stimme'**
-  String get settingsAdhanVoice;
-
   /// No description provided for @settingsName.
   ///
   /// In de, this message translates to:
@@ -950,12 +944,6 @@ abstract class AppLocalizations {
   /// **'Späteres Asr'**
   String get settingsMadhabHanafiHint;
 
-  /// No description provided for @muezzinSilent.
-  ///
-  /// In de, this message translates to:
-  /// **'Nur Vibration / stumm'**
-  String get muezzinSilent;
-
   /// No description provided for @settingsNotSet.
   ///
   /// In de, this message translates to:
@@ -1093,12 +1081,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Berechtigung wurde nicht erteilt.'**
   String get onboardingAdhanDenied;
-
-  /// No description provided for @onboardingMuezzinSection.
-  ///
-  /// In de, this message translates to:
-  /// **'MUEZZIN-STIMME'**
-  String get onboardingMuezzinSection;
 
   /// No description provided for @onboardingDoneHeading.
   ///
@@ -1357,6 +1339,282 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Später'**
   String get commonLater;
+
+  /// No description provided for @quranTranslationCredit.
+  ///
+  /// In de, this message translates to:
+  /// **'Übersetzung: {translator}'**
+  String quranTranslationCredit(String translator);
+
+  /// No description provided for @quranSourceCredit.
+  ///
+  /// In de, this message translates to:
+  /// **'Arabischer Text, Transliteration und Rezitation über alquran.cloud'**
+  String get quranSourceCredit;
+
+  /// No description provided for @settingsLicenses.
+  ///
+  /// In de, this message translates to:
+  /// **'Open-Source-Lizenzen'**
+  String get settingsLicenses;
+
+  /// No description provided for @settingsLicensesHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Lizenztexte der verwendeten Bibliotheken'**
+  String get settingsLicensesHint;
+
+  /// No description provided for @mosqueConsentHeading.
+  ///
+  /// In de, this message translates to:
+  /// **'Moscheen in der Nähe finden'**
+  String get mosqueConsentHeading;
+
+  /// No description provided for @mosqueConsentBody.
+  ///
+  /// In de, this message translates to:
+  /// **'Dafür wird dein aktueller Standort an die Overpass-API (betrieben vom FOSSGIS e.V.) gesendet, um die Umgebungssuche in den OpenStreetMap-Daten auszuführen.\n\nDas ist die einzige Funktion der App, bei der dein Standort das Gerät verlässt. Es werden keine weiteren Daten und keine Kennung übertragen.'**
+  String get mosqueConsentBody;
+
+  /// No description provided for @mosqueConsentAccept.
+  ///
+  /// In de, this message translates to:
+  /// **'Einverstanden, Moscheen suchen'**
+  String get mosqueConsentAccept;
+
+  /// No description provided for @mosqueConsentRevocable.
+  ///
+  /// In de, this message translates to:
+  /// **'Du kannst das jederzeit widerrufen.'**
+  String get mosqueConsentRevocable;
+
+  /// No description provided for @mosqueSearching.
+  ///
+  /// In de, this message translates to:
+  /// **'Moscheen werden gesucht …'**
+  String get mosqueSearching;
+
+  /// No description provided for @mosqueUnnamed.
+  ///
+  /// In de, this message translates to:
+  /// **'Moschee (ohne Namen)'**
+  String get mosqueUnnamed;
+
+  /// No description provided for @qiblaCalibrateAction.
+  ///
+  /// In de, this message translates to:
+  /// **'Kompass kalibrieren'**
+  String get qiblaCalibrateAction;
+
+  /// No description provided for @qiblaCalibrateHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Bewege dein Gerät in einer Acht (∞), um den Kompass zu kalibrieren.'**
+  String get qiblaCalibrateHint;
+
+  /// No description provided for @qiblaNeedsLocation.
+  ///
+  /// In de, this message translates to:
+  /// **'Für eine genaue Qibla benötigst du deinen aktuellen Standort.'**
+  String get qiblaNeedsLocation;
+
+  /// No description provided for @qiblaLocationUnavailable.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Standort ist nicht verfügbar. Bitte aktiviere ihn in den Einstellungen.'**
+  String get qiblaLocationUnavailable;
+
+  /// No description provided for @qiblaCompassUnsupported.
+  ///
+  /// In de, this message translates to:
+  /// **'Kompass nicht verfügbar auf diesem Gerät.'**
+  String get qiblaCompassUnsupported;
+
+  /// No description provided for @qiblaInaccurate.
+  ///
+  /// In de, this message translates to:
+  /// **'Richtung ist ungenau. Bewege dein Gerät in einer Acht (∞).'**
+  String get qiblaInaccurate;
+
+  /// No description provided for @locationServicesDisabled.
+  ///
+  /// In de, this message translates to:
+  /// **'Standortdienste sind deaktiviert.'**
+  String get locationServicesDisabled;
+
+  /// No description provided for @locationPermissionDenied.
+  ///
+  /// In de, this message translates to:
+  /// **'Standortzugriff wurde verweigert.'**
+  String get locationPermissionDenied;
+
+  /// No description provided for @locationNoFix.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein aktueller Standort verfügbar. Bitte Stadt manuell suchen.'**
+  String get locationNoFix;
+
+  /// No description provided for @locationDetecting.
+  ///
+  /// In de, this message translates to:
+  /// **'Standort wird ermittelt …'**
+  String get locationDetecting;
+
+  /// No description provided for @locationUnavailableShort.
+  ///
+  /// In de, this message translates to:
+  /// **'nicht verfügbar'**
+  String get locationUnavailableShort;
+
+  /// No description provided for @settingsNamePlaceholder.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Name'**
+  String get settingsNamePlaceholder;
+
+  /// No description provided for @commonLoadFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Laden fehlgeschlagen.'**
+  String get commonLoadFailed;
+
+  /// No description provided for @commonRetry.
+  ///
+  /// In de, this message translates to:
+  /// **'Erneut versuchen'**
+  String get commonRetry;
+
+  /// No description provided for @surahSearchOpen.
+  ///
+  /// In de, this message translates to:
+  /// **'Suren suchen'**
+  String get surahSearchOpen;
+
+  /// No description provided for @surahSearchClose.
+  ///
+  /// In de, this message translates to:
+  /// **'Suche schließen'**
+  String get surahSearchClose;
+
+  /// No description provided for @surahSearchClear.
+  ///
+  /// In de, this message translates to:
+  /// **'Suche leeren'**
+  String get surahSearchClear;
+
+  /// No description provided for @quranProgressHeading.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Fortschritt'**
+  String get quranProgressHeading;
+
+  /// No description provided for @quranProgressEmpty.
+  ///
+  /// In de, this message translates to:
+  /// **'Dein Fortschritt erscheint hier, sobald du einen Vers gelesen hast.'**
+  String get quranProgressEmpty;
+
+  /// No description provided for @quranArabicTextSize.
+  ///
+  /// In de, this message translates to:
+  /// **'Textgröße (Arabisch)'**
+  String get quranArabicTextSize;
+
+  /// No description provided for @namesNoMatch.
+  ///
+  /// In de, this message translates to:
+  /// **'Kein Name gefunden.'**
+  String get namesNoMatch;
+
+  /// No description provided for @adviceTomorrow.
+  ///
+  /// In de, this message translates to:
+  /// **'Morgen wartet hier der nächste Ratgeber.'**
+  String get adviceTomorrow;
+
+  /// No description provided for @locationLabelFallback.
+  ///
+  /// In de, this message translates to:
+  /// **'Standort'**
+  String get locationLabelFallback;
+
+  /// No description provided for @mosqueSearchBusy.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Moschee-Dienst ist gerade überlastet. Bitte in ein paar Minuten erneut versuchen.'**
+  String get mosqueSearchBusy;
+
+  /// No description provided for @mosqueSearchFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Moschee-Suche ist fehlgeschlagen.'**
+  String get mosqueSearchFailed;
+
+  /// No description provided for @quranShowTranslation.
+  ///
+  /// In de, this message translates to:
+  /// **'Übersetzung anzeigen'**
+  String get quranShowTranslation;
+
+  /// No description provided for @adviceSectionLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'RATGEBER DES TAGES'**
+  String get adviceSectionLabel;
+
+  /// No description provided for @adviceReadMore.
+  ///
+  /// In de, this message translates to:
+  /// **'Weiterlesen'**
+  String get adviceReadMore;
+
+  /// No description provided for @adviceActionLabel.
+  ///
+  /// In de, this message translates to:
+  /// **'HEUTE UMSETZEN'**
+  String get adviceActionLabel;
+
+  /// No description provided for @surahSearchHint.
+  ///
+  /// In de, this message translates to:
+  /// **'Sura suchen'**
+  String get surahSearchHint;
+
+  /// No description provided for @dateToday.
+  ///
+  /// In de, this message translates to:
+  /// **'Heute, {date}'**
+  String dateToday(String date);
+
+  /// No description provided for @qiblaCalibrating.
+  ///
+  /// In de, this message translates to:
+  /// **'Kompass wird kalibriert. Halte das Gerät flach und bewege es in einer Acht (∞).'**
+  String get qiblaCalibrating;
+
+  /// No description provided for @qiblaNoLocationForCompass.
+  ///
+  /// In de, this message translates to:
+  /// **'Aktiviere den Standortzugriff für eine genaue Qibla.'**
+  String get qiblaNoLocationForCompass;
+
+  /// No description provided for @qiblaNoLocationFix.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Standort konnte nicht bestimmt werden.'**
+  String get qiblaNoLocationFix;
+
+  /// No description provided for @quranAudioFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Rezitation konnte nicht geladen werden.'**
+  String get quranAudioFailed;
+
+  /// No description provided for @quranPlaybackSpeed.
+  ///
+  /// In de, this message translates to:
+  /// **'Wiedergabegeschwindigkeit'**
+  String get quranPlaybackSpeed;
 }
 
 class _AppLocalizationsDelegate

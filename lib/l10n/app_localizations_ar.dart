@@ -333,9 +333,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsNotifications => 'الإشعارات';
 
   @override
-  String get settingsAdhanVoice => 'صوت الأذان';
-
-  @override
   String get settingsName => 'الاسم';
 
   @override
@@ -511,9 +508,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsMadhabHanafiHint => 'العصر متأخراً';
 
   @override
-  String get muezzinSilent => 'اهتزاز فقط / صامت';
-
-  @override
   String get settingsNotSet => 'غير محدد';
 
   @override
@@ -586,9 +580,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get onboardingAdhanDenied => 'لم يتم منح الإذن.';
-
-  @override
-  String get onboardingMuezzinSection => 'صوت المؤذن';
 
   @override
   String get onboardingDoneHeading => 'كل شيء جاهز';
@@ -731,4 +722,153 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get commonLater => 'لاحقاً';
+
+  @override
+  String quranTranslationCredit(String translator) {
+    return 'الترجمة: $translator';
+  }
+
+  @override
+  String get quranSourceCredit =>
+      'النص العربي والنقحرة والتلاوة عبر alquran.cloud';
+
+  @override
+  String get settingsLicenses => 'تراخيص المصادر المفتوحة';
+
+  @override
+  String get settingsLicensesHint => 'نصوص تراخيص المكتبات المستخدمة';
+
+  @override
+  String get mosqueConsentHeading => 'العثور على المساجد القريبة';
+
+  @override
+  String get mosqueConsentBody =>
+      'يُرسَل موقعك الحالي إلى واجهة Overpass (التي يشغّلها FOSSGIS e.V.) لتنفيذ البحث في محيطك ضمن بيانات OpenStreetMap.\n\nهذه هي الوظيفة الوحيدة التي يغادر فيها موقعك الجهاز. ولا تُرسَل أي بيانات أخرى ولا أي معرّف.';
+
+  @override
+  String get mosqueConsentAccept => 'أوافق، ابحث عن المساجد';
+
+  @override
+  String get mosqueConsentRevocable => 'يمكنك التراجع عن ذلك في أي وقت.';
+
+  @override
+  String get mosqueSearching => 'جارٍ البحث عن المساجد …';
+
+  @override
+  String get mosqueUnnamed => 'مسجد (بدون اسم)';
+
+  @override
+  String get qiblaCalibrateAction => 'معايرة البوصلة';
+
+  @override
+  String get qiblaCalibrateHint =>
+      'حرّك جهازك على شكل رقم ثمانية (∞) لمعايرة البوصلة.';
+
+  @override
+  String get qiblaNeedsLocation => 'تحديد القبلة بدقة يتطلب موقعك الحالي.';
+
+  @override
+  String get qiblaLocationUnavailable => 'الموقع غير متاح. فعّله من الإعدادات.';
+
+  @override
+  String get qiblaCompassUnsupported => 'لا تتوفر بوصلة في هذا الجهاز.';
+
+  @override
+  String get qiblaInaccurate =>
+      'الاتجاه غير دقيق. حرّك جهازك على شكل رقم ثمانية (∞).';
+
+  @override
+  String get locationServicesDisabled => 'خدمات الموقع معطّلة.';
+
+  @override
+  String get locationPermissionDenied => 'تم رفض الوصول إلى الموقع.';
+
+  @override
+  String get locationNoFix => 'لا يتوفر موقع حالي. ابحث عن المدينة يدويًا.';
+
+  @override
+  String get locationDetecting => 'جارٍ تحديد الموقع …';
+
+  @override
+  String get locationUnavailableShort => 'غير متاح';
+
+  @override
+  String get settingsNamePlaceholder => 'اسمك';
+
+  @override
+  String get commonLoadFailed => 'تعذّر التحميل.';
+
+  @override
+  String get commonRetry => 'أعد المحاولة';
+
+  @override
+  String get surahSearchOpen => 'ابحث في السور';
+
+  @override
+  String get surahSearchClose => 'إغلاق البحث';
+
+  @override
+  String get surahSearchClear => 'مسح البحث';
+
+  @override
+  String get quranProgressHeading => 'تقدّمك';
+
+  @override
+  String get quranProgressEmpty => 'يظهر تقدّمك هنا بمجرد قراءتك آية.';
+
+  @override
+  String get quranArabicTextSize => 'حجم النص (العربية)';
+
+  @override
+  String get namesNoMatch => 'لم يُعثر على اسم.';
+
+  @override
+  String get adviceTomorrow => 'غدًا تجد هنا الإرشاد التالي.';
+
+  @override
+  String get locationLabelFallback => 'الموقع';
+
+  @override
+  String get mosqueSearchBusy =>
+      'خدمة البحث عن المساجد مزدحمة الآن. حاول مرة أخرى بعد بضع دقائق.';
+
+  @override
+  String get mosqueSearchFailed => 'فشل البحث عن المساجد.';
+
+  @override
+  String get quranShowTranslation => 'إظهار الترجمة';
+
+  @override
+  String get adviceSectionLabel => 'إرشاد اليوم';
+
+  @override
+  String get adviceReadMore => 'اقرأ المزيد';
+
+  @override
+  String get adviceActionLabel => 'طبّقه اليوم';
+
+  @override
+  String get surahSearchHint => 'ابحث عن سورة';
+
+  @override
+  String dateToday(String date) {
+    return 'اليوم، $date';
+  }
+
+  @override
+  String get qiblaCalibrating =>
+      'جارٍ معايرة البوصلة. أمسك الجهاز مستويًا وحرّكه على شكل رقم ثمانية (∞).';
+
+  @override
+  String get qiblaNoLocationForCompass =>
+      'فعّل الوصول إلى الموقع لتحديد القبلة بدقة.';
+
+  @override
+  String get qiblaNoLocationFix => 'تعذّر تحديد الموقع.';
+
+  @override
+  String get quranAudioFailed => 'تعذّر تحميل التلاوة.';
+
+  @override
+  String get quranPlaybackSpeed => 'سرعة التشغيل';
 }

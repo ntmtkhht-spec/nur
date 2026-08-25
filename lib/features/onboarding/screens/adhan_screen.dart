@@ -3,19 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/providers/providers.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../onboarding_state.dart';
 import '../widgets/hero_badge.dart';
 import '../widgets/onboarding_scaffold.dart';
-
-/// Reciter names stay as they are; only the silent option is translated.
-Map<MuezzinVoice, String> _voiceLabelsFor(AppLocalizations l10n) => {
-  MuezzinVoice.misharyAlafasy: 'Mishary Alafasy',
-  MuezzinVoice.makkahAdhan: 'Makkah Adhan',
-  MuezzinVoice.silent: l10n.muezzinSilent,
-};
 
 class AdhanScreen extends ConsumerStatefulWidget {
   final int stepIndex;
@@ -69,7 +61,6 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final selectedVoice = ref.watch(onboardingProvider).muezzinVoice;
 
     return OnboardingScaffold(
       currentStep: widget.stepIndex,
@@ -107,11 +98,14 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
           const SizedBox(height: 12),
           GestureDetector(
             onTap: widget.onNext,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 4),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
               child: Text(
-                'Später',
-                style: TextStyle(fontSize: 14, color: AppColors.textMuted),
+                l10n.commonLater,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textMuted,
+                ),
               ),
             ),
           ),
@@ -136,89 +130,7 @@ class _AdhanScreenState extends ConsumerState<AdhanScreen> {
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 14, color: AppColors.textMuted),
         ),
-        SizedBox(height: 12),
-        const SizedBox(height: 20),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            l10n.onboardingMuezzinSection,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: AppColors.accentGold,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        for (final voice in MuezzinVoice.values) ...[
-          _VoiceTile(
-            label: _voiceLabelsFor(l10n)[voice]!,
-            isSelected: selectedVoice == voice,
-            onTap: () =>
-                ref.read(onboardingProvider.notifier).setMuezzinVoice(voice),
-          ),
-          const SizedBox(height: 12),
-        ],
       ],
-    );
-  }
-}
-
-class _VoiceTile extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _VoiceTile({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: AppColors.cardBg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? AppColors.primaryGreen : Colors.transparent,
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
-                ),
-              ),
-            ),
-            if (isSelected)
-              const Icon(Icons.check_circle, color: AppColors.accentGold, size: 22)
-            else
-              Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.textMuted.withValues(alpha: 0.4),
-                    width: 1.5,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
     );
   }
 }

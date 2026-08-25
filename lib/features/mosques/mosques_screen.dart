@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/i18n/failure_messages.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_tokens.dart';
 import 'models/mosque.dart';
@@ -58,6 +59,7 @@ class _ConsentGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final colors = AppColors.of(context);
 
     return SingleChildScrollView(
@@ -83,7 +85,7 @@ class _ConsentGate extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(
-            'Moscheen in der Nähe finden',
+            l10n.mosqueConsentHeading,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 20,
@@ -93,11 +95,7 @@ class _ConsentGate extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'Dafür wird dein aktueller Standort an OpenStreetMap gesendet, '
-            'um die Umgebungssuche dort auszuführen.\n\n'
-            'Das ist die einzige Funktion der App, bei der dein Standort das '
-            'Gerät verlässt. Es werden keine weiteren Daten und keine Kennung '
-            'übertragen.',
+            l10n.mosqueConsentBody,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -118,15 +116,18 @@ class _ConsentGate extends ConsumerWidget {
                   borderRadius: AppRadius.circularLg,
                 ),
               ),
-              child: const Text(
-                'Einverstanden, Moscheen suchen',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              child: Text(
+                l10n.mosqueConsentAccept,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Du kannst das jederzeit widerrufen.',
+            l10n.mosqueConsentRevocable,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: colors.textMuted),
           ),
@@ -141,6 +142,10 @@ class _MosqueResults extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    // The service must not carry UI language of its own, so the label for a
+    // mosque OpenStreetMap has no name for is handed down from here.
+    NearbyMosquesNotifier.unnamedLabel = l10n.mosqueUnnamed;
     final mosquesAsync = ref.watch(nearbyMosquesProvider);
     final radius = ref.watch(mosqueRadiusProvider);
     final mosques = switch (mosquesAsync) {
@@ -149,10 +154,7 @@ class _MosqueResults extends ConsumerWidget {
     };
     final isLoading = mosquesAsync is AsyncLoading;
     final errorMessage = switch (mosquesAsync) {
-      AsyncError(:final error) => error.toString().replaceFirst(
-        'Exception: ',
-        '',
-      ),
+      AsyncError(:final error) => describeMosqueFailure(l10n, error),
       _ => null,
     };
     // The map needs a centre even while the real position is still resolving;
@@ -181,11 +183,13 @@ class _MosqueResults extends ConsumerWidget {
                 isSearching: isLoading,
               ),
               if (isLoading)
-                const Positioned(
+                Positioned(
                   top: AppSpacing.sm,
                   left: AppSpacing.md,
                   right: AppSpacing.md,
-                  child: _MapStatusBanner.loading(),
+                  child: _MapStatusBanner.loading(
+                    message: l10n.mosqueSearching,
+                  ),
                 ),
               if (errorMessage != null)
                 Positioned(
@@ -282,9 +286,8 @@ class _MapStatusBanner extends StatelessWidget {
   final VoidCallback? onRetry;
   final bool isLoading;
 
-  const _MapStatusBanner.loading()
+  const _MapStatusBanner.loading({required this.message})
     : icon = Icons.travel_explore,
-      message = 'Moscheen werden gesucht...',
       onRetry = null,
       isLoading = true;
 

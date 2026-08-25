@@ -127,35 +127,64 @@ class AuthService {
   ///
   /// Both stores require this to be reachable from inside the app: App Store
   /// guideline 5.1.1(v) and Google Play's account deletion policy.
+  ///
+  /// The session is refreshed *before* anything is deleted. It used to be the
+  /// other way round — Firestore first, so the documents could not outlive
+  /// the account — but Firebase refuses `delete()` on a stale session, and by
+  /// the time that refusal arrived the data was already gone. A user who then
+  /// dismissed the sign-in sheet was left with an intact account and an empty
+  /// one.
   Future<void> deleteAccount() async {
-    final user = _auth.currentUser;
+    var user = _auth.currentUser;
     if (user == null) return;
 
-    // Firestore data first: once the account is gone the security rules no
-    // longer match and the documents would be orphaned.
-    await _ref.read(userDocumentDeleterProvider)(user.uid);
+    final uid = user.uid;
 
-    try {
-      await user.delete();
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'requires-recent-login') {
-        // Firebase refuses to delete on a stale session; sign in again with
-        // whichever provider this account actually used and retry, rather
-        // than leaving a half-deleted account behind.
-        final usedApple = user.providerData.any(
-          (p) => p.providerId == 'apple.com',
+    if (await _needsReauthentication(user)) {
+      final usedApple = user.providerData.any(
+        (p) => p.providerId == 'apple.com',
+      );
+      final refreshed = usedApple
+          ? await signInWithApple()
+          : await signInWithGoogle();
+      if (refreshed == null) {
+        throw FirebaseAuthException(
+          code: 'requires-recent-login',
+          message: 'Deleting the account needs a fresh sign-in.',
         );
-        final refreshed = usedApple
-            ? await signInWithApple()
-            : await signInWithGoogle();
-        if (refreshed == null) rethrow;
-        await refreshed.delete();
-      } else {
-        rethrow;
       }
+      // Signing in again can land on a different account — a second Google
+      // account on the same device, say. Deleting that one would be deleting
+      // a stranger's data on the strength of a tap meant for this one.
+      if (refreshed.uid != uid) {
+        throw FirebaseAuthException(
+          code: 'user-mismatch',
+          message: 'The account signed in again is not the one being deleted.',
+        );
+      }
+      user = refreshed;
     }
 
+    // Firestore first, now that the session is known to be fresh: once the
+    // account is gone the security rules no longer match and the documents
+    // would be orphaned.
+    await _ref.read(userDocumentDeleterProvider)(uid);
+    await user.delete();
+
     await GoogleSignIn.instance.signOut();
+  }
+
+  /// Whether Firebase will turn a deletion down for a stale session.
+  ///
+  /// Asked by attempting the token refresh the deletion itself would need, so
+  /// the answer comes back without deleting anything first.
+  Future<bool> _needsReauthentication(User user) async {
+    try {
+      await user.getIdToken(true);
+      return false;
+    } on FirebaseAuthException {
+      return true;
+    }
   }
 }
 

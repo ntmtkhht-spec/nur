@@ -115,6 +115,23 @@ final appLanguageProvider = NotifierProvider<AppLanguageNotifier, String>(
 // Location
 // ---------------------------------------------------------------------------
 
+/// Why a location lookup could not produce a position.
+///
+/// A code rather than a message: these are raised deep in a provider, and
+/// the German sentences they used to carry ended up on screen unchanged no
+/// matter which of the five languages the app was running in. The screen
+/// that catches one decides how to word it.
+enum LocationFailure { servicesDisabled, permissionDenied, noFix }
+
+class LocationUnavailable implements Exception {
+  final LocationFailure reason;
+
+  const LocationUnavailable(this.reason);
+
+  @override
+  String toString() => 'LocationUnavailable(${reason.name})';
+}
+
 class LocationData {
   final double lat;
   final double lng;
@@ -198,7 +215,7 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       state = AsyncData(LocationData.fallback);
-      throw Exception('Standortdienste sind deaktiviert.');
+      throw const LocationUnavailable(LocationFailure.servicesDisabled);
     }
 
     var permission = await Geolocator.checkPermission();
@@ -208,15 +225,13 @@ class LocationNotifier extends AsyncNotifier<LocationData> {
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
       state = AsyncData(LocationData.fallback);
-      throw Exception('Standortzugriff wurde verweigert.');
+      throw const LocationUnavailable(LocationFailure.permissionDenied);
     }
 
     final position = await _currentOrRecentFix();
     if (position == null) {
       state = AsyncData(LocationData.fallback);
-      throw Exception(
-        'Kein aktueller Standort verfügbar. Bitte Stadt manuell suchen.',
-      );
+      throw const LocationUnavailable(LocationFailure.noFix);
     }
 
     final data = await _describe(position);
@@ -764,10 +779,24 @@ const _hijriMonthNamesDE = {
   12: 'Dhu l-Hiddscha',
 };
 
+/// Locales the hijri package ships month names for. German is not among
+/// them, which is what [_hijriMonthNamesDE] exists for; anything else falls
+/// back to the English transliterations rather than to whichever locale was
+/// set last.
+const _hijriSupportedLocales = {'ar', 'en', 'fr', 'tr'};
+
 final hijriDateProvider = Provider<String>((ref) {
-  HijriCalendar.setLocal('ar');
+  // Was pinned to Arabic and then overwritten with the German table on every
+  // read, so an Arabic, French or Turkish user got German month names.
+  final language = ref.watch(appLanguageProvider);
+  HijriCalendar.setLocal(
+    _hijriSupportedLocales.contains(language) ? language : 'en',
+  );
+
   final hijri = HijriCalendar.now();
-  final monthName = _hijriMonthNamesDE[hijri.hMonth] ?? hijri.longMonthName;
+  final monthName = language == 'de'
+      ? (_hijriMonthNamesDE[hijri.hMonth] ?? hijri.longMonthName)
+      : hijri.longMonthName;
   return '${hijri.hDay} $monthName ${hijri.hYear}';
 });
 
@@ -775,29 +804,12 @@ final hijriDateProvider = Provider<String>((ref) {
 // Adhan notification settings
 // ---------------------------------------------------------------------------
 
-enum MuezzinVoice { misharyAlafasy, makkahAdhan, silent }
-
-class MuezzinVoiceNotifier extends Notifier<MuezzinVoice> {
-  @override
-  MuezzinVoice build() {
-    final prefs = ref.read(sharedPreferencesProvider);
-    final stored = prefs.getString('muezzin_voice');
-    return MuezzinVoice.values.firstWhere(
-      (v) => v.name == stored,
-      orElse: () => MuezzinVoice.misharyAlafasy,
-    );
-  }
-
-  void update(MuezzinVoice voice) {
-    ref.read(sharedPreferencesProvider).setString('muezzin_voice', voice.name);
-    state = voice;
-  }
-}
-
-final muezzinVoiceProvider =
-    NotifierProvider<MuezzinVoiceNotifier, MuezzinVoice>(
-      MuezzinVoiceNotifier.new,
-    );
+// A muezzin-voice picker used to sit here. It offered two reciters and a
+// silent option, stored the choice — and nothing ever read it: the app ships
+// no adhan audio, and NotificationService never set a per-channel sound, so
+// every option produced the system default. Removed rather than left in
+// place; the setting is worth having, but only once the audio behind it
+// exists.
 
 class NotificationsEnabledNotifier extends Notifier<bool> {
   @override

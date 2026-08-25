@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:munir/features/home/data/daily_advice.dart';
+import 'package:munir/l10n/app_localizations.dart';
 import 'package:munir/features/home/providers/daily_advice_provider.dart';
 import 'package:munir/features/home/widgets/daily_advice_card.dart';
 
@@ -61,8 +63,20 @@ void main() {
 
   testWidgets('card opens the full entry', (tester) async {
     await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(home: Scaffold(body: DailyAdviceCard())),
+      ProviderScope(
+        child: MaterialApp(
+          // The card and its sheet read their labels off AppLocalizations, so
+          // the delegates have to be here the way the real app supplies them.
+          locale: const Locale('de'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          home: const Scaffold(body: DailyAdviceCard()),
+        ),
       ),
     );
 

@@ -14,7 +14,6 @@ class OnboardingData {
   final double? lng;
   final adhan.CalculationMethod calculationMethod;
   final adhan.Madhab madhab;
-  final MuezzinVoice muezzinVoice;
   final bool notificationsEnabled;
   final String name;
 
@@ -31,7 +30,6 @@ class OnboardingData {
     this.locationFromGps = false,
     this.calculationMethod = adhan.CalculationMethod.muslimWorldLeague,
     this.madhab = adhan.Madhab.shafi,
-    this.muezzinVoice = MuezzinVoice.misharyAlafasy,
     this.notificationsEnabled = false,
     this.name = '',
   });
@@ -45,7 +43,6 @@ class OnboardingData {
     double? lng,
     adhan.CalculationMethod? calculationMethod,
     adhan.Madhab? madhab,
-    MuezzinVoice? muezzinVoice,
     bool? notificationsEnabled,
     String? name,
     bool? locationFromGps,
@@ -58,7 +55,6 @@ class OnboardingData {
       locationFromGps: locationFromGps ?? this.locationFromGps,
       calculationMethod: calculationMethod ?? this.calculationMethod,
       madhab: madhab ?? this.madhab,
-      muezzinVoice: muezzinVoice ?? this.muezzinVoice,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       name: name ?? this.name,
     );
@@ -99,10 +95,6 @@ class OnboardingNotifier extends Notifier<OnboardingData> {
     state = state.copyWith(madhab: madhab);
   }
 
-  void setMuezzinVoice(MuezzinVoice voice) {
-    state = state.copyWith(muezzinVoice: voice);
-  }
-
   void setNotificationsEnabled(bool enabled) {
     state = state.copyWith(notificationsEnabled: enabled);
   }
@@ -135,7 +127,6 @@ class OnboardingNotifier extends Notifier<OnboardingData> {
 
     ref.read(calculationMethodProvider.notifier).update(data.calculationMethod);
     ref.read(madhabProvider.notifier).update(data.madhab);
-    ref.read(muezzinVoiceProvider.notifier).update(data.muezzinVoice);
     ref
         .read(notificationsEnabledProvider.notifier)
         .set(data.notificationsEnabled);

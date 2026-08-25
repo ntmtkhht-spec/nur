@@ -36,7 +36,7 @@ class PrayerStatsCard extends ConsumerWidget {
             // card that turned over, not two unrelated panels.
             Positioned.fill(
               child: Image.asset(
-                'assets/images/ChatGPT Image 28. Juli 2026, 19_52_26.png',
+                'assets/images/card_texture.png',
                 fit: BoxFit.cover,
                 alignment: Alignment.bottomRight,
               ),

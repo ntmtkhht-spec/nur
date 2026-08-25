@@ -1,0 +1,4 @@
+/* Shown in the iOS location prompt. Info.plist carries only one
+   language; without these files every user, and every App Review
+   session, saw the German sentence. */
+"NSLocationWhenInUseUsageDescription" = "Munir, namaz vakitlerini hesaplamak için yaklaşık konumunuzu; kıble pusulası açıkken de iOS’un gerçek kuzey yönünü bildirebilmesi için hassas konumu kullanır.";
