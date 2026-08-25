@@ -31,14 +31,49 @@ void main() {
     // a well calibrated phone reports. iOS says 10-15 and Android maps its
     // MEDIUM sensor status to 20, so the dial was hidden behind "please
     // calibrate" almost permanently.
-    test('accepts an everyday, slightly coarse heading with a hint', () {
+    test('says nothing about the accuracy a phone reports all day', () {
+      // 20 degrees is what an iPhone on a desk and an Android sensor at
+      // MEDIUM both report. Asking for a figure of eight at this figure
+      // meant asking permanently.
       const reading = QiblaCompassReading(
         trueHeading: 135,
         accuracyDegrees: 20,
       );
 
       expect(reading.isUsable, isTrue);
+      expect(reading.needsCalibration, isFalse);
+    });
+
+    test('hints once the heading is genuinely coarse', () {
+      const reading = QiblaCompassReading(
+        trueHeading: 135,
+        accuracyDegrees: 28,
+      );
+
+      expect(reading.isUsable, isTrue);
       expect(reading.needsCalibration, isTrue);
+    });
+
+    test('a hint stays up through the wobble that raised it', () {
+      // Between the two thresholds: not coarse enough to raise the hint,
+      // still coarse enough to keep one that is already showing, so it does
+      // not blink while the phone lies still.
+      const reading = QiblaCompassReading(
+        trueHeading: 135,
+        accuracyDegrees: 22,
+      );
+
+      expect(reading.needsCalibration, isFalse);
+      expect(reading.keepsCalibrationHint, isTrue);
+    });
+
+    test('a hint comes down once the heading sharpens', () {
+      const reading = QiblaCompassReading(
+        trueHeading: 135,
+        accuracyDegrees: 14,
+      );
+
+      expect(reading.keepsCalibrationHint, isFalse);
     });
 
     test('does not nag about a sharp heading', () {
@@ -156,6 +191,36 @@ void main() {
       const after = LocationData(lat: 52.9, lng: 13.405);
 
       expect(isWorthRestartingCompass(before, after), isTrue);
+    });
+  });
+
+  group('Needle catch-up', () {
+    test('finishes the turn after the sensor goes quiet', () {
+      // A quarter turn, one event per degree, exactly as iOS delivers it.
+      double? needle;
+      for (var deg = 0; deg <= 90; deg++) {
+        needle = smoothHeading(needle, deg.toDouble());
+      }
+      // Per-event smoothing alone stops short of the target.
+      expect((90 - needle!).abs(), greaterThan(1.0));
+
+      // The ticker keeps stepping once the events stop. A third of a second
+      // at 60fps is all it takes.
+      for (var frame = 0; frame < 20; frame++) {
+        needle = stepHeadingTowards(needle!, 90, 1 / 60);
+      }
+      expect((90 - needle!).abs(), lessThan(0.2));
+    });
+
+    test('settles exactly rather than creeping', () {
+      final settled = stepHeadingTowards(90, 90.05, 1 / 60);
+      expect(settled, 90.05);
+    });
+
+    test('takes the short way around north', () {
+      final stepped = stepHeadingTowards(359, 3, 1 / 60);
+      expect(stepped > 359 || stepped < 4, isTrue,
+          reason: 'went the long way: $stepped');
     });
   });
 }

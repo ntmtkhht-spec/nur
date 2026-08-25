@@ -36,16 +36,23 @@ private final class QiblaHeadingStreamHandler: NSObject, FlutterStreamHandler,
   private let locationManager = CLLocationManager()
   private var eventSink: FlutterEventSink?
 
+  /// When a heading last arrived that was worth drawing. See the guard in
+  /// `didUpdateHeading` for why a single bad event is not reported.
+  private var lastGoodHeadingAt: Date?
+
   override init() {
     super.init()
     locationManager.delegate = self
     locationManager.desiredAccuracy = kCLLocationAccuracyBest
-    locationManager.headingFilter = 1
+    // Every change, not every whole degree: the needle is stepped on a clock
+    // now, so a finer feed makes it smoother rather than busier.
+    locationManager.headingFilter = kCLHeadingFilterNone
   }
 
   func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink)
     -> FlutterError? {
     eventSink = events
+    lastGoodHeadingAt = nil
     guard CLLocationManager.headingAvailable() else {
       unavailable("Kompass wird auf diesem Gerät nicht unterstützt.")
       return nil
@@ -82,9 +89,17 @@ private final class QiblaHeadingStreamHandler: NSObject, FlutterStreamHandler,
   func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
     // `trueHeading` is negative until Core Location has a valid location fix.
     guard newHeading.headingAccuracy >= 0, newHeading.trueHeading >= 0 else {
+      // A single bad event is ordinary — Core Location emits them whenever the
+      // phone is picked up, turned, or passes something magnetic. Reporting
+      // each one tore the dial down and put the calibration screen up in its
+      // place, which is what made the compass ask to be calibrated every few
+      // seconds. Only a run of them, with nothing good in between, means the
+      // compass is actually unusable.
+      if let last = lastGoodHeadingAt, Date().timeIntervalSince(last) < 6 { return }
       unavailable("Kompass wird kalibriert. Halte das Gerät flach und bewege es in einer Acht (∞).")
       return
     }
+    lastGoodHeadingAt = Date()
     eventSink?([
       // `trueHeading` is already relative to the `headingOrientation` set
       // above, and is therefore directly comparable to the Qibla bearing.
@@ -93,16 +108,20 @@ private final class QiblaHeadingStreamHandler: NSObject, FlutterStreamHandler,
     ])
   }
 
-  /// Lets iOS put up its own calibration HUD when the magnetometer is off.
+  /// Lets iOS put up its own calibration HUD, but only when the compass has
+  /// no usable reading at all.
   ///
-  /// Without this the delegate defaults to `false`, so the system never got
-  /// to correct itself: the heading stayed coarse, the app kept telling the
-  /// user to wave the phone in a figure of eight, and nothing the user did
-  /// reached Core Location. Returning true only while the reading is bad
-  /// keeps the HUD from covering a compass that is already fine.
+  /// This used to ask for the HUD above 15 degrees of accuracy. An iPhone
+  /// reports 15-25 as a matter of course — indoors, near a desk, holding the
+  /// phone in one hand — so the system panel came up, dismissed itself once
+  /// the figure of eight nudged the value under the line, and came straight
+  /// back. That loop is the "calibrate every two seconds" the compass was
+  /// stuck in. A negative accuracy means Core Location genuinely has nothing,
+  /// and that is the only case worth taking the screen over; anything coarse
+  /// but usable is covered by the app's own hint.
   func locationManagerShouldDisplayHeadingCalibration(_ manager: CLLocationManager) -> Bool {
-    guard let heading = manager.heading else { return true }
-    return heading.headingAccuracy < 0 || heading.headingAccuracy > 15
+    guard let heading = manager.heading else { return false }
+    return heading.headingAccuracy < 0
   }
 
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 
@@ -44,6 +45,15 @@ class QiblaCompassReading {
   /// that a figure-of-eight would sharpen it.
   bool get needsCalibration =>
       isUsable && accuracyDegrees! > qiblaCalibrationHintAccuracyDegrees;
+
+  /// Whether a hint already on screen should stay there.
+  ///
+  /// Deliberately lower than the threshold that raises it: an iPhone's
+  /// reported accuracy wanders a few degrees either side of wherever it sits,
+  /// so a single figure would have the hint blinking on and off while the
+  /// phone lies still.
+  bool get keepsCalibrationHint =>
+      isUsable && accuracyDegrees! > qiblaCalibrationHintClearDegrees;
 }
 
 /// The worst heading accuracy that is still shown as a direction.
@@ -58,7 +68,15 @@ class QiblaCompassReading {
 const qiblaMaxTrustedAccuracyDegrees = 30.0;
 
 /// Above this accuracy the direction is shown with a calibration hint.
-const qiblaCalibrationHintAccuracyDegrees = 15.0;
+///
+/// Not 15: that is the figure a perfectly ordinary iPhone reports while
+/// lying on a desk, so the hint was permanent furniture rather than a
+/// warning, and the system calibration panel it went with kept reappearing.
+const qiblaCalibrationHintAccuracyDegrees = 25.0;
+
+/// Below this the hint is taken down again. The gap to
+/// [qiblaCalibrationHintAccuracyDegrees] is what stops it flickering.
+const qiblaCalibrationHintClearDegrees = 18.0;
 
 /// How far off the Qibla the device may point and still count as facing it.
 ///
@@ -98,6 +116,13 @@ double normalizeRelativeDegrees(double degrees) {
 /// still, which is what made the needle twitch rather than point.
 const _headingSmoothingFactor = 0.25;
 
+/// How quickly the needle closes the remaining gap to the sensor, as the time
+/// in which roughly two thirds of it is covered.
+const _headingCatchUpTau = 0.12;
+
+/// Below this the needle is treated as having arrived.
+const headingSettledDegrees = 0.15;
+
 /// A turn larger than this is the user moving, not the sensor wobbling, and
 /// is followed immediately instead of being eased into.
 const _headingSnapDegrees = 40.0;
@@ -112,6 +137,22 @@ double smoothHeading(double? previous, double next) {
   final delta = normalizeRelativeDegrees(next - previous);
   if (delta.abs() >= _headingSnapDegrees) return normalizeDegrees(next);
   return normalizeDegrees(previous + delta * _headingSmoothingFactor);
+}
+
+/// Moves [current] toward [target] by however much [dt] seconds allow.
+///
+/// The per-event smoothing above only advances when the sensor speaks, and
+/// the sensor stops speaking the moment the phone is still: iOS emits a
+/// heading per degree of change, so the last few degrees of a turn were never
+/// delivered and the needle simply stopped short — around three degrees off
+/// after a steady quarter turn, more after a quick one, and it stayed there.
+/// Stepping on a clock instead lets the needle finish the turn.
+double stepHeadingTowards(double current, double target, double dt) {
+  final delta = normalizeRelativeDegrees(target - current);
+  if (delta.abs() <= headingSettledDegrees) return normalizeDegrees(target);
+  if (dt <= 0) return normalizeDegrees(current);
+  final factor = 1 - math.exp(-dt / _headingCatchUpTau);
+  return normalizeDegrees(current + delta * factor.clamp(0.0, 1.0));
 }
 
 /// Whether two positions are far enough apart to be worth restarting the

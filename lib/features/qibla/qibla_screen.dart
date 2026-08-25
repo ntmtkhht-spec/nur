@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../../l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -91,8 +92,18 @@ class _QiblaCompassView extends StatefulWidget {
   State<_QiblaCompassView> createState() => _QiblaCompassViewState();
 }
 
-class _QiblaCompassViewState extends State<_QiblaCompassView> {
+class _QiblaCompassViewState extends State<_QiblaCompassView>
+    with SingleTickerProviderStateMixin {
   StreamSubscription<QiblaCompassReading>? _subscription;
+
+  /// Drives the needle between sensor events so it finishes a turn instead
+  /// of stopping a few degrees short of it. Runs only while there is ground
+  /// left to cover.
+  late final Ticker _ticker = createTicker(_onTick);
+  Duration _lastTick = Duration.zero;
+
+  /// The heading the sensor last reported, which the needle is heading for.
+  double? _targetHeading;
 
   /// The heading actually drawn: the raw sensor value eased along the
   /// shortest arc, so the needle points instead of twitching.
@@ -107,6 +118,10 @@ class _QiblaCompassViewState extends State<_QiblaCompassView> {
 
   Object? _error;
   String? _unavailableReason;
+
+  /// Held across readings so the hint has hysteresis: it goes up at one
+  /// accuracy and only comes down at a better one.
+  bool _calibrationHint = false;
 
   @override
   void initState() {
@@ -136,6 +151,30 @@ class _QiblaCompassViewState extends State<_QiblaCompassView> {
     );
   }
 
+  void _onTick(Duration elapsed) {
+    final target = _targetHeading;
+    final current = _smoothedHeading;
+    if (target == null || current == null) {
+      _ticker.stop();
+      return;
+    }
+    final dt = (elapsed - _lastTick).inMicroseconds / 1e6;
+    _lastTick = elapsed;
+    final next = stepHeadingTowards(current, target, dt);
+    if (normalizeRelativeDegrees(next - current).abs() < 0.01) {
+      _ticker.stop();
+      if (next != current) setState(() => _smoothedHeading = next);
+      return;
+    }
+    setState(() => _smoothedHeading = next);
+  }
+
+  void _startCatchUp() {
+    if (_ticker.isTicking) return;
+    _lastTick = Duration.zero;
+    _ticker.start();
+  }
+
   void _onReading(QiblaCompassReading reading) {
     if (!mounted) return;
     if (!reading.isUsable) {
@@ -147,13 +186,18 @@ class _QiblaCompassViewState extends State<_QiblaCompassView> {
       return;
     }
 
+    _targetHeading = reading.trueHeading;
     final smoothed = smoothHeading(_smoothedHeading, reading.trueHeading!);
+    // Whatever this event does not cover, the ticker finishes.
+    _startCatchUp();
     final movedEnough =
         _smoothedHeading == null ||
         normalizeRelativeDegrees(smoothed - _smoothedHeading!).abs() >= 0.2;
+    final hint = _calibrationHint
+        ? reading.keepsCalibrationHint
+        : reading.needsCalibration;
     final qualityChanged =
-        _lastUsable?.needsCalibration != reading.needsCalibration ||
-        _unavailableReason != null;
+        hint != _calibrationHint || _unavailableReason != null;
     if (!movedEnough && !qualityChanged) {
       _lastUsable = reading;
       return;
@@ -161,12 +205,14 @@ class _QiblaCompassViewState extends State<_QiblaCompassView> {
     setState(() {
       _smoothedHeading = smoothed;
       _lastUsable = reading;
+      _calibrationHint = hint;
       _unavailableReason = null;
     });
   }
 
   @override
   void dispose() {
+    _ticker.dispose();
     _subscription?.cancel();
     super.dispose();
   }
@@ -187,7 +233,9 @@ class _QiblaCompassViewState extends State<_QiblaCompassView> {
       if (_unavailableReason != null) {
         return _CompassUnavailable(message: _unavailableReason!);
       }
-      return Center(child: CircularProgressIndicator(color: colors.primaryGreen));
+      return Center(
+        child: CircularProgressIndicator(color: colors.primaryGreen),
+      );
     }
 
     final qiblaBearing = calculateQiblaBearing(widget.location);
@@ -202,7 +250,7 @@ class _QiblaCompassViewState extends State<_QiblaCompassView> {
       // Readings too coarse to trust never reach here, so the tolerance is
       // purely about where the device points.
       aligned: isAlignedWithQibla(relative),
-      needsCalibration: reading.needsCalibration,
+      needsCalibration: _calibrationHint,
     );
   }
 }
