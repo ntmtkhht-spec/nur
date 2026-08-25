@@ -863,4 +863,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String dateToday(String date) {
     return 'Today, $date';
   }
+
+  @override
+  String get qiblaCalibrating =>
+      'Calibrating the compass. Hold the device flat and move it in a figure of eight (∞).';
+
+  @override
+  String get qiblaNoLocationForCompass =>
+      'Turn on location access for an accurate Qibla.';
+
+  @override
+  String get qiblaNoLocationFix => 'Your location could not be determined.';
+
+  @override
+  String get quranAudioFailed => 'The recitation could not be loaded.';
+
+  @override
+  String get quranPlaybackSpeed => 'Playback speed';
 }

@@ -246,5 +246,10 @@
   "adviceReadMore": "Lire la suite",
   "adviceActionLabel": "À FAIRE AUJOURD’HUI",
   "surahSearchHint": "Rechercher une sourate",
-  "dateToday": "Aujourd'hui, {date}"
+  "dateToday": "Aujourd'hui, {date}",
+  "qiblaCalibrating": "Calibrage de la boussole. Tenez l'appareil à plat et déplacez-le en formant un huit (∞).",
+  "qiblaNoLocationForCompass": "Activez l'accès à la position pour une qibla précise.",
+  "qiblaNoLocationFix": "La position n'a pas pu être déterminée.",
+  "quranAudioFailed": "La récitation n'a pas pu être chargée.",
+  "quranPlaybackSpeed": "Vitesse de lecture"
 }

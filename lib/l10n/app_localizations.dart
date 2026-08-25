@@ -1585,6 +1585,36 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Heute, {date}'**
   String dateToday(String date);
+
+  /// No description provided for @qiblaCalibrating.
+  ///
+  /// In de, this message translates to:
+  /// **'Kompass wird kalibriert. Halte das Gerät flach und bewege es in einer Acht (∞).'**
+  String get qiblaCalibrating;
+
+  /// No description provided for @qiblaNoLocationForCompass.
+  ///
+  /// In de, this message translates to:
+  /// **'Aktiviere den Standortzugriff für eine genaue Qibla.'**
+  String get qiblaNoLocationForCompass;
+
+  /// No description provided for @qiblaNoLocationFix.
+  ///
+  /// In de, this message translates to:
+  /// **'Der Standort konnte nicht bestimmt werden.'**
+  String get qiblaNoLocationFix;
+
+  /// No description provided for @quranAudioFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Rezitation konnte nicht geladen werden.'**
+  String get quranAudioFailed;
+
+  /// No description provided for @quranPlaybackSpeed.
+  ///
+  /// In de, this message translates to:
+  /// **'Wiedergabegeschwindigkeit'**
+  String get quranPlaybackSpeed;
 }
 
 class _AppLocalizationsDelegate

@@ -28,6 +28,19 @@ import UIKit
   }
 }
 
+/// Why the compass has nothing to show.
+///
+/// A code rather than a sentence: these used to be German strings sent
+/// straight to Dart and rendered unchanged, which meant a German message on
+/// an English, French, Turkish or Arabic device. The Dart side owns the
+/// wording now — see QiblaUnavailableReason in qibla_compass.dart.
+private enum QiblaUnavailableReason: String {
+  case unsupported
+  case noLocationPermission
+  case calibrating
+  case noLocation
+}
+
 /// Delivers only a geographic (true-north) heading. Core Location can produce
 /// a valid true heading only while this same manager receives location updates,
 /// hence both services deliberately run together for the lifetime of the view.
@@ -47,11 +60,11 @@ private final class QiblaHeadingStreamHandler: NSObject, FlutterStreamHandler,
     -> FlutterError? {
     eventSink = events
     guard CLLocationManager.headingAvailable() else {
-      unavailable("Kompass wird auf diesem Gerät nicht unterstützt.")
+      unavailable(.unsupported)
       return nil
     }
     guard hasLocationPermission else {
-      unavailable("Aktiviere den Standortzugriff für eine genaue Qibla.")
+      unavailable(.noLocationPermission)
       return nil
     }
     // Core Location applies this orientation itself.  Do not correct the
@@ -82,7 +95,7 @@ private final class QiblaHeadingStreamHandler: NSObject, FlutterStreamHandler,
   func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
     // `trueHeading` is negative until Core Location has a valid location fix.
     guard newHeading.headingAccuracy >= 0, newHeading.trueHeading >= 0 else {
-      unavailable("Kompass wird kalibriert. Halte das Gerät flach und bewege es in einer Acht (∞).")
+      unavailable(.calibrating)
       return
     }
     eventSink?([
@@ -106,12 +119,12 @@ private final class QiblaHeadingStreamHandler: NSObject, FlutterStreamHandler,
   }
 
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-    unavailable("Der Standort konnte nicht bestimmt werden.")
+    unavailable(.noLocation)
   }
 
   func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
     if status != .authorizedAlways && status != .authorizedWhenInUse {
-      unavailable("Aktiviere den Standortzugriff für eine genaue Qibla.")
+      unavailable(.noLocationPermission)
     }
   }
 
@@ -125,8 +138,8 @@ private final class QiblaHeadingStreamHandler: NSObject, FlutterStreamHandler,
     return status == .authorizedAlways || status == .authorizedWhenInUse
   }
 
-  private func unavailable(_ reason: String) {
-    eventSink?(["reason": reason])
+  private func unavailable(_ reason: QiblaUnavailableReason) {
+    eventSink?(["reason": reason.rawValue])
   }
 
   @objc private func interfaceOrientationDidChange() {

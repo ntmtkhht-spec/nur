@@ -246,5 +246,10 @@
   "adviceReadMore": "Read more",
   "adviceActionLabel": "DO THIS TODAY",
   "surahSearchHint": "Search surah",
-  "dateToday": "Today, {date}"
+  "dateToday": "Today, {date}",
+  "qiblaCalibrating": "Calibrating the compass. Hold the device flat and move it in a figure of eight (∞).",
+  "qiblaNoLocationForCompass": "Turn on location access for an accurate Qibla.",
+  "qiblaNoLocationFix": "Your location could not be determined.",
+  "quranAudioFailed": "The recitation could not be loaded.",
+  "quranPlaybackSpeed": "Playback speed"
 }

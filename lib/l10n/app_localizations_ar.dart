@@ -854,4 +854,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String dateToday(String date) {
     return 'اليوم، $date';
   }
+
+  @override
+  String get qiblaCalibrating =>
+      'جارٍ معايرة البوصلة. أمسك الجهاز مستويًا وحرّكه على شكل رقم ثمانية (∞).';
+
+  @override
+  String get qiblaNoLocationForCompass =>
+      'فعّل الوصول إلى الموقع لتحديد القبلة بدقة.';
+
+  @override
+  String get qiblaNoLocationFix => 'تعذّر تحديد الموقع.';
+
+  @override
+  String get quranAudioFailed => 'تعذّر تحميل التلاوة.';
+
+  @override
+  String get quranPlaybackSpeed => 'سرعة التشغيل';
 }

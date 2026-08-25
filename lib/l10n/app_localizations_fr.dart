@@ -869,4 +869,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String dateToday(String date) {
     return 'Aujourd\'hui, $date';
   }
+
+  @override
+  String get qiblaCalibrating =>
+      'Calibrage de la boussole. Tenez l\'appareil à plat et déplacez-le en formant un huit (∞).';
+
+  @override
+  String get qiblaNoLocationForCompass =>
+      'Activez l\'accès à la position pour une qibla précise.';
+
+  @override
+  String get qiblaNoLocationFix => 'La position n\'a pas pu être déterminée.';
+
+  @override
+  String get quranAudioFailed => 'La récitation n\'a pas pu être chargée.';
+
+  @override
+  String get quranPlaybackSpeed => 'Vitesse de lecture';
 }

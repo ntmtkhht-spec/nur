@@ -246,5 +246,10 @@
   "adviceReadMore": "اقرأ المزيد",
   "adviceActionLabel": "طبّقه اليوم",
   "surahSearchHint": "ابحث عن سورة",
-  "dateToday": "اليوم، {date}"
+  "dateToday": "اليوم، {date}",
+  "qiblaCalibrating": "جارٍ معايرة البوصلة. أمسك الجهاز مستويًا وحرّكه على شكل رقم ثمانية (∞).",
+  "qiblaNoLocationForCompass": "فعّل الوصول إلى الموقع لتحديد القبلة بدقة.",
+  "qiblaNoLocationFix": "تعذّر تحديد الموقع.",
+  "quranAudioFailed": "تعذّر تحميل التلاوة.",
+  "quranPlaybackSpeed": "سرعة التشغيل"
 }

@@ -867,4 +867,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String dateToday(String date) {
     return 'Heute, $date';
   }
+
+  @override
+  String get qiblaCalibrating =>
+      'Kompass wird kalibriert. Halte das Gerät flach und bewege es in einer Acht (∞).';
+
+  @override
+  String get qiblaNoLocationForCompass =>
+      'Aktiviere den Standortzugriff für eine genaue Qibla.';
+
+  @override
+  String get qiblaNoLocationFix => 'Der Standort konnte nicht bestimmt werden.';
+
+  @override
+  String get quranAudioFailed => 'Die Rezitation konnte nicht geladen werden.';
+
+  @override
+  String get quranPlaybackSpeed => 'Wiedergabegeschwindigkeit';
 }

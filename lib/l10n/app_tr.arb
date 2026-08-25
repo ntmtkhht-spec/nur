@@ -246,5 +246,10 @@
   "adviceReadMore": "Devamını oku",
   "adviceActionLabel": "BUGÜN UYGULA",
   "surahSearchHint": "Sure ara",
-  "dateToday": "Bugün, {date}"
+  "dateToday": "Bugün, {date}",
+  "qiblaCalibrating": "Pusula kalibre ediliyor. Cihazı düz tutun ve sekiz (∞) çizerek hareket ettirin.",
+  "qiblaNoLocationForCompass": "Doğru bir kıble için konum erişimini açın.",
+  "qiblaNoLocationFix": "Konum belirlenemedi.",
+  "quranAudioFailed": "Tilavet yüklenemedi.",
+  "quranPlaybackSpeed": "Oynatma hızı"
 }

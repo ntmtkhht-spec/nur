@@ -485,5 +485,10 @@
         "type": "String"
       }
     }
-  }
+  },
+  "qiblaCalibrating": "Kompass wird kalibriert. Halte das Gerät flach und bewege es in einer Acht (∞).",
+  "qiblaNoLocationForCompass": "Aktiviere den Standortzugriff für eine genaue Qibla.",
+  "qiblaNoLocationFix": "Der Standort konnte nicht bestimmt werden.",
+  "quranAudioFailed": "Die Rezitation konnte nicht geladen werden.",
+  "quranPlaybackSpeed": "Wiedergabegeschwindigkeit"
 }

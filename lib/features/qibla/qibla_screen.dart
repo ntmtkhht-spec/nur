@@ -102,7 +102,7 @@ class _QiblaCompassViewState extends State<_QiblaCompassView> {
   QiblaCompassReading? _lastUsable;
 
   Object? _error;
-  String? _unavailableReason;
+  QiblaUnavailableReason? _unavailableReason;
 
   @override
   void initState() {
@@ -181,7 +181,12 @@ class _QiblaCompassViewState extends State<_QiblaCompassView> {
     final heading = _smoothedHeading;
     if (reading == null || heading == null) {
       if (_unavailableReason != null) {
-        return _CompassUnavailable(message: _unavailableReason!);
+        return _CompassUnavailable(
+          message: describeQiblaUnavailable(
+            AppLocalizations.of(context),
+            _unavailableReason!,
+          ),
+        );
       }
       return Center(child: CircularProgressIndicator(color: colors.primaryGreen));
     }

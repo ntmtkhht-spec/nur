@@ -863,4 +863,21 @@ class AppLocalizationsTr extends AppLocalizations {
   String dateToday(String date) {
     return 'Bugün, $date';
   }
+
+  @override
+  String get qiblaCalibrating =>
+      'Pusula kalibre ediliyor. Cihazı düz tutun ve sekiz (∞) çizerek hareket ettirin.';
+
+  @override
+  String get qiblaNoLocationForCompass =>
+      'Doğru bir kıble için konum erişimini açın.';
+
+  @override
+  String get qiblaNoLocationFix => 'Konum belirlenemedi.';
+
+  @override
+  String get quranAudioFailed => 'Tilavet yüklenemedi.';
+
+  @override
+  String get quranPlaybackSpeed => 'Oynatma hızı';
 }
