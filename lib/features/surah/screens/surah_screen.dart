@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../models/ayah_model.dart';
@@ -310,8 +312,18 @@ class _SurahScreenState extends ConsumerState<SurahScreen> {
                     padding: const EdgeInsets.only(
                       bottom: 120,
                     ), // extra space for bottom bar
-                    itemCount: surah.ayahs.length,
+                    // One past the last ayah: the colophon. Al Quran Cloud
+                    // asks that a republished translation name its
+                    // translator, and the translations themselves carry the
+                    // same requirement — so the credit sits at the end of
+                    // every surah rather than on a page nobody opens.
+                    itemCount: surah.ayahs.length + 1,
                     itemBuilder: (context, index) {
+                      if (index == surah.ayahs.length) {
+                        return _SurahColophon(
+                          translationSource: surah.translationSource,
+                        );
+                      }
                       final ayah = surah.ayahs[index];
                       return KeyedSubtree(
                         key: _keyForAyah(ayah.numberInSurah),
@@ -626,6 +638,59 @@ class _ReadingSettingsSheet extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+
+/// Source credit closing every surah.
+///
+/// Names the translator, which is the condition Al Quran Cloud attaches to
+/// republishing a translation, and the service the Arabic text, the
+/// transliteration and the recitations come from.
+class _SurahColophon extends StatelessWidget {
+  final String? translationSource;
+
+  const _SurahColophon({required this.translationSource});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final credit = translationSource;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.md,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: AppColors.textMuted.withValues(alpha: 0.2),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          if (credit != null && credit.isNotEmpty) ...[
+            Text(
+              l10n.quranTranslationCredit(credit),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textMuted,
+              ),
+            ),
+            const SizedBox(height: 4),
+          ],
+          Text(
+            l10n.quranSourceCredit,
+            style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+          ),
+        ],
       ),
     );
   }
