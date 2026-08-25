@@ -1,0 +1,217 @@
+name: Build signed iOS and upload to TestFlight
+
+# Separate from "Build iOS IPA" on purpose. That job builds unsigned on every
+# push and is the one proving the project still compiles; breaking it would
+# cost the fast feedback. This one only runs when asked, needs six secrets
+# that do not exist yet, and is the one that can actually reach App Store
+# Connect.
+#
+# Set up the secrets first — see the iOS guide. Until they exist this job
+# stops at the first step with a named error rather than failing somewhere
+# deep inside xcodebuild.
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: 'Upload to App Store Connect (off = build and keep the IPA as an artifact only)'
+        type: boolean
+        default: true
+
+jobs:
+  testflight:
+    runs-on: macos-15
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Check that the signing secrets are present
+        env:
+          IOS_DIST_CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          IOS_PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE }}
+          APPSTORE_API_KEY_P8: ${{ secrets.APPSTORE_API_KEY_P8 }}
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+        run: |
+          set -e
+          missing=0
+          for var in IOS_DIST_CERT_P12 IOS_DIST_CERT_PASSWORD \
+                     IOS_PROVISIONING_PROFILE APPSTORE_API_KEY_P8 \
+                     APPSTORE_API_KEY_ID APPSTORE_API_ISSUER_ID; do
+            if [ -z "${!var}" ]; then
+              echo "::error::Secret $var is empty — see the iOS guide."
+              missing=1
+            fi
+          done
+          [ "$missing" = 0 ]
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Restore Firebase configuration
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
+        run: |
+          set -e
+          for var in GOOGLE_SERVICES_JSON GOOGLE_SERVICE_INFO_PLIST FIREBASE_OPTIONS_DART; do
+            if [ -z "${!var}" ]; then
+              echo "::error::Secret $var is empty — add it under Settings > Secrets."
+              exit 1
+            fi
+          done
+          echo "$GOOGLE_SERVICES_JSON" | base64 --decode > android/app/google-services.json
+          echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > ios/Runner/GoogleService-Info.plist
+          echo "$FIREBASE_OPTIONS_DART" | base64 --decode > lib/firebase_options.dart
+
+      # A throwaway keychain rather than the login one: the runner is discarded
+      # afterwards either way, but this keeps the certificate out of anything
+      # a later step might read, and lets the password be a random per-run value.
+      - name: Import the distribution certificate
+        env:
+          IOS_DIST_CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+        run: |
+          set -e
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          keychain_password="$(openssl rand -base64 24)"
+          echo "KEYCHAIN_PATH=$keychain" >> "$GITHUB_ENV"
+
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 3600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+
+          cert="$RUNNER_TEMP/dist.p12"
+          echo "$IOS_DIST_CERT_P12" | base64 --decode > "$cert"
+          security import "$cert" -P "$IOS_DIST_CERT_PASSWORD" \
+            -A -t cert -f pkcs12 -k "$keychain"
+          rm -f "$cert"
+
+          # Without this codesign puts up a UI prompt and the job hangs until
+          # it times out.
+          security set-key-partition-list -S apple-tool:,apple: \
+            -k "$keychain_password" "$keychain" >/dev/null
+          security list-keychain -d user -s "$keychain" login.keychain-db
+
+          echo "Identities in the signing keychain:"
+          security find-identity -v -p codesigning "$keychain"
+
+      - name: Install the provisioning profile
+        env:
+          IOS_PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE }}
+        run: |
+          set -e
+          profiles=~/Library/MobileDevice/Provisioning\ Profiles
+          mkdir -p "$profiles"
+          echo "$IOS_PROVISIONING_PROFILE" | base64 --decode > "$RUNNER_TEMP/profile.mobileprovision"
+
+          # The UUID and the team are read back out of the profile rather than
+          # kept as further secrets: they are already in the file, and two
+          # values that must agree are one chance to disagree.
+          plist="$RUNNER_TEMP/profile.plist"
+          security cms -D -i "$RUNNER_TEMP/profile.mobileprovision" > "$plist"
+          uuid=$(/usr/libexec/PlistBuddy -c "Print :UUID" "$plist")
+          team=$(/usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" "$plist")
+          name=$(/usr/libexec/PlistBuddy -c "Print :Name" "$plist")
+
+          cp "$RUNNER_TEMP/profile.mobileprovision" "$profiles/$uuid.mobileprovision"
+          echo "PROFILE_UUID=$uuid" >> "$GITHUB_ENV"
+          echo "PROFILE_NAME=$name" >> "$GITHUB_ENV"
+          echo "TEAM_ID=$team" >> "$GITHUB_ENV"
+          echo "Profile: $name ($uuid), team $team"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build the iOS archive
+        run: |
+          set -e
+          # Two steps rather than `flutter build ipa`: Flutter first, to run
+          # pod install and generate Generated.xcconfig plus the engine
+          # artifacts the Xcode project reads — the workspace does not even
+          # exist before this. Then xcodebuild, because the signing settings
+          # have to be passed on the command line: the project carries no
+          # DEVELOPMENT_TEAM, and should not, since the team is read out of
+          # the provisioning profile above.
+          flutter build ios --release --no-codesign
+          xcodebuild -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath "$RUNNER_TEMP/Runner.xcarchive" \
+            -destination 'generic/platform=iOS' \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            archive
+
+      - name: Export the signed IPA
+        run: |
+          set -e
+          # Written as JSON and converted, not as a here-doc of XML: a
+          # here-doc inside a YAML block scalar has to stay indented, and
+          # indenting XML puts whitespace before the declaration. JSON does
+          # not care, and plutil rejects anything malformed before xcodebuild
+          # ever sees it.
+          cat > "$RUNNER_TEMP/ExportOptions.json" <<JSON
+          {
+            "method": "app-store-connect",
+            "teamID": "$TEAM_ID",
+            "signingStyle": "manual",
+            "uploadSymbols": true,
+            "provisioningProfiles": { "com.munir.app": "$PROFILE_NAME" }
+          }
+          JSON
+          plutil -convert xml1 "$RUNNER_TEMP/ExportOptions.json"                  -o "$RUNNER_TEMP/ExportOptions.plist"
+          plutil -lint "$RUNNER_TEMP/ExportOptions.plist"
+
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/Runner.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export"
+          ls -lh "$RUNNER_TEMP/export"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: munir-signed-ipa
+          path: ${{ runner.temp }}/export/*.ipa
+          retention-days: 30
+
+      - name: Upload to App Store Connect
+        if: ${{ inputs.upload }}
+        env:
+          APPSTORE_API_KEY_P8: ${{ secrets.APPSTORE_API_KEY_P8 }}
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+        run: |
+          set -e
+          # altool looks for the key in this exact location and filename.
+          mkdir -p ~/private_keys
+          echo "$APPSTORE_API_KEY_P8" | base64 --decode \
+            > ~/private_keys/AuthKey_$APPSTORE_API_KEY_ID.p8
+          ipa=$(ls "$RUNNER_TEMP"/export/*.ipa | head -1)
+          xcrun altool --upload-app -f "$ipa" -t ios \
+            --apiKey "$APPSTORE_API_KEY_ID" \
+            --apiIssuer "$APPSTORE_API_ISSUER_ID"
+          rm -rf ~/private_keys
+
+      - name: Clean up signing material
+        if: always()
+        run: |
+          security delete-keychain "$KEYCHAIN_PATH" 2>/dev/null || true
+          rm -rf ~/private_keys \
+                 ~/Library/MobileDevice/Provisioning\ Profiles/$PROFILE_UUID.mobileprovision
