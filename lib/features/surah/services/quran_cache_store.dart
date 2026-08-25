@@ -5,12 +5,21 @@ import 'package:path_provider/path_provider.dart';
 
 import '../models/ayah_model.dart';
 
-/// Persistent, device-level cache for Quran content.
+/// Device-level cache for Quran content.
 ///
-/// Quran content is not personal data: it must survive sign-out and account
+/// Quran content is not personal data: it survives sign-out and account
 /// changes so a shared device can still read offline. Every entry carries a
 /// schema version and its exact language/audio key, preventing a stale or
 /// mismatched edition from being shown as current content.
+///
+/// It lives in the cache directory, not application support. Everything here
+/// can be fetched again from alquran.cloud, and Apple's data storage
+/// guidelines are explicit that re-downloadable content must not sit in a
+/// backed-up location — application support is backed up to iCloud, a
+/// surah-per-file cache is not small, and apps have been rejected over
+/// exactly this. Being purgeable under disk pressure costs nothing: every
+/// read already treats a missing file as a cache miss and goes to the
+/// network.
 class QuranCacheStore {
   static const schemaVersion = 1;
   static const _directoryName = 'quran_cache_v1';
@@ -21,8 +30,8 @@ class QuranCacheStore {
     : _directoryProvider = directoryProvider ?? _defaultDirectory;
 
   static Future<Directory> _defaultDirectory() async {
-    final support = await getApplicationSupportDirectory();
-    return Directory('${support.path}/$_directoryName');
+    final cache = await getApplicationCacheDirectory();
+    return Directory('${cache.path}/$_directoryName');
   }
 
   Future<Surah?> readSurah({

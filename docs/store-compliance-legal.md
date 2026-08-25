@@ -133,11 +133,13 @@ Diese Punkte betreffen vor allem die geplante monetarisierte Version.
 
 ## Offen
 
-- **Firestore-Regeln ohne Groessenvalidierung.** Owner-only und Default-Deny
-  stehen korrekt. Was fehlt, ist eine Begrenzung von Form und Groesse: ein
-  angemeldeter Nutzer kann beliebig grosse Dokumente in sein eigenes
-  Verzeichnis schreiben. Kein Datenleck, aber ein Kostenvektor, sobald nach
-  Nutzung abgerechnet wird.
+- **Firestore-Regeln muessen noch ausgerollt werden.** Sie begrenzen jetzt,
+  was ein angemeldeter Nutzer in sein eigenes Dokument schreiben darf, aber
+  keine Pipeline rollt sie aus. Vor der Einreichung:
+  `npm --prefix tool/firestore_rules_test install`,
+  `npm --prefix tool/firestore_rules_test test`, dann
+  `firebase deploy --only firestore:rules --project munir-9360e`.
+  Bis dahin laeuft im Projekt die alte, ungebremste Fassung.
 - **Keine Hintergrundwiedergabe.** Die Rezitation stoppt, sobald der
   Bildschirm sperrt: kein `UIBackgroundModes`, kein `just_audio_background`.
   Kein Ablehnungsgrund, aber die Erwartung an jede Qur'an-App. Wichtig beim
