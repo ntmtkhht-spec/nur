@@ -21,12 +21,39 @@ dort unlesbar.
 | 3 | `03-moscheen.png` | **Moscheen in deiner Nähe** | Konkreter Nutzen unterwegs, mit dem Suchradius massstabsgetreu auf der Karte. |
 | 4 | `04-quran.png` | **Lesen, hören, Fortschritt behalten** | Zeigt Tiefe — die App ist mehr als eine Uhr. |
 | 5 | `05-tasbih.png` | **Dhikr zählen, ohne nachzudenken** | Kleine Funktion, hohe Nutzung. |
-| 6 | `07-adhan.png` | **Der Adhan, in der Stimme deiner Wahl** | Die Muezzin-Auswahl ist ein Unterscheidungsmerkmal gegenüber einfachen Weckern. |
+| 6 | *ersetzen* | **Abhaken, was du gebetet hast** | Siehe unten — `07-adhan.png` bewirbt eine Funktion, die es nicht mehr gibt. Der Tracker mit Streak ist der naheliegende Ersatz. |
 | 7 | `08-sprachen.png` | **Deutsch, Englisch, Türkisch, Arabisch, Französisch** | Fängt alle ab, die die App nicht auf Deutsch wollen. |
 | 8 | *fehlt* | **Die Qibla, geografisch genau** | Siehe unten — muss auf einem echten Gerät entstehen. |
 
 `06-einstellungen.png` liegt als Reserve daneben, falls eines der acht
 ausgetauscht werden soll.
+
+## `07-adhan.png` muss raus
+
+Der Screenshot zeigt die Auswahl der Muezzin-Stimme und die Überschrift warb
+damit als Unterscheidungsmerkmal. Die Auswahl ist entfernt: sie hat nie etwas
+bewirkt — es gibt keine Adhan-Audiodateien in der App, und der gespeicherte
+Wert wurde von der Benachrichtigung nie gelesen. Jede Option, „Stumm"
+eingeschlossen, ergab den Systemton.
+
+Bleibt das Bild in der Listung, wirbt der Eintrag mit einer Funktion, die die
+App nicht hat. Das ist bei Apple Guideline 2.3.1 und bei Play „Misleading
+claims" — und es ist einer der wenigen Punkte, die einem Prüfer beim
+Vergleich von Listung und App sofort auffallen.
+
+Ersatz ohne neue Aufnahme: `06-einstellungen.png` aus der Reserve. Besser
+wäre ein Bild des Gebets-Trackers mit sichtbarer Streak.
+
+## Für den App Store nochmal aufnehmen
+
+Die acht vorhandenen Bilder sind 1080 × 2400 vom Pixel-8-Emulator. Apple
+verlangt iPhone-Formate — 6,9 Zoll, 1290 × 2796 oder 1320 × 2868. Das
+Seitenverhältnis passt nicht, die Bilder werden abgelehnt.
+
+Auf einem echten iPhone ist das kein Aufwand: TestFlight-Build installieren,
+die Bildschirme durchgehen, Lauter + Seitentaste. Der Qibla-Screenshot, der
+für Play noch fehlt, entsteht dabei gleich mit — auf einem echten Gerät
+liegt ein echter Standort vor, was auf dem Emulator gescheitert ist.
 
 ## Gestaltung
 
@@ -40,7 +67,7 @@ Ein Look über alle acht, sonst wirkt die Liste zusammengewürfelt.
 - Statusleiste im Screenshot behalten. Sie kostet nichts und lässt das Bild
   echt statt gerendert aussehen.
 
-## Qibla fehlt noch
+## Qibla fehlt noch (Play)
 
 Der Qibla-Kompass liess sich auf dem Emulator nicht aufnehmen. Die App
 verweigert die Anzeige bewusst, solange kein echter Standort vorliegt — ein
