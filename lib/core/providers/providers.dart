@@ -47,6 +47,14 @@ final hasCompletedOnboardingProvider =
 // User
 // ---------------------------------------------------------------------------
 
+/// Ceiling on the stored name.
+///
+/// Mirrors the limit `firestore.rules` enforces on `preferences.name`, so a
+/// name that arrives from a sync can always be written back. The rules bound
+/// what this app is allowed to send; they cannot bound what a document
+/// already holds, which is why the app applies the same limit on the way in.
+const maxUserNameLength = 200;
+
 class UserNameNotifier extends Notifier<String> {
   @override
   String build() {
@@ -54,9 +62,21 @@ class UserNameNotifier extends Notifier<String> {
     return prefs.getString('user_name') ?? '';
   }
 
+  /// Trimmed and clamped here rather than at each call site: the name is
+  /// typed in settings on one path and read out of a Firestore document on
+  /// another, and only one of those is under this app's control.
   void update(String name) {
-    ref.read(sharedPreferencesProvider).setString('user_name', name);
-    state = name;
+    final clamped = _clampName(name.trim());
+    ref.read(sharedPreferencesProvider).setString('user_name', clamped);
+    state = clamped;
+  }
+
+  /// Cut on runes, not code units: slicing a string mid-surrogate leaves a
+  /// lone half that renders as a replacement character.
+  static String _clampName(String name) {
+    final runes = name.runes.toList();
+    if (runes.length <= maxUserNameLength) return name;
+    return String.fromCharCodes(runes.take(maxUserNameLength));
   }
 }
 
@@ -983,11 +1003,16 @@ class PrayerTrackerNotifier extends Notifier<Map<String, bool>> {
     final prefs = ref.read(sharedPreferencesProvider);
     final merged = {...state};
     remote.forEach((key, done) {
-      if (!key.startsWith('prayer_tracker_')) return;
-      if (done && merged[key] != true) {
-        merged[key] = true;
-        prefs.setBool(key, true);
-      }
+      if (!done) return;
+      // Parsed, not merely prefix-matched. A key the readers cannot make
+      // sense of counts towards no streak and no statistic, but a prefix
+      // check would still copy it into SharedPreferences, where it stays
+      // until the history is wiped.
+      if (parseTrackerKey(key) == null) return;
+      if (merged[key] == true) return;
+
+      merged[key] = true;
+      prefs.setBool(key, true);
     });
     state = merged;
   }
@@ -1028,29 +1053,49 @@ DateTime _previousDay(DateTime day) =>
 
 DateTime _nextDay(DateTime day) => DateTime(day.year, day.month, day.day + 1);
 
+/// A `prayer_tracker_<y>_<m>_<d>_<name>` key split back into the day and the
+/// prayer it stands for, or null when the string is not one.
+///
+/// The single place these keys are parsed. They arrive from two directions —
+/// SharedPreferences, where this app wrote them, and a Firestore document,
+/// which is only as well-formed as whatever last wrote to it — and a key
+/// rejected by one reader but accepted by another is how a stored entry ends
+/// up counting towards nothing while still taking up space forever.
+({DateTime day, String prayer})? parseTrackerKey(String key) {
+  if (!key.startsWith(_trackerKeyPrefix)) return null;
+
+  final parts = key.substring(_trackerKeyPrefix.length).split('_');
+  if (parts.length != 4) return null;
+  if (!obligatoryPrayerNames.contains(parts[3])) return null;
+
+  final year = int.tryParse(parts[0]);
+  final month = int.tryParse(parts[1]);
+  final day = int.tryParse(parts[2]);
+  if (year == null || month == null || day == null) return null;
+
+  // DateTime normalises silently: month 13 becomes January of the next year,
+  // day 32 rolls into the next month. A key naming a date that never existed
+  // would otherwise be accepted and filed under a different day than it
+  // reads as.
+  final date = DateTime(year, month, day);
+  if (date.year != year || date.month != month || date.day != day) return null;
+
+  return (day: date, prayer: parts[3]);
+}
+
 /// Which obligatory prayers were ticked off, grouped by day.
 ///
-/// The single place the flat `prayer_tracker_<y>_<m>_<d>_<name>` keys are
-/// parsed; streaks and statistics both read this rather than re-deriving it.
+/// Streaks and statistics both read this rather than re-deriving it.
 Map<DateTime, Set<String>> trackedPrayersByDay(Map<String, bool> tracker) {
   final perDay = <DateTime, Set<String>>{};
 
   for (final entry in tracker.entries) {
     if (entry.value != true) continue;
-    if (!entry.key.startsWith(_trackerKeyPrefix)) continue;
 
-    final parts = entry.key.substring(_trackerKeyPrefix.length).split('_');
-    if (parts.length != 4) continue;
-    if (!obligatoryPrayerNames.contains(parts[3])) continue;
+    final parsed = parseTrackerKey(entry.key);
+    if (parsed == null) continue;
 
-    final year = int.tryParse(parts[0]);
-    final month = int.tryParse(parts[1]);
-    final day = int.tryParse(parts[2]);
-    if (year == null || month == null || day == null) continue;
-
-    perDay
-        .putIfAbsent(DateTime(year, month, day), () => <String>{})
-        .add(parts[3]);
+    perDay.putIfAbsent(parsed.day, () => <String>{}).add(parsed.prayer);
   }
 
   return perDay;
