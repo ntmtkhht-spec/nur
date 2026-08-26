@@ -1,0 +1,78 @@
+name: Dependency audit
+
+# Nothing in this repository pins a dependency to a reviewed version: the
+# Dart constraints are all carets and the rules test pulls the Firebase SDK
+# fresh. A vulnerability disclosed in one of them would otherwise be noticed
+# whenever somebody happened to look.
+#
+# Weekly rather than per pull request. Advisories appear on their own
+# schedule, not on the repository's, so a green pull request says nothing
+# about whether one landed yesterday — and a job that fails for a reason no
+# author introduced does not belong in a merge gate.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays, 06:00 UTC.
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  vulnerabilities:
+    name: Known vulnerabilities
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tool/firestore_rules_test/package-lock.json
+
+      - name: Install rules-test dependencies
+        working-directory: tool/firestore_rules_test
+        run: npm ci
+
+      - name: Audit rules-test dependencies
+        working-directory: tool/firestore_rules_test
+        run: npm audit --audit-level=high
+
+      # Reads pubspec.lock and package-lock.json against the OSV database.
+      # This is the step that can actually fail the job; the report below is
+      # for reading, not for gating.
+      - name: Scan lockfiles
+        uses: google/osv-scanner-action/osv-scanner-action@v2.5.1
+        with:
+          scan-args: |-
+            --lockfile=pubspec.lock
+            --lockfile=tool/firestore_rules_test/package-lock.json
+
+  outdated:
+    name: Outdated packages report
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Informational. Being behind is not a failure, and a job that goes red
+      # for it gets ignored, which then hides the one above when it matters.
+      - name: Report outdated packages
+        run: flutter pub outdated || true
