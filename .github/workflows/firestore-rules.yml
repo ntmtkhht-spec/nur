@@ -47,11 +47,13 @@ jobs:
           cache: npm
           cache-dependency-path: tool/firestore_rules_test/package-lock.json
 
+      # 21, not the 17 the Android build uses: firebase-tools 15 refuses
+      # anything older.
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Install dependencies
         working-directory: tool/firestore_rules_test
