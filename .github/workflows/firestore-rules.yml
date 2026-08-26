@@ -1,0 +1,89 @@
+name: Deploy Firestore rules
+
+# What firestore.rules says and what the project enforces were two separate
+# things: deploying was a manual step somebody had to remember, so the file
+# and the console could drift apart without anything noticing. With the
+# Firebase client keys public by design, these rules are the only thing
+# standing between a stranger and user data — the deployed copy follows
+# master.
+#
+# Needs one secret that does not exist yet:
+#   FIREBASE_SERVICE_ACCOUNT  base64 of a service-account JSON key with the
+#                             "Firebase Rules Admin" role on munir-9360e.
+# Until it is added the job stops at the first step with a named error rather
+# than failing somewhere inside the CLI.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - firestore.rules
+      - firebase.json
+      - .github/workflows/firestore-rules.yml
+
+concurrency:
+  group: firestore-rules
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Verify and deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tool/firestore_rules_test/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install dependencies
+        working-directory: tool/firestore_rules_test
+        run: npm ci
+
+      # Deployed only if they still pass their own tests. CI ran these on the
+      # pull request, but master can move underneath a branch, and rules that
+      # fail here are the one thing that must not reach the project.
+      - name: Verify rules against the emulator
+        run: >
+          npx --yes firebase-tools@15 emulators:exec
+          --only firestore
+          --project munir-rules-test
+          --config firebase.json
+          "node tool/firestore_rules_test/rules_test.mjs"
+
+      # Written outside the checkout so a failed deploy cannot leave the key
+      # sitting in the workspace for a later step to pick up.
+      - name: Deploy
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          set -e
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "::error::Secret FIREBASE_SERVICE_ACCOUNT is empty — add it under Settings > Secrets."
+            exit 1
+          fi
+          key="$RUNNER_TEMP/firebase-service-account.json"
+          echo "$FIREBASE_SERVICE_ACCOUNT" | base64 --decode > "$key"
+          trap 'rm -f "$key"' EXIT
+          GOOGLE_APPLICATION_CREDENTIALS="$key" \
+            npx --yes firebase-tools@15 deploy \
+              --only firestore:rules \
+              --project munir-9360e \
+              --non-interactive

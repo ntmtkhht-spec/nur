@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Security-rule tests. Run from the repository root: npm --prefix tool/firestore_rules_test install && npm --prefix tool/firestore_rules_test test",
   "scripts": {
-    "test": "firebase emulators:exec --only firestore --project munir-rules-test --config firebase.json \"node rules_test.mjs\""
+    "test": "cd ../.. && npx --yes firebase-tools@15 emulators:exec --only firestore --project munir-rules-test --config firebase.json \"node tool/firestore_rules_test/rules_test.mjs\""
   },
   "dependencies": {
     "@firebase/rules-unit-testing": "^5.0.0",

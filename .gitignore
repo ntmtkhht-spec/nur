@@ -55,7 +55,12 @@ app.*.map.json
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 lib/firebase_options.dart
-firebase.json
+
+# firebase.json is deliberately NOT ignored. It holds no project id and no
+# key — only which rules file to deploy and which port the emulator listens
+# on. Ignoring it kept the rules test from running anywhere but a machine
+# that happened to have a local copy, which is most of the reason the rules
+# were never covered by CI.
 
 # Android release signing. Losing this keystore before the first Play
 # Console upload just means generating a new one; losing it after Play App
