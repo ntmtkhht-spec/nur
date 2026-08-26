@@ -1,13 +1,22 @@
 # Firestore-Regeln testen
 
-Die Regeln in `firestore.rules` werden von keiner Pipeline ausgerollt. Nach
-einer Änderung:
+Diese Tests laufen in CI (`.github/workflows/ci.yml`) bei jedem Pull Request,
+und ein Merge nach `master`, der `firestore.rules` anfasst, rollt die Regeln
+aus — aber erst, nachdem sie hier nochmal gegen den Emulator gelaufen sind
+(`.github/workflows/firestore-rules.yml`). Der Rollout braucht das Secret
+`FIREBASE_SERVICE_ACCOUNT`: base64 eines Service-Account-Keys mit der Rolle
+"Firebase Rules Admin" auf `munir-9360e`.
+
+Lokal, vor dem Push:
 
 ```bash
 npm --prefix tool/firestore_rules_test install
 npm --prefix tool/firestore_rules_test test
-firebase deploy --only firestore:rules --project munir-9360e
 ```
+
+Der Testlauf braucht ein JDK — der Firestore-Emulator ist ein JVM-Prozess.
+Die Emulator-Konfiguration steht in `firebase.json` im Repository-Wurzel-
+verzeichnis; sie enthält keine Schlüssel und ist deshalb bewusst eingecheckt.
 
 Der Test startet den Firestore-Emulator und prüft beides: dass die App
 schreiben darf, was `SyncService` tatsächlich schickt, und dass alles andere
