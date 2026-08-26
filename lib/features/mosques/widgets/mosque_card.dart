@@ -37,6 +37,10 @@ class MosqueCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = AppColors.of(context);
     final address = mosque.address;
+    // Resolved once here so the button is only offered when there is
+    // something safe to open behind it.
+    final website = mosque.websiteUri;
+    final phone = mosque.phoneUri;
 
     return Container(
       decoration: BoxDecoration(
@@ -108,17 +112,17 @@ class MosqueCard extends StatelessWidget {
                 label: AppLocalizations.of(context).mosquesRoute,
                 onTap: () => _open(context, _directionsUri),
               ),
-              if (mosque.website != null)
+              if (website != null)
                 _ActionButton(
                   icon: Icons.language,
                   label: AppLocalizations.of(context).mosquesWebsite,
-                  onTap: () => _open(context, Uri.parse(mosque.website!)),
+                  onTap: () => _open(context, website),
                 ),
-              if (mosque.phone != null)
+              if (phone != null)
                 _ActionButton(
                   icon: Icons.call_outlined,
                   label: AppLocalizations.of(context).mosquesCall,
-                  onTap: () => _open(context, Uri.parse('tel:${mosque.phone}')),
+                  onTap: () => _open(context, phone),
                 ),
             ],
           ),
