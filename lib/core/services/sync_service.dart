@@ -62,16 +62,29 @@ class SyncService {
   /// Merge, not replace: a prayer ticked off on either device should stay
   /// ticked, so remote and local entries are unioned rather than one
   /// overwriting the other.
+  ///
+  /// Every field is type-checked rather than cast. The security rules bound
+  /// what this app may write, not what the document holds — a field written
+  /// by an older build, by a future one, or straight from the console can
+  /// carry any type at all, and a cast that misses turns a background sync
+  /// into a crash. A field that does not look right is skipped; the local
+  /// value stands, which is the same outcome as the field being absent.
   Future<void> pull(String uid) async {
     final snapshot = await _doc(uid).get().timeout(_deadline);
     final data = snapshot.data();
     if (data == null) return;
 
-    final remoteTracker = (data['tracker'] as Map<String, dynamic>?) ?? {};
-    if (remoteTracker.isNotEmpty) {
-      _ref
-          .read(prayerTrackerProvider.notifier)
-          .mergeRemote(remoteTracker.map((k, v) => MapEntry(k, v == true)));
+    final remoteTracker = data['tracker'];
+    if (remoteTracker is Map) {
+      final entries = <String, bool>{
+        for (final entry in remoteTracker.entries)
+          if (entry.key is String) entry.key as String: entry.value == true,
+      };
+      // Key validation itself belongs to the notifier, which is the boundary
+      // every merge goes through.
+      if (entries.isNotEmpty) {
+        _ref.read(prayerTrackerProvider.notifier).mergeRemote(entries);
+      }
     }
 
     final remoteLifetime = data['tasbihLifetime'];
@@ -86,10 +99,14 @@ class SyncService {
           .mergeRemote(Map<String, dynamic>.from(remoteQuranProgress));
     }
 
-    final prefs = (data['preferences'] as Map<String, dynamic>?) ?? {};
-    final name = prefs['name'] as String?;
-    if (name != null && name.isNotEmpty) {
-      _ref.read(userNameProvider.notifier).update(name);
+    final remotePrefs = data['preferences'];
+    if (remotePrefs is Map) {
+      final name = remotePrefs['name'];
+      // Trimming and the length ceiling live in the notifier, for the same
+      // reason: settings writes through it too.
+      if (name is String && name.trim().isNotEmpty) {
+        _ref.read(userNameProvider.notifier).update(name);
+      }
     }
   }
 
